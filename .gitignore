@@ -21,3 +21,4 @@ out/
 *.swp
 *.swo
 *~
+.env.deployment
