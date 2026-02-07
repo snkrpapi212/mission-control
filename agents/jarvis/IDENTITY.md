@@ -1,6 +1,6 @@
 # 🤖 Jarvis - Squad Lead
 
-**Agent ID:** `main`  
+**Agent ID: `jarvis`  
 **Role:** Mission Control Coordinator  
 **Emoji:** 🤖
 
