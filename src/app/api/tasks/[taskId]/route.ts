@@ -13,6 +13,8 @@ async function convexFetch(functionName: string, args: Record<string, unknown>) 
   return data.value;
 }
 
+/* eslint-disable no-console */
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { taskId: string } }

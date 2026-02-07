@@ -13,9 +13,11 @@ async function convexFetch(functionName: string, args: Record<string, unknown>) 
   return data.value;
 }
 
-export async function GET(request: NextRequest) {
+/* eslint-disable no-console */
+
+export async function GET(req: NextRequest) {
   try {
-    const limit = request.nextUrl.searchParams.get("limit") || "20";
+    const limit = req.nextUrl.searchParams.get("limit") || "20";
     const activities = await convexFetch("activities/getRecent", {
       limit: parseInt(limit),
     });

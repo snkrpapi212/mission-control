@@ -13,7 +13,9 @@ async function convexFetch(functionName: string, args: Record<string, unknown>) 
   return data.value;
 }
 
-export async function GET(request: NextRequest) {
+/* eslint-disable no-console */
+
+export async function GET() {
   try {
     const agents = await convexFetch("agents/getAll", {});
     return NextResponse.json({ status: "success", data: agents });
