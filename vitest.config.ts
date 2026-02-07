@@ -7,7 +7,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    exclude: ['convex/tests/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

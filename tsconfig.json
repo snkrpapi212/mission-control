@@ -26,13 +26,17 @@
         "src/*"
       ]
     },
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "incremental": true
+    "incremental": true,
+    "allowJs": true,
+    "noEmit": true,
+    "moduleResolution": "node",
+    "isolatedModules": true
   },
   "include": [
     "next-env.d.ts",
@@ -41,6 +45,7 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "convex/**"
   ]
 }

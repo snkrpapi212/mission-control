@@ -11,8 +11,15 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:convex": "vitest run convex/tests",
     "typecheck": "tsc --noEmit",
-    "precommit": "npm run lint && npm test && npm run typecheck"
+    "precommit": "npm run lint && npm test && npm run typecheck",
+    "daemon:start": "pm2 start ecosystem.config.js",
+    "daemon:stop": "pm2 stop mc-notifications",
+    "daemon:restart": "pm2 restart mc-notifications",
+    "daemon:logs": "pm2 logs mc-notifications",
+    "daemon:status": "pm2 status",
+    "daemon:delete": "pm2 delete mc-notifications"
   },
   "keywords": [
     "ai",
@@ -29,20 +36,22 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.1.5",
-    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20.10.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.16",
     "convex-test": "^0.0.41",
     "eslint": "^8.56.0",
     "eslint-config-next": "^15.0.0",
     "jsdom": "^23.0.1",
+    "pm2": "^5.4.3",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vitest": "^1.6.1"
   }
 }

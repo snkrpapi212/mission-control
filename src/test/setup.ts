@@ -1,1 +1,2 @@
-import '@testing-library/jest-dom';
+// Vitest setup
+import "@testing-library/jest-dom/vitest";

@@ -1,0 +1,160 @@
+import type { Activity, Agent, Task, TaskStatus } from "@/types";
+
+const now = Date.now();
+
+export const mockAgents: Agent[] = [
+  {
+    _id: "agent_jarvis",
+    agentId: "jarvis",
+    name: "Jarvis",
+    role: "Squad Lead",
+    level: "lead",
+    status: "working",
+    currentTaskId: "task_1",
+    sessionKey: "agent:jarvis:main",
+    lastHeartbeat: now - 1000 * 60,
+    emoji: "🤖",
+  },
+  {
+    _id: "agent_shuri",
+    agentId: "shuri",
+    name: "Shuri",
+    role: "Product Analyst",
+    level: "specialist",
+    status: "idle",
+    sessionKey: "agent:shuri:main",
+    lastHeartbeat: now - 1000 * 60 * 5,
+    emoji: "🔍",
+  },
+  {
+    _id: "agent_friday",
+    agentId: "friday",
+    name: "Friday",
+    role: "Developer",
+    level: "specialist",
+    status: "working",
+    currentTaskId: "task_2",
+    sessionKey: "agent:friday:main",
+    lastHeartbeat: now - 1000 * 60 * 2,
+    emoji: "💻",
+  },
+  {
+    _id: "agent_wanda",
+    agentId: "wanda",
+    name: "Wanda",
+    role: "Designer",
+    level: "specialist",
+    status: "idle",
+    sessionKey: "agent:wanda:main",
+    lastHeartbeat: now - 1000 * 60 * 3,
+    emoji: "🎨",
+  },
+];
+
+export const mockTasks: Task[] = [
+  {
+    _id: "task_1",
+    title: "Define Phase 4 dashboard MVP",
+    description: "Kanban + agent sidebar + activity feed + realtime hooks",
+    status: "in_progress",
+    priority: "high",
+    assigneeIds: ["jarvis"],
+    subscriberIds: ["jarvis", "shuri"],
+    createdBy: "jarvis",
+    tags: ["phase-4", "ui"],
+    createdAt: now - 1000 * 60 * 60 * 6,
+    updatedAt: now - 1000 * 60 * 4,
+  },
+  {
+    _id: "task_2",
+    title: "Implement dashboard layout + components",
+    description: "Build core UI components with Tailwind",
+    status: "assigned",
+    priority: "medium",
+    assigneeIds: ["friday", "wanda"],
+    subscriberIds: ["friday", "wanda"],
+    createdBy: "jarvis",
+    tags: ["frontend"],
+    createdAt: now - 1000 * 60 * 60 * 3,
+    updatedAt: now - 1000 * 60 * 25,
+  },
+  {
+    _id: "task_3",
+    title: "Wire Convex client (optional if env set)",
+    description: "Use NEXT_PUBLIC_CONVEX_URL when available; otherwise mock data",
+    status: "inbox",
+    priority: "low",
+    assigneeIds: [],
+    subscriberIds: ["jarvis"],
+    createdBy: "jarvis",
+    tags: ["convex"],
+    createdAt: now - 1000 * 60 * 60,
+    updatedAt: now - 1000 * 60 * 60,
+  },
+  {
+    _id: "task_4",
+    title: "Add component tests",
+    description: "RTL/Vitest for Kanban rendering and sidebar",
+    status: "review",
+    priority: "medium",
+    assigneeIds: ["shuri"],
+    subscriberIds: ["shuri"],
+    createdBy: "jarvis",
+    tags: ["tests"],
+    createdAt: now - 1000 * 60 * 60 * 2,
+    updatedAt: now - 1000 * 60 * 14,
+  },
+  {
+    _id: "task_5",
+    title: "Ship Phase 4 MVP",
+    description: "Polish + empty states + docs",
+    status: "done",
+    priority: "urgent",
+    assigneeIds: ["jarvis", "friday"],
+    subscriberIds: ["jarvis", "friday"],
+    createdBy: "jarvis",
+    tags: ["release"],
+    createdAt: now - 1000 * 60 * 60 * 24,
+    updatedAt: now - 1000 * 60 * 60 * 2,
+  },
+];
+
+export const mockActivities: Activity[] = [
+  {
+    _id: "act_1",
+    type: "task_created",
+    agentId: "jarvis",
+    message: "Created task: Define Phase 4 dashboard MVP",
+    taskId: "task_1",
+    createdAt: now - 1000 * 60 * 60 * 6,
+  },
+  {
+    _id: "act_2",
+    type: "status_changed",
+    agentId: "friday",
+    message: "Moved task to assigned",
+    taskId: "task_2",
+    createdAt: now - 1000 * 60 * 30,
+  },
+  {
+    _id: "act_3",
+    type: "message_sent",
+    agentId: "shuri",
+    message: "Added test plan for dashboard components",
+    taskId: "task_4",
+    createdAt: now - 1000 * 60 * 14,
+  },
+];
+
+export function groupTasksByStatus(tasks: Task[]): Record<TaskStatus, Task[]> {
+  const map: Record<TaskStatus, Task[]> = {
+    inbox: [],
+    assigned: [],
+    in_progress: [],
+    review: [],
+    done: [],
+    blocked: [],
+  };
+  for (const task of tasks) map[task.status].push(task);
+  return map;
+}
