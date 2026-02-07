@@ -5,6 +5,7 @@ import { AgentSidebar } from "@/components/AgentSidebar";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
+import { CreateTaskModal } from "@/components/CreateTaskModal";
 import {
   useActivitiesLive,
   useAgentsLive,
@@ -20,6 +21,7 @@ export function DashboardShell() {
   const activities = useMemo(() => activitiesRaw || [], [activitiesRaw]);
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,16 +32,26 @@ export function DashboardShell() {
             <p className="text-xs text-gray-500 mt-0.5">Squad dashboard (Phase 4)</p>
           </div>
 
-          <div className="text-xs text-gray-500">
-            {process.env.NEXT_PUBLIC_CONVEX_URL ? (
-              <span className="text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded">
-                Convex connected
-              </span>
-            ) : (
-              <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
-                Mock data (set NEXT_PUBLIC_CONVEX_URL to connect Convex)
-              </span>
-            )}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="rounded-md bg-black px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+            >
+              + New Task
+            </button>
+            
+            <div className="text-xs text-gray-500">
+              {process.env.NEXT_PUBLIC_CONVEX_URL ? (
+                <span className="text-green-700 bg-green-50 border border-green-200 px-2 py-1 rounded">
+                  Convex connected
+                </span>
+              ) : (
+                <span className="text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded">
+                  Mock data (set NEXT_PUBLIC_CONVEX_URL to connect Convex)
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -64,6 +76,13 @@ export function DashboardShell() {
           task={selectedTask}
           agents={agents}
           onClose={() => setSelectedTask(null)}
+        />
+      ) : null}
+
+      {showCreateModal ? (
+        <CreateTaskModal
+          agents={agents}
+          onClose={() => setShowCreateModal(false)}
         />
       ) : null}
     </div>

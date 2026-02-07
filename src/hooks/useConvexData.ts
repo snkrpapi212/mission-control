@@ -58,3 +58,7 @@ export function useTaskMutations() {
 
   return { updateTask, createMessage, createDocument };
 }
+
+export function useCreateTask() {
+  return useMutation(api.tasks.create);
+}
