@@ -234,3 +234,4 @@ The deployment key in `.env.deployment` is invalid. You'll need to either:
 **Status:** Ready for final step (Convex deployment + seeding)  
 **Blocker:** Need valid CONVEX_DEPLOY_KEY from dashboard  
 **ETA to fully working:** ~2 minutes after getting deploy key
+# Dashboard rebuild Sat Feb  7 14:50:46 UTC 2026
