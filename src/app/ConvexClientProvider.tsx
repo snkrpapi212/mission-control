@@ -2,7 +2,9 @@
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+// Production Convex deployment - hardcoded to ensure it works in all environments
+const PRODUCTION_CONVEX_URL = "https://tidy-salamander-925.eu-west-1.convex.cloud";
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || PRODUCTION_CONVEX_URL;
 
 if (!convexUrl) {
   // eslint-disable-next-line no-console
