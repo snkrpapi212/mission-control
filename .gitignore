@@ -14,7 +14,6 @@ yarn-debug.log*
 yarn-error.log*
 .cache/
 .venv/
-convex/_generated/
 out/
 .vercel
 .idea/
