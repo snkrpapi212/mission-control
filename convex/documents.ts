@@ -49,7 +49,7 @@ export const update = mutation({
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const updates: Record<string, any> = {
+    const updates: Record<string, unknown> = {
       updatedAt: Date.now(),
     };
 

@@ -58,7 +58,7 @@ export const update = mutation({
       throw new Error("Task not found");
     }
 
-    const updates: Record<string, any> = {
+    const updates: Record<string, unknown> = {
       updatedAt: Date.now(),
     };
 

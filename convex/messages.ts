@@ -58,7 +58,9 @@ export const create = mutation({
 
     // Notify all subscribers except commenter
     if (task) {
-      const notifyIds = task.subscriberIds.filter((id) => id !== args.fromAgentId);
+      const notifyIds = task.subscriberIds.filter(
+        (id: string) => id !== args.fromAgentId
+      );
       for (const notifyId of notifyIds) {
         // Skip if already notified via mention
         if (args.mentions && args.mentions.includes(notifyId)) {

@@ -1,0 +1,148 @@
+{
+  "_comment": "OpenClaw Agent Configuration Patch - Add this to your agents.list array",
+  "_instructions": [
+    "1. Back up your current /data/.openclaw/openclaw.json",
+    "2. Open the file in an editor",
+    "3. Find the 'agents' section",
+    "4. Add these agent entries to the 'list' array",
+    "5. Restart OpenClaw gateway: openclaw gateway restart"
+  ],
+  "agents_to_add": [
+    {
+      "id": "main",
+      "name": "Jarvis",
+      "emoji": "🤖",
+      "description": "Squad Lead - coordinates all agents and assigns tasks",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/main",
+      "sandbox": false,
+      "default": true,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "product-analyst",
+      "name": "Shuri",
+      "emoji": "🔍",
+      "description": "Product Analyst - market research and competitive analysis",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/product-analyst",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "customer-researcher",
+      "name": "Fury",
+      "emoji": "🕵️",
+      "description": "Customer Researcher - user interviews and feedback synthesis",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/customer-researcher",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "seo-analyst",
+      "name": "Vision",
+      "emoji": "📊",
+      "description": "SEO Analyst - keyword research and search optimization",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/seo-analyst",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "content-writer",
+      "name": "Loki",
+      "emoji": "✍️",
+      "description": "Content Writer - blog posts, copy, and content strategy",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/content-writer",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "social-media",
+      "name": "Quill",
+      "emoji": "📱",
+      "description": "Social Media Manager - scheduling, engagement, and analytics",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/social-media",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "designer",
+      "name": "Wanda",
+      "emoji": "🎨",
+      "description": "Designer - mockups, wireframes, and brand assets",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/designer",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "email-marketing",
+      "name": "Pepper",
+      "emoji": "📧",
+      "description": "Email Marketing - campaigns, sequences, and newsletters",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/email-marketing",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "developer",
+      "name": "Friday",
+      "emoji": "💻",
+      "description": "Developer - coding, debugging, and deployments",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/developer",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    },
+    {
+      "id": "documentation",
+      "name": "Wong",
+      "emoji": "📚",
+      "description": "Documentation - docs, guides, and API references",
+      "model": "anthropic/claude-haiku-4-5-20251001",
+      "workspace": "/data/workspace/mission-control/agents/documentation",
+      "sandbox": false,
+      "thinking": {
+        "level": "low"
+      }
+    }
+  ],
+  "_example_usage": {
+    "description": "After adding these agents, you can interact with them via OpenClaw",
+    "commands": [
+      "openclaw chat @jarvis 'Check on the team'",
+      "openclaw chat @shuri 'Research our top 3 competitors'",
+      "openclaw chat @fury 'Summarize this week's user feedback'",
+      "openclaw chat @vision 'Find SEO opportunities for our blog'",
+      "openclaw chat @loki 'Write a blog post about feature X'",
+      "openclaw chat @quill 'Schedule social posts for next week'",
+      "openclaw chat @wanda 'Design a landing page mockup'",
+      "openclaw chat @pepper 'Create an onboarding email sequence'",
+      "openclaw chat @friday 'Deploy the latest changes'",
+      "openclaw chat @wong 'Document the new API endpoints'"
+    ]
+  }
+}

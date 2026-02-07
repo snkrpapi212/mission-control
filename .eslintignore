@@ -1,0 +1,5 @@
+# Generated / vendor
+convex/_generated/
+
+# Convex-test suites currently rely on import.meta.glob() and are not linted in Phase 4 UI.
+convex/tests/
