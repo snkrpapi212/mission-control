@@ -10,16 +10,17 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:convex": "vitest run convex/tests",
+    "test:coverage": "vitest run --coverage && vitest run --config vitest.config.convex.ts --coverage",
+    "test:convex": "vitest run --config vitest.config.convex.ts",
     "typecheck": "tsc --noEmit",
     "precommit": "npm run lint && npm test && npm run typecheck",
-    "daemon:start": "pm2 start ecosystem.config.js",
+    "daemon:start": "pm2 start ecosystem.config.cjs",
     "daemon:stop": "pm2 stop mc-notifications",
     "daemon:restart": "pm2 restart mc-notifications",
     "daemon:logs": "pm2 logs mc-notifications",
     "daemon:status": "pm2 status",
-    "daemon:delete": "pm2 delete mc-notifications"
+    "daemon:delete": "pm2 delete mc-notifications",
+    "test:all": "vitest run && vitest run --config vitest.config.convex.ts"
   },
   "keywords": [
     "ai",
@@ -36,6 +37,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.10.5",
