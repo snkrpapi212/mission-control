@@ -22,3 +22,4 @@ out/
 *.swo
 *~
 .env.deployment
+*.db
