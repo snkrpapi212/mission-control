@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || "https://tidy-salamander-925.eu-west-1.convex.cloud";
 
-async function convexFetch(functionName: string, args: Record<string, any>) {
+async function convexFetch(functionName: string, args: Record<string, unknown>) {
   const response = await fetch(`${CONVEX_URL}/api/run/${functionName}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -26,9 +26,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await req.json();
     const { title, description, priority, createdBy, assigneeIds } = body;
 
     if (!title || !description || !priority || !createdBy) {
