@@ -127,3 +127,13 @@ export const getAll = query({
     return await ctx.db.query("tasks").collect();
   },
 });
+
+export const clearAll = mutation({
+  handler: async (ctx) => {
+    const allTasks = await ctx.db.query("tasks").collect();
+    for (const task of allTasks) {
+      await ctx.db.delete(task._id);
+    }
+    return { deleted: allTasks.length };
+  },
+});
