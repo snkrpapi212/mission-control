@@ -61,3 +61,16 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE() {
+  try {
+    const result = await convexFetch("tasks/clearAll", {});
+    return NextResponse.json({ status: "success", message: "All tasks deleted", data: result });
+  } catch (error) {
+    console.error("Failed to clear tasks:", error);
+    return NextResponse.json(
+      { status: "error", message: String(error) },
+      { status: 500 }
+    );
+  }
+}
