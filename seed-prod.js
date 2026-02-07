@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Simple script to seed production Convex database
 
-const CONVEX_URL = "https://avid-husky-435.eu-west-1.convex.cloud";
+const CONVEX_URL = "https://tidy-salamander-925.eu-west-1.convex.cloud";
 
 async function callMutation(path, args) {
   const response = await fetch(`${CONVEX_URL}/api/mutation`, {
