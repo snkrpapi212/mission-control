@@ -236,3 +236,4 @@ The deployment key in `.env.deployment` is invalid. You'll need to either:
 **ETA to fully working:** ~2 minutes after getting deploy key
 # Dashboard rebuild Sat Feb  7 14:50:46 UTC 2026
 # Fixed Convex env var Sat Feb  7 14:51:23 UTC 2026
+# Trigger redeploy Sat Feb  7 15:17:55 UTC 2026
