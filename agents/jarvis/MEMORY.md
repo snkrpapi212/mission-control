@@ -4,6 +4,7 @@
 - **NEVER mention NOFX** in Mission Control context. NOFX is a separate project — do not reference it in commits, code, configs, or conversations about Mission Control.
 - Focus is **Mission Control and its agents only** unless explicitly told otherwise.
 - Always run `npm run lint` and `npm run build` before any git push.
+- **ALWAYS TEST locally before committing/pushing.** Do not add features and push without verifying they work.
 - User wants to see **real work output**, not just status updates.
 - Primary memory source: QMD (not yet found/configured), fallback to this MEMORY.md
 
@@ -64,3 +65,11 @@
 - Rejected tasks go back to `assigned` with feedback file
 - Database files (*.db) excluded from git
 - No audit trail yet in task model (would need timestamps: assignedAt, startedAt, completedAt, reviewedAt, reviewedBy)
+
+## Failed Attempts & Lessons (2026-02-07 19:12 UTC)
+- **Commits c86300d + 4d4124c:** Added clearAll() mutation and DELETE /api/tasks endpoint
+- **Problem:** Mutation not deployed to Convex; DELETE returns 500 errors
+- **Lesson:** Never commit untested features. Always test locally first with curl/manual testing
+- **Action needed:** Either:
+  1. Deploy Convex functions properly (convex deploy)
+  2. Or use simpler workaround (just create fresh tasks, ignore old ones in "done" status)
