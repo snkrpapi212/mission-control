@@ -238,3 +238,4 @@ The deployment key in `.env.deployment` is invalid. You'll need to either:
 # Fixed Convex env var Sat Feb  7 14:51:23 UTC 2026
 # Trigger redeploy Sat Feb  7 15:17:55 UTC 2026
 # Redeploy request 1770477715
+# Railway force redeploy 1770478677
