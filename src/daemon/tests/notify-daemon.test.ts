@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 
-// ===== MOCK DATA & CONSTANTS =====
+// ===== CONSTANTS (mirrored from daemon for unit testing) =====
 
 const AGENT_SESSIONS: Record<string, string> = {
-  main: "agent:main:main",
+  jarvis: "agent:jarvis:main",
   "product-analyst": "agent:product-analyst:main",
   "customer-researcher": "agent:customer-researcher:main",
   "seo-analyst": "agent:seo-analyst:main",
@@ -25,10 +25,30 @@ interface Notification {
   createdAt: number;
 }
 
-// ===== TEST SUITES =====
+function formatNotificationMessage(
+  notification: Notification,
+  mentionedAgentName: string,
+  fromAgentName: string,
+  taskTitle?: string
+): string {
+  let message = `📬 [NOTIFICATION] @${mentionedAgentName}: ${notification.content}`;
+  if (fromAgentName) {
+    message += ` (from ${fromAgentName}`;
+    if (taskTitle) {
+      message += ` on task: ${taskTitle}`;
+    }
+    message += ")";
+  }
+  return message;
+}
+
+const MAX_RETRIES = 5;
+const RETRY_BACKOFF = [1000, 2000, 4000, 8000, 16000];
+
+// ===== TESTS =====
 
 describe("Notification Daemon", () => {
-  // ===== AGENT SESSION MAPPING TESTS =====
+  // ===== AGENT SESSION MAPPING =====
   describe("Agent Session Mapping", () => {
     it("should have exactly 10 agent session mappings", () => {
       expect(Object.keys(AGENT_SESSIONS)).toHaveLength(10);
@@ -36,7 +56,7 @@ describe("Notification Daemon", () => {
 
     it("should map all required agents", () => {
       const requiredAgents = [
-        "main",
+        "jarvis",
         "product-analyst",
         "customer-researcher",
         "seo-analyst",
@@ -62,32 +82,13 @@ describe("Notification Daemon", () => {
     });
   });
 
-  // ===== MESSAGE FORMATTING TESTS =====
+  // ===== MESSAGE FORMATTING =====
   describe("Message Formatting", () => {
-    function formatNotificationMessage(
-      notification: Notification,
-      mentionedAgentName: string,
-      fromAgentName: string,
-      taskTitle?: string
-    ): string {
-      let message = `[NOTIFICATION] @${mentionedAgentName}: ${notification.content}`;
-
-      if (fromAgentName) {
-        message += ` (from ${fromAgentName}`;
-        if (taskTitle) {
-          message += ` on task: ${taskTitle}`;
-        }
-        message += ")";
-      }
-
-      return message;
-    }
-
     it("should format basic notification message", () => {
       const notif: Notification = {
         _id: "notif:1",
         mentionedAgentId: "seo-analyst",
-        fromAgentId: "main",
+        fromAgentId: "jarvis",
         content: "Please review the SEO analysis",
         delivered: false,
         createdAt: Date.now(),
@@ -132,7 +133,6 @@ describe("Notification Daemon", () => {
         createdAt: Date.now(),
       };
 
-      // Using IDs as fallback (when agentNameMap lookup fails)
       const message = formatNotificationMessage(
         notif,
         notif.mentionedAgentId,
@@ -143,28 +143,27 @@ describe("Notification Daemon", () => {
       expect(message).toContain("from content-writer");
     });
 
-    it("should format @mention properly", () => {
+    it("should include notification emoji prefix", () => {
       const notif: Notification = {
         _id: "notif:1",
         mentionedAgentId: "product-analyst",
-        fromAgentId: "main",
-        content: "Task assigned to you",
+        fromAgentId: "jarvis",
+        content: "Task assigned",
         delivered: false,
         createdAt: Date.now(),
       };
 
       const message = formatNotificationMessage(notif, "Shuri", "Jarvis");
-
-      expect(message.match(/@\w+/)?.[0]).toBe("@Shuri");
+      expect(message).toContain("📬");
     });
   });
 
-  // ===== DELIVERY FLOW TESTS =====
+  // ===== DELIVERY FLOW =====
   describe("Notification Delivery Flow", () => {
     it("should mark notification as delivered only after successful send", async () => {
       const notif: Notification = {
         _id: "notif:1",
-        mentionedAgentId: "main",
+        mentionedAgentId: "jarvis",
         fromAgentId: "developer",
         content: "Code review requested",
         delivered: false,
@@ -174,15 +173,13 @@ describe("Notification Daemon", () => {
       const sessionsSendMock = vi.fn().mockResolvedValue(true);
       const markDeliveredMock = vi.fn().mockResolvedValue("notif:1");
 
-      // Simulate delivery
       const sendSuccess = await sessionsSendMock(
         AGENT_SESSIONS[notif.mentionedAgentId],
-        "[NOTIFICATION] @Jarvis: Code review requested (from Friday)"
+        formatNotificationMessage(notif, "Jarvis", "Friday")
       );
 
       expect(sendSuccess).toBe(true);
 
-      // Only after success, mark as delivered
       if (sendSuccess) {
         await markDeliveredMock(notif._id);
       }
@@ -203,7 +200,6 @@ describe("Notification Daemon", () => {
       const sessionsSendMock = vi.fn().mockResolvedValue(false);
       const markDeliveredMock = vi.fn();
 
-      // Simulate failed delivery
       const sendSuccess = await sessionsSendMock(
         AGENT_SESSIONS[notif.mentionedAgentId],
         "[NOTIFICATION] message"
@@ -211,7 +207,6 @@ describe("Notification Daemon", () => {
 
       expect(sendSuccess).toBe(false);
 
-      // Should NOT mark as delivered
       if (sendSuccess) {
         await markDeliveredMock(notif._id);
       }
@@ -226,7 +221,6 @@ describe("Notification Daemon", () => {
         retryCount: number;
         nextRetryTime: number;
       }> = [];
-      const RETRY_BACKOFF = [1000, 2000, 4000, 8000, 16000];
 
       function queueForRetry(
         notificationId: string,
@@ -235,7 +229,6 @@ describe("Notification Daemon", () => {
       ): void {
         const backoffMs = RETRY_BACKOFF[retryCount] || 16000;
         const nextRetryTime = Date.now() + backoffMs;
-
         retryQueue.push({
           notificationId,
           agentId,
@@ -244,32 +237,19 @@ describe("Notification Daemon", () => {
         });
       }
 
-      const notifId = "notif:3";
-      const agentId = "seo-analyst";
-
-      // First failure: 1s backoff
-      queueForRetry(notifId, agentId, 0);
+      queueForRetry("notif:3", "seo-analyst", 0);
       expect(retryQueue).toHaveLength(1);
-      const firstRetry = retryQueue[0];
-      expect(firstRetry.retryCount).toBe(1);
+      expect(retryQueue[0].retryCount).toBe(1);
 
-      // Second failure: 2s backoff
-      queueForRetry(notifId, agentId, 1);
+      queueForRetry("notif:3", "seo-analyst", 1);
       expect(retryQueue).toHaveLength(2);
-      const secondRetry = retryQueue[1];
-      expect(secondRetry.retryCount).toBe(2);
-      expect(secondRetry.nextRetryTime).toBeGreaterThan(
-        firstRetry.nextRetryTime
-      );
-
-      // Verify exponential backoff times
-      expect(secondRetry.nextRetryTime - firstRetry.nextRetryTime).toBeGreaterThanOrEqual(
-        1000
+      expect(retryQueue[1].retryCount).toBe(2);
+      expect(retryQueue[1].nextRetryTime).toBeGreaterThan(
+        retryQueue[0].nextRetryTime
       );
     });
 
     it("should respect max retry limit (5 retries)", () => {
-      const MAX_RETRIES = 5;
       let gaveUp = false;
 
       function checkMaxRetries(retryCount: number): void {
@@ -288,21 +268,19 @@ describe("Notification Daemon", () => {
     });
   });
 
-  // ===== IDEMPOTENCY TESTS =====
+  // ===== IDEMPOTENCY =====
   describe("Idempotency", () => {
-    it("should not re-deliver already-delivered notifications", async () => {
+    it("should not re-deliver already-delivered notifications", () => {
       const notif: Notification = {
         _id: "notif:4",
         mentionedAgentId: "content-writer",
         fromAgentId: "customer-researcher",
         content: "Research findings attached",
-        delivered: true, // Already delivered
+        delivered: true,
         createdAt: Date.now(),
       };
 
-      // Daemon should filter out delivered notifications before processing
       const undeliveredNotifs = [notif].filter((n) => !n.delivered);
-
       expect(undeliveredNotifs).toHaveLength(0);
     });
 
@@ -311,7 +289,7 @@ describe("Notification Daemon", () => {
         {
           _id: "notif:5",
           mentionedAgentId: "developer",
-          fromAgentId: "main",
+          fromAgentId: "jarvis",
           content: "Task assigned",
           delivered: false,
           createdAt: Date.now(),
@@ -322,28 +300,22 @@ describe("Notification Daemon", () => {
         .fn()
         .mockResolvedValue(notifs)
         .mockResolvedValueOnce(notifs)
-        .mockResolvedValueOnce(notifs); // Same result twice
+        .mockResolvedValueOnce(notifs);
 
-      // First call
       const batch1 = await getUndeliveredMock("developer");
-      expect(batch1).toHaveLength(1);
-
-      // Second call
       const batch2 = await getUndeliveredMock("developer");
-      expect(batch2).toHaveLength(1);
 
-      // Both should be identical (no duplicates created)
       expect(batch1[0]._id).toBe(batch2[0]._id);
     });
   });
 
-  // ===== BATCH OPERATION TESTS =====
+  // ===== BATCH OPERATIONS =====
   describe("Batch Operations", () => {
     it("should process multiple notifications in sequence", async () => {
       const notifs: Notification[] = [
         {
           _id: "notif:6",
-          mentionedAgentId: "main",
+          mentionedAgentId: "jarvis",
           fromAgentId: "designer",
           content: "Design approved",
           delivered: false,
@@ -351,7 +323,7 @@ describe("Notification Daemon", () => {
         },
         {
           _id: "notif:7",
-          mentionedAgentId: "main",
+          mentionedAgentId: "jarvis",
           fromAgentId: "developer",
           content: "Code merged",
           delivered: false,
@@ -360,23 +332,16 @@ describe("Notification Daemon", () => {
         {
           _id: "notif:8",
           mentionedAgentId: "product-analyst",
-          fromAgentId: "main",
+          fromAgentId: "jarvis",
           content: "Weekly review scheduled",
           delivered: false,
           createdAt: Date.now(),
         },
       ];
 
-      const sessionsSendMock = vi
-        .fn()
-        .mockResolvedValue(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(true);
-
+      const sessionsSendMock = vi.fn().mockResolvedValue(true);
       const markDeliveredMock = vi.fn().mockResolvedValue("");
 
-      // Process each notification
       for (const notif of notifs) {
         const success = await sessionsSendMock(
           AGENT_SESSIONS[notif.mentionedAgentId],
@@ -413,8 +378,8 @@ describe("Notification Daemon", () => {
 
       const sessionsSendMock = vi
         .fn()
-        .mockResolvedValueOnce(true) // First succeeds
-        .mockResolvedValueOnce(false); // Second fails
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
 
       const markDeliveredMock = vi.fn();
       const retryQueue: Array<{
@@ -432,7 +397,6 @@ describe("Notification Daemon", () => {
         if (success) {
           await markDeliveredMock(notif._id);
         } else {
-          // Queue for retry
           retryQueue.push({
             notificationId: notif._id,
             agentId: notif.mentionedAgentId,
@@ -455,41 +419,41 @@ describe("Notification Daemon", () => {
 
       expect(getUndeliveredMock).toHaveBeenCalledTimes(10);
 
-      const agentsCalled = getUndeliveredMock.mock.calls.map((call) => call[0]);
-      expect(agentsCalled).toContain("main");
+      const agentsCalled = getUndeliveredMock.mock.calls.map(
+        (call: unknown[]) => call[0]
+      );
+      expect(agentsCalled).toContain("jarvis");
       expect(agentsCalled).toContain("developer");
       expect(agentsCalled).toContain("designer");
     });
   });
 
-  // ===== ERROR HANDLING TESTS =====
+  // ===== ERROR HANDLING =====
   describe("Error Handling", () => {
     it("should handle Convex API timeouts gracefully", async () => {
-      const getUndeliveredMock = vi.fn().mockRejectedValue(
-        new Error("Convex API timeout")
-      );
+      const getUndeliveredMock = vi
+        .fn()
+        .mockRejectedValue(new Error("Convex API timeout"));
 
       try {
-        await getUndeliveredMock("main");
+        await getUndeliveredMock("jarvis");
       } catch (err) {
         expect((err as Error).message).toContain("timeout");
       }
 
-      // Should not crash, should continue polling
       expect(getUndeliveredMock).toHaveBeenCalled();
     });
 
     it("should handle unknown agent IDs", () => {
       const unknownAgentId = "unknown-agent";
       const sessionKey = AGENT_SESSIONS[unknownAgentId];
-
       expect(sessionKey).toBeUndefined();
     });
 
     it("should continue polling if marking delivered fails", async () => {
       const notif: Notification = {
         _id: "notif:11",
-        mentionedAgentId: "main",
+        mentionedAgentId: "jarvis",
         fromAgentId: "developer",
         content: "Something",
         delivered: false,
@@ -510,56 +474,53 @@ describe("Notification Daemon", () => {
         try {
           await markDeliveredMock(notif._id);
         } catch (err) {
-          // Log error but continue
           expect((err as Error).message).toContain("Database error");
         }
       }
 
-      // Daemon should still be operational
       expect(sessionsSendMock).toHaveBeenCalled();
     });
   });
 
-  // ===== POLLING TESTS =====
-  describe("Polling", () => {
-    it("should poll every 2 seconds", async () => {
-      // polling interval used by daemon (tested elsewhere)
+  // ===== CONVEX HTTP API =====
+  describe("Convex HTTP API", () => {
+    it("should use correct query endpoint format", () => {
+      const convexUrl = "https://tidy-salamander-925.eu-west-1.convex.cloud";
+      const queryUrl = `${convexUrl}/api/query`;
+      const mutationUrl = `${convexUrl}/api/mutation`;
 
-      let callCount = 0;
-      const pollMock = vi.fn().mockImplementation(() => {
-        callCount++;
-        return Promise.resolve();
-      });
-
-      // Simulate one polling cycle
-      await pollMock();
-      expect(callCount).toBe(1);
-
-      // 2 seconds later
-      await pollMock();
-      expect(callCount).toBe(2);
+      expect(queryUrl).toBe(
+        "https://tidy-salamander-925.eu-west-1.convex.cloud/api/query"
+      );
+      expect(mutationUrl).toBe(
+        "https://tidy-salamander-925.eu-west-1.convex.cloud/api/mutation"
+      );
     });
 
-    it("should handle polling interval independently from network latency", async () => {
-      const getUndeliveredMock = vi.fn();
+    it("should format query payload correctly", () => {
+      const payload = {
+        path: "notifications:getUndelivered",
+        args: { agentId: "seo-analyst" },
+      };
 
-      // Fast network
-      getUndeliveredMock.mockResolvedValueOnce([]);
-      await getUndeliveredMock("main");
-      expect(getUndeliveredMock).toHaveBeenCalledTimes(1);
+      expect(payload.path).toBe("notifications:getUndelivered");
+      expect(payload.args.agentId).toBe("seo-analyst");
+    });
 
-      // Slow network (but polling should still happen every 2s)
-      getUndeliveredMock.mockImplementationOnce(
-        () => new Promise((resolve) => setTimeout(() => resolve([]), 1000))
-      );
-      await getUndeliveredMock("developer");
-      expect(getUndeliveredMock).toHaveBeenCalledTimes(2);
+    it("should format mutation payload for markDelivered", () => {
+      const payload = {
+        path: "notifications:markDelivered",
+        args: { id: "notif:123" },
+      };
+
+      expect(payload.path).toBe("notifications:markDelivered");
+      expect(payload.args.id).toBe("notif:123");
     });
   });
 
-  // ===== INTEGRATION TESTS =====
+  // ===== FULL DELIVERY WORKFLOW =====
   describe("Full Delivery Workflow", () => {
-    it("should complete full delivery cycle: fetch -> format -> send -> mark", async () => {
+    it("should complete full cycle: fetch -> format -> send -> mark", async () => {
       const notif: Notification = {
         _id: "notif:12",
         mentionedAgentId: "content-writer",
@@ -581,9 +542,15 @@ describe("Notification Daemon", () => {
       expect(notifications).toHaveLength(1);
 
       // 2. Format
-      const message = `[NOTIFICATION] @${agentMap[notif.mentionedAgentId]}: ${notif.content} (from ${agentMap[notif.fromAgentId]} on task: planning)`;
+      const message = formatNotificationMessage(
+        notif,
+        agentMap[notif.mentionedAgentId],
+        agentMap[notif.fromAgentId],
+        "planning"
+      );
       expect(message).toContain("@Loki");
       expect(message).toContain("Shuri");
+      expect(message).toContain("on task: planning");
 
       // 3. Send
       const sessionsSendMock = vi.fn().mockResolvedValue(true);

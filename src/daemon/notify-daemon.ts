@@ -1,7 +1,7 @@
 /**
  * Mission Control Notification Daemon
  * Polls Convex for undelivered notifications and delivers them to agent sessions
- * via OpenClaw's sessions_send mechanism.
+ * via OpenClaw's `openclaw agent` CLI.
  *
  * Features:
  * - Polls every 2 seconds
@@ -9,14 +9,22 @@
  * - Exponential backoff for failed deliveries (1s, 2s, 4s, 8s, 16s max)
  * - Idempotent: only marks as delivered after successful send
  * - Logs all attempts to /tmp/mission-control-daemon.log
+ *
+ * Environment:
+ * - CONVEX_URL: Convex deployment URL (required)
+ * - OPENCLAW_TOKEN: Gateway auth token (defaults to reading from openclaw.json)
+ * - OPENCLAW_PORT: Gateway port (default: 18789)
  */
 
 import * as fs from "fs";
+import { execFile } from "child_process";
+import { promisify } from "util";
+
+const execFileAsync = promisify(execFile);
 
 // ===== AGENT SESSION MAPPING =====
-// Maps agentId to OpenClaw session key (agent:{agentid}:main)
 const AGENT_SESSIONS: Record<string, string> = {
-  main: "agent:main:main",
+  jarvis: "agent:jarvis:main",
   "product-analyst": "agent:product-analyst:main",
   "customer-researcher": "agent:customer-researcher:main",
   "seo-analyst": "agent:seo-analyst:main",
@@ -62,8 +70,8 @@ function log(level: string, message: string, context?: unknown) {
   process.stdout.write(logLine);
   try {
     fs.appendFileSync(logFile, logLine);
-  } catch (err) {
-    process.stderr.write(`Failed to write to log file: ${err}\n`);
+  } catch {
+    // silently fail log writes
   }
 }
 
@@ -80,70 +88,108 @@ function warn(message: string, context?: unknown) {
 }
 
 // ===== CONVEX CLIENT =====
-// Import Convex client to fetch undelivered notifications
-const CONVEX_URL = process.env.CONVEX_URL;
-const CONVEX_API_KEY = process.env.CONVEX_API_KEY;
+const CONVEX_URL =
+  process.env.CONVEX_URL || "https://tidy-salamander-925.eu-west-1.convex.cloud";
 
-if (!CONVEX_URL || !CONVEX_API_KEY) {
-  error("Missing CONVEX_URL or CONVEX_API_KEY environment variables");
-  process.exit(1);
-}
-
-interface ConvexResponse<T> {
-  result?: T;
-  error?: string;
-}
-
-async function callConvexFunction<T>(
-  functionName: string,
+async function callConvexQuery<T>(
+  functionPath: string,
   args: Record<string, unknown>
 ): Promise<T> {
-  const url = new URL(CONVEX_URL!);
-  url.pathname = `/api/json/${functionName}`;
+  const url = `${CONVEX_URL}/api/query`;
 
-  const response = await fetch(url.toString(), {
+  const response = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Convex ${CONVEX_API_KEY}`,
-    },
-    body: JSON.stringify(args),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: functionPath, args }),
   });
 
   if (!response.ok) {
     throw new Error(
-      `Convex API error: ${response.status} ${response.statusText}`
+      `Convex query error: ${response.status} ${response.statusText}`
     );
   }
 
-  const data: ConvexResponse<T> = await response.json();
+  const data = await response.json();
 
-  if (data.error) {
-    throw new Error(`Convex error: ${data.error}`);
+  if (data.status === "error") {
+    throw new Error(`Convex error: ${data.errorMessage || JSON.stringify(data)}`);
   }
 
-  return data.result as T;
+  return data.value as T;
+}
+
+async function callConvexMutation<T>(
+  functionPath: string,
+  args: Record<string, unknown>
+): Promise<T> {
+  const url = `${CONVEX_URL}/api/mutation`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: functionPath, args }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Convex mutation error: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+
+  if (data.status === "error") {
+    throw new Error(`Convex error: ${data.errorMessage || JSON.stringify(data)}`);
+  }
+
+  return data.value as T;
 }
 
 // ===== OPENCLAW SESSION SEND =====
-// Note: In real implementation, this would use OpenClaw's sessions_send API
-// For now, we'll create a mock that logs what would be sent
-async function sendToSession(sessionKey: string, message: string): Promise<boolean> {
+/**
+ * Send a message to an agent session via `openclaw agent` CLI.
+ * This is the real delivery mechanism — it injects a message into
+ * the agent's session so they see it on their next turn.
+ */
+async function sendToSession(
+  sessionKey: string,
+  agentId: string,
+  message: string
+): Promise<boolean> {
   try {
-    // In production, this would call OpenClaw's sessions_send:
-    // POST /api/sessions/{sessionKey}/send with message body
-    //
-    // For testing/demo, we'll just log it and pretend success
-    info("Session send attempted", { sessionKey, messageLength: message.length });
+    const { stdout, stderr } = await execFileAsync("openclaw", [
+      "agent",
+      "--session-id",
+      sessionKey,
+      "--agent",
+      agentId,
+      "--message",
+      message,
+      "--json",
+      "--timeout",
+      "30",
+    ], {
+      timeout: 35000,
+      env: { ...process.env, PATH: process.env.PATH || "/usr/local/bin:/usr/bin:/bin" },
+    });
 
-    // Simulate occasional failures for retry testing
-    // Uncomment for testing: if (Math.random() < 0.1) throw new Error("Simulated failure");
+    if (stderr && stderr.includes("error")) {
+      warn("openclaw agent stderr", { sessionKey, stderr: stderr.slice(0, 200) });
+    }
+
+    info("Session send success", {
+      sessionKey,
+      agentId,
+      responseLength: stdout?.length || 0,
+    });
 
     return true;
   } catch (err) {
+    const errMsg = (err as Error).message || String(err);
     error("Session send failed", {
       sessionKey,
-      error: (err as Error).message,
+      agentId,
+      error: errMsg.slice(0, 300),
     });
     return false;
   }
@@ -153,7 +199,6 @@ async function sendToSession(sessionKey: string, message: string): Promise<boole
 
 /**
  * Format notification message for delivery
- * Template: "[NOTIFICATION] @{mentionedAgent}: {content} (from {fromAgent} on task: {taskTitle})"
  */
 function formatNotificationMessage(
   notification: Notification,
@@ -161,7 +206,7 @@ function formatNotificationMessage(
   fromAgentName: string,
   taskTitle?: string
 ): string {
-  let message = `[NOTIFICATION] @${mentionedAgentName}: ${notification.content}`;
+  let message = `📬 [NOTIFICATION] @${mentionedAgentName}: ${notification.content}`;
 
   if (fromAgentName) {
     message += ` (from ${fromAgentName}`;
@@ -184,7 +229,9 @@ async function deliverNotification(
   const sessionKey = AGENT_SESSIONS[notification.mentionedAgentId];
 
   if (!sessionKey) {
-    error("Unknown agent ID", { agentId: notification.mentionedAgentId });
+    error("Unknown agent ID — no session mapping", {
+      agentId: notification.mentionedAgentId,
+    });
     return false;
   }
 
@@ -199,12 +246,15 @@ async function deliverNotification(
     fromAgentName
   );
 
-  const success = await sendToSession(sessionKey, message);
+  const success = await sendToSession(
+    sessionKey,
+    notification.mentionedAgentId,
+    message
+  );
 
   if (success) {
-    // Only mark as delivered after successful send
     try {
-      await callConvexFunction("notifications.markDelivered", {
+      await callConvexMutation("notifications:markDelivered", {
         id: notification._id,
       });
 
@@ -216,10 +266,12 @@ async function deliverNotification(
 
       return true;
     } catch (err) {
-      error("Failed to mark notification as delivered", {
+      error("Failed to mark notification as delivered in Convex", {
         notificationId: notification._id,
         error: (err as Error).message,
       });
+      // Message was sent but not marked — it may get re-delivered.
+      // That's safer than missing a delivery.
       return false;
     }
   }
@@ -269,8 +321,8 @@ async function fetchUndeliveredNotifications(
   agentId: string
 ): Promise<Notification[]> {
   try {
-    const notifications = await callConvexFunction<Notification[]>(
-      "notifications.getUndelivered",
+    const notifications = await callConvexQuery<Notification[]>(
+      "notifications:getUndelivered",
       { agentId }
     );
     return notifications || [];
@@ -284,13 +336,13 @@ async function fetchUndeliveredNotifications(
 }
 
 /**
- * Fetch all agents to build name map for formatting
+ * Fetch all agents to build name map
  */
 async function fetchAgentNames(): Promise<Record<string, string>> {
   try {
-    const agents = await callConvexFunction<
+    const agents = await callConvexQuery<
       Array<{ agentId: string; name: string }>
-    >("agents.getAll", {});
+    >("agents:getAll", {});
 
     const nameMap: Record<string, string> = {};
     for (const agent of agents || []) {
@@ -305,65 +357,64 @@ async function fetchAgentNames(): Promise<Record<string, string>> {
   }
 }
 
-/**
- * Main polling loop
- */
+// ===== STATS =====
+const stats = {
+  cyclesRun: 0,
+  notificationsDelivered: 0,
+  deliveryFailures: 0,
+  startTime: Date.now(),
+};
+
+// ===== MAIN POLLING LOOP =====
+
 async function pollAndDeliver(): Promise<void> {
   try {
-    info("Starting notification delivery cycle");
-
-    // Fetch agent names for message formatting
-    const agentNameMap = await fetchAgentNames();
-
     // Process retry queue first
     const now = Date.now();
-    const readyForRetry = retryQueue.filter((entry) => entry.nextRetryTime <= now);
-
-    info("Checking retry queue", {
-      total: retryQueue.length,
-      ready: readyForRetry.length,
-    });
+    const readyForRetry = retryQueue.filter(
+      (entry) => entry.nextRetryTime <= now
+    );
 
     for (const entry of readyForRetry) {
-      // Remove from queue (will be re-queued if fails again)
       const index = retryQueue.indexOf(entry);
-      if (index > -1) {
-        retryQueue.splice(index, 1);
-      }
+      if (index > -1) retryQueue.splice(index, 1);
 
-      // Try to fetch and re-deliver
-      // Note: In production, we'd fetch the specific notification by ID
-      // For now, we'll re-fetch all undelivered and match by ID
       const notifications = await fetchUndeliveredNotifications(entry.agentId);
       const notif = notifications.find((n) => n._id === entry.notificationId);
 
       if (notif) {
+        const agentNameMap = await fetchAgentNames();
         const success = await deliverNotification(notif, agentNameMap);
         if (!success) {
           queueForRetry(entry.notificationId, entry.agentId, entry.retryCount);
+          stats.deliveryFailures++;
+        } else {
+          stats.notificationsDelivered++;
         }
-      } else {
-        info("Notification not found (may be already delivered)", {
-          notificationId: entry.notificationId,
-        });
       }
     }
 
-    // Poll for new undelivered notifications for each agent
+    // Poll all agents for new undelivered notifications
+    let totalNew = 0;
+    const agentNameMap = await fetchAgentNames();
+
     for (const agentId of Object.keys(AGENT_SESSIONS)) {
       try {
         const notifications = await fetchUndeliveredNotifications(agentId);
 
         if (notifications.length > 0) {
-          info("Found undelivered notifications", {
-            agentId,
-            count: notifications.length,
-          });
+          totalNew += notifications.length;
 
           for (const notification of notifications) {
-            const success = await deliverNotification(notification, agentNameMap);
+            const success = await deliverNotification(
+              notification,
+              agentNameMap
+            );
             if (!success) {
               queueForRetry(notification._id, agentId, 0);
+              stats.deliveryFailures++;
+            } else {
+              stats.notificationsDelivered++;
             }
           }
         }
@@ -375,83 +426,64 @@ async function pollAndDeliver(): Promise<void> {
       }
     }
 
-    info("Notification delivery cycle complete", {
-      queueLength: retryQueue.length,
-    });
+    if (totalNew > 0 || readyForRetry.length > 0) {
+      info("Cycle complete", {
+        newNotifications: totalNew,
+        retriesProcessed: readyForRetry.length,
+        queueLength: retryQueue.length,
+        totalDelivered: stats.notificationsDelivered,
+      });
+    }
   } catch (err) {
     error("Error in polling loop", { error: (err as Error).message });
   }
 }
 
-// ===== HEALTH CHECK & METRICS =====
-
-interface DaemonStats {
-  uptime: number;
-  cyclesRun: number;
-  notificationsProcessed: number;
-  successfulDeliveries: number;
-  failedDeliveries: number;
-  retryQueueLength: number;
-  lastCycleTime: number;
-}
-
-const stats: DaemonStats = {
-  uptime: 0,
-  cyclesRun: 0,
-  notificationsProcessed: 0,
-  successfulDeliveries: 0,
-  failedDeliveries: 0,
-  retryQueueLength: 0,
-  lastCycleTime: 0,
-};
-
-const startTime = Date.now();
-
-function getStats(): DaemonStats {
-  return {
-    ...stats,
-    uptime: Date.now() - startTime,
-  };
-}
-
-// ===== MAIN DAEMON LOOP =====
+// ===== DAEMON START =====
 
 async function start(): Promise<void> {
-  info("Notification Daemon starting", {
-    convexUrl: CONVEX_URL?.split("?")[0], // Hide API key
+  info("🚀 Notification Daemon starting", {
+    convexUrl: CONVEX_URL,
     agents: Object.keys(AGENT_SESSIONS).length,
     pollingInterval: POLLING_INTERVAL,
   });
 
-  // Initial delivery cycle
+  // Initial cycle
   await pollAndDeliver();
 
-  // Set up recurring polling
+  // Recurring polling
   setInterval(async () => {
     stats.cyclesRun++;
-    const cycleStart = Date.now();
-
     await pollAndDeliver();
-
-    stats.lastCycleTime = Date.now() - cycleStart;
   }, POLLING_INTERVAL);
 
-  info("Notification Daemon started successfully");
+  info("Notification Daemon running");
 
   // Graceful shutdown
-  process.on("SIGTERM", () => {
-    info("Received SIGTERM, shutting down gracefully", getStats());
+  const shutdown = (signal: string) => {
+    info(`Received ${signal}, shutting down`, {
+      uptime: Date.now() - stats.startTime,
+      ...stats,
+    });
     process.exit(0);
-  });
+  };
 
-  process.on("SIGINT", () => {
-    info("Received SIGINT, shutting down gracefully", getStats());
-    process.exit(0);
-  });
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 }
 
-// Start the daemon
 start().catch((err) => {
   error("Fatal error starting daemon", { error: err.message });
   process.exit(1);
 });
+
+// Export for testing
+export {
+  AGENT_SESSIONS,
+  formatNotificationMessage,
+  queueForRetry,
+  POLLING_INTERVAL,
+  MAX_RETRIES,
+  RETRY_BACKOFF,
+};
+export type { Notification, RetryEntry };
