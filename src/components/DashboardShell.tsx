@@ -1,14 +1,25 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
-import { useAgents, useRecentActivities, useTasksByStatus } from "@/hooks/useMissionControlData";
+import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
+import {
+  useActivitiesLive,
+  useAgentsLive,
+  useTasksByStatusLive,
+} from "@/hooks/useConvexData";
 
 export function DashboardShell() {
-  const agents = useAgents();
-  const tasksByStatus = useTasksByStatus();
-  const activities = useRecentActivities(20);
+  const agentsRaw = useAgentsLive();
+  const tasksByStatus = useTasksByStatusLive();
+  const activitiesRaw = useActivitiesLive(20);
+
+  const agents = useMemo(() => agentsRaw || [], [agentsRaw]);
+  const activities = useMemo(() => activitiesRaw || [], [activitiesRaw]);
+
+  const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,12 +49,23 @@ export function DashboardShell() {
           <AgentSidebar agents={agents} />
 
           <main className="flex-1 p-4">
-            <KanbanBoard tasksByStatus={tasksByStatus} />
+            <KanbanBoard
+              tasksByStatus={tasksByStatus}
+              onSelectTask={(t) => setSelectedTask(t)}
+            />
           </main>
 
           <ActivityFeed activities={activities} />
         </div>
       </div>
+
+      {selectedTask ? (
+        <TaskDetailDrawer
+          task={selectedTask}
+          agents={agents}
+          onClose={() => setSelectedTask(null)}
+        />
+      ) : null}
     </div>
   );
 }

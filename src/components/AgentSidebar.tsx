@@ -1,9 +1,9 @@
 "use client";
 
-import type { Agent } from "@/types";
+import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
 
-function statusDot(status: Agent["status"]) {
+function statusDot(status: Doc<"agents">["status"]) {
   switch (status) {
     case "idle":
       return "bg-gray-400";
@@ -14,7 +14,7 @@ function statusDot(status: Agent["status"]) {
   }
 }
 
-export function AgentSidebar({ agents }: { agents: Agent[] }) {
+export function AgentSidebar({ agents }: { agents: Doc<"agents">[] }) {
   return (
     <aside className="w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r border-gray-200 bg-white">
       <div className="p-4">

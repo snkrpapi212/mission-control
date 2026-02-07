@@ -1,9 +1,9 @@
 "use client";
 
-import type { Task } from "@/types";
+import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
 
-function priorityBadge(priority: Task["priority"]) {
+function priorityBadge(priority: Doc<"tasks">["priority"]) {
   switch (priority) {
     case "low":
       return "bg-gray-100 text-gray-700";
@@ -16,9 +16,19 @@ function priorityBadge(priority: Task["priority"]) {
   }
 }
 
-export function TaskCard({ task }: { task: Task }) {
+export function TaskCard({
+  task,
+  onClick,
+}: {
+  task: Doc<"tasks">;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm hover:shadow transition-shadow">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left rounded-lg border border-gray-200 bg-white p-3 shadow-sm hover:shadow transition-shadow"
+    >
       <div className="flex items-start justify-between gap-2">
         <h4 className="text-sm font-semibold text-gray-900 leading-snug">
           {task.title}
@@ -32,13 +42,18 @@ export function TaskCard({ task }: { task: Task }) {
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap gap-1">
           {task.tags.slice(0, 3).map((t) => (
-            <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700">
+            <span
+              key={t}
+              className="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700"
+            >
               {t}
             </span>
           ))}
         </div>
-        <div className="text-[11px] text-gray-500">updated {timeAgo(task.updatedAt)}</div>
+        <div className="text-[11px] text-gray-500">
+          updated {timeAgo(task.updatedAt)}
+        </div>
       </div>
-    </div>
+    </button>
   );
 }

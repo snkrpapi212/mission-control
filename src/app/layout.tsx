@@ -1,8 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next";
+import "./globals.css";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 
 export const metadata: Metadata = {
-  title: 'Mission Control',
-  description: 'Multi-agent AI squad management dashboard',
+  title: "Mission Control",
+  description: "Multi-agent AI squad management dashboard",
 };
 
 export default function RootLayout({
@@ -12,8 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-cream text-dark">
-        {children}
+      <body>
+        <ConvexClientProvider>{children}</ConvexClientProvider>
       </body>
     </html>
   );
