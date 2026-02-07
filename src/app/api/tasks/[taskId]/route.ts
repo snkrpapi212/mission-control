@@ -17,14 +17,15 @@ async function convexFetch(functionName: string, args: Record<string, unknown>) 
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { taskId: string } }
+  { params }: { params: Promise<{ taskId: string }> }
 ) {
   try {
+    const { taskId } = await params;
     const body = await req.json();
     const { status, priority, assigneeIds } = body;
 
     const updatedTask = await convexFetch("tasks/update", {
-      id: params.taskId,
+      id: taskId,
       agentId: "main", // System update
       ...(status && { status }),
       ...(priority && { priority }),
