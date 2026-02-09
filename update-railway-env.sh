@@ -10,4 +10,4 @@ SERVICE_ID="b80cac52-1362-4264-8551-6ec2b7b3e90b"
 curl -X POST https://backboard.railway.app/graphql/v2 \
   -H "Authorization: Bearer $RAILWAY_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"query":"mutation { variableUpsert(input: { projectId: \"'$PROJECT_ID'\", environmentId: \"'$ENVIRONMENT_ID'\", serviceId: \"'$SERVICE_ID'\", name: \"NEXT_PUBLIC_CONVEX_URL\", value: \"https://impartial-minnow-445.eu-west-1.convex.cloud\" }) }"}'
+  -d '{"query":"mutation { variableUpsert(input: { projectId: \"'$PROJECT_ID'\", environmentId: \"'$ENVIRONMENT_ID'\", serviceId: \"'$SERVICE_ID'\", name: \"NEXT_PUBLIC_CONVEX_URL\", value: \"https://tidy-salamander-925.eu-west-1.convex.cloud\" }) }"}'
