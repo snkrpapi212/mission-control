@@ -73,3 +73,13 @@
 - **Action needed:** Either:
   1. Deploy Convex functions properly (convex deploy)
   2. Or use simpler workaround (just create fresh tasks, ignore old ones in "done" status)
+
+## Local Convex Setup (2026-02-07 20:47 UTC)
+- **Switched to local Convex** for testing: `http://127.0.0.1:3210`
+- **Start command:** `cd /data/workspace/mission-control && CONVEX_DEPLOYMENT=anonymous:anonymous-mission-control npx convex dev --tail-logs disable`
+- **Local dashboard:** `http://127.0.0.1:6790/?d=anonymous-mission-control`
+- **.env.local** updated to point to local: `NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210`
+- **All CRUD operations work** including clearAll/DELETE
+- **Full autonomous loop verified:** create → dispatcher → agent works → review → approved → done
+- **Next.js dev server:** `PORT=3000 NEXT_PUBLIC_CONVEX_URL=http://127.0.0.1:3210 npm run dev`
+- **Cloud prod** still at `tidy-salamander-925` (deploy key expired, needs refresh from dashboard)

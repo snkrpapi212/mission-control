@@ -35,3 +35,13 @@ export const getRecent = query({
     return activities;
   },
 });
+
+export const clearAll = mutation({
+  handler: async (ctx) => {
+    const allActivities = await ctx.db.query("activities").collect();
+    for (const activity of allActivities) {
+      await ctx.db.delete(activity._id);
+    }
+    return { deleted: allActivities.length };
+  },
+});

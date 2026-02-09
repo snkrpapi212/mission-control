@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow AI - Boost Your Productivity by 10x</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 20px;
+            text-align: center;
+        }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 20px; font-weight: 700; }
+        .hero p { font-size: 1.5rem; margin-bottom: 40px; opacity: 0.9; max-width: 700px; margin-left: auto; margin-right: auto; }
+        .hero-cta {
+            background: #fff;
+            color: #667eea;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        /* Social Proof */
+        .social-proof { background: #f8f9fa; padding: 60px 20px; text-align: center; }
+        .social-proof h2 { color: #666; font-size: 1.2rem; margin-bottom: 30px; font-weight: 400; }
+        .logos { display: flex; justify-content: center; gap: 50px; flex-wrap: wrap; opacity: 0.6; }
+        .logo { font-size: 1.5rem; font-weight: 700; color: #999; }
+        
+        /* Features Section */
+        .features { padding: 100px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.5rem; margin-bottom: 60px; color: #333; }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
+        .feature-card {
+            padding: 40px;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .feature-card:hover { transform: translateY(-5px); }
+        .feature-icon { font-size: 3rem; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 1.4rem; margin-bottom: 15px; color: #333; }
+        .feature-card p { color: #666; }
+        
+        /* Benefits Section */
+        .benefits { background: #f8f9fa; padding: 100px 20px; }
+        .benefits-container { max-width: 1000px; margin: 0 auto; }
+        .benefits-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .benefit-item { display: flex; align-items: flex-start; gap: 15px; }
+        .benefit-check { color: #28a745; font-size: 1.5rem; font-weight: bold; }
+        .benefit-text h4 { margin-bottom: 5px; color: #333; }
+        .benefit-text p { color: #666; font-size: 0.95rem; }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+        }
+        .cta-section h2 { font-size: 2.5rem; margin-bottom: 20px; }
+        .cta-section p { font-size: 1.2rem; margin-bottom: 30px; opacity: 0.9; }
+        .cta-button {
+            background: #fff;
+            color: #667eea;
+            padding: 18px 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cta-button:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        /* Pricing Preview */
+        .pricing { padding: 100px 20px; max-width: 1100px; margin: 0 auto; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        .pricing-card {
+            padding: 40px;
+            border-radius: 16px;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+        .pricing-card.featured { border-color: #667eea; position: relative; }
+        .pricing-card.featured::before {
+            content: "MOST POPULAR";
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
+        .price { font-size: 3rem; font-weight: 700; color: #667eea; }
+        .price span { font-size: 1rem; color: #666; font-weight: 400; }
+        .pricing-features { list-style: none; margin: 30px 0; text-align: left; }
+        .pricing-features li { padding: 10px 0; border-bottom: 1px solid #e9ecef; }
+        .pricing-features li:last-child { border: none; }
+        .pricing-button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pricing-card:not(.featured) .pricing-button { background: transparent; color: #667eea; }
+        .pricing-button:hover { opacity: 0.9; }
+        
+        /* Footer */
+        footer { background: #333; color: white; padding: 40px 20px; text-align: center; }
+        footer p { opacity: 0.7; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1.2rem; }
+            .section-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>TaskFlow AI</h1>
+        <p>Your intelligent productivity partner. Automate tasks, organize work, and achieve more with AI that understands your workflow.</p>
+        <button class="hero-cta">Start Free — No Credit Card</button>
+        <p style="font-size: 0.9rem; margin-top: 20px; opacity: 0.8;">Join 10,000+ productive teams</p>
+    </section>
+    
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <h2>TRUSTED BY TEAMS AT</h2>
+        <div class="logos">
+            <span class="logo">Acme Corp</span>
+            <span class="logo">TechStart</span>
+            <span class="logo">GlobalCo</span>
+            <span class="logo">Innovate Inc</span>
+            <span class="logo">FutureLabs</span>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <h2 class="section-title">Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI-Powered Automation</h3>
+                <p>Let AI handle repetitive tasks. Automatically categorize, prioritize, and delegate work based on your preferences.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Smart Analytics</h3>
+                <p>Get insights into your productivity patterns. Understand when you work best and optimize your schedule.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔗</div>
+                <h3>Universal Integration</h3>
+                <p>Connects with 500+ tools you already use. Slack, Notion, Jira, Google Workspace, and more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Goal Tracking</h3>
+                <p>Set goals and let AI track progress automatically. Receive gentle reminders and celebrate wins.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Natural Language Commands</h3>
+                <p>Just type what you need. "Schedule a meeting with John tomorrow at 2pm" — done.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>Your data stays yours. Enterprise-grade security with optional local processing.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="benefits-container">
+            <h2 class="section-title">Why TaskFlow AI?</h2>
+            <div class="benefits-list">
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Save 10+ Hours Weekly</h4>
+                        <p>Automate busywork and focus on what matters most.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Never Miss a Deadline</h4>
+                        <p>Smart reminders and predictive scheduling keep you on track.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Reduce Stress</h4>
+                        <p>Clear priorities and organized tasks mean less mental load.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Team Collaboration</h4>
+                        <p>Share workspaces and coordinate effortlessly with AI assistance.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Works Offline</h4>
+                        <p>Stay productive even without internet. Sync when you're back online.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <span class="benefit-check">✓</span>
+                    <div class="benefit-text">
+                        <h4>Setup in Minutes</h4>
+                        <p>No complex configuration. Connect your tools and start instantly.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2>Ready to Boost Your Productivity?</h2>
+        <p>Join thousands of teams who've already transformed their workflow.</p>
+        <button class="cta-button">Get Started Free</button>
+    </section>
+    
+    <!-- Pricing Preview -->
+    <section class="pricing">
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <h3>Free</h3>
+                <div class="price">$0<span>/month</span></div>
+                <ul class="pricing-features">
+                    <li>✓ Unlimited tasks</li>
+                    <li>✓ 5 AI automations/month</li>
+                    <li>✓ Basic analytics</li>
+                    <li>✓ 2 team members</li>
+                    <li>✓ Email support</li>
+                </ul>
+                <button class="pricing-button">Get Started</button>
+            </div>
+            <div class="pricing-card featured">
+                <h3>Pro</h3>
+                <div class="price">$12<span>/user/month</span></div>
+                <ul class="pricing-features">
+                    <li>✓ Everything in Free</li>
+                    <li>✓ Unlimited AI automations</li>
+                    <li>✓ Advanced analytics</li>
+                    <li>✓ Unlimited team members</li>
+                    <li>✓ Priority support</li>
+                    <li>✓ Custom integrations</li>
+                </ul>
+                <button class="pricing-button">Start Free Trial</button>
+            </div>
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="price">Custom</div>
+                <ul class="pricing-features">
+                    <li>✓ Everything in Pro</li>
+                    <li>✓ SSO & SAML</li>
+                    <li>✓ Dedicated success manager</li>
+                    <li>✓ Custom AI training</li>
+                    <li>✓ SLA guarantee</li>
+                    <li>✓ On-premise option</li>
+                </ul>
+                <button class="pricing-button">Contact Sales</button>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 TaskFlow AI. All rights reserved.</p>
+    </footer>
+</body>
+</html>
