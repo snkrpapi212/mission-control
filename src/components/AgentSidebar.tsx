@@ -3,14 +3,20 @@
 import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
 
-function statusDot(status: Doc<"agents">["status"]) {
+const ONLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+
+function statusDot(status: Doc<"agents">["status"], lastHeartbeat: number) {
+  const isOnline = Date.now() - lastHeartbeat < ONLINE_THRESHOLD_MS;
+
+  if (!isOnline) return "bg-gray-400"; // offline
+
   switch (status) {
     case "idle":
-      return "bg-gray-400";
+      return "bg-green-500"; // online & idle
     case "working":
-      return "bg-green-500";
+      return "bg-green-500 animate-pulse"; // online & working
     case "blocked":
-      return "bg-red-500";
+      return "bg-red-500"; // online but blocked
   }
 }
 
@@ -37,7 +43,7 @@ export function AgentSidebar({ agents }: { agents: Doc<"agents">[] }) {
                   <span className="text-xs text-gray-500">{" "}· {a.role}</span>
                 </div>
                 <span
-                  className={`inline-block h-2.5 w-2.5 rounded-full ${statusDot(a.status)}`}
+                  className={`inline-block h-2.5 w-2.5 rounded-full ${statusDot(a.status, a.lastHeartbeat)}`}
                   aria-label={`status-${a.status}`}
                 />
               </div>
