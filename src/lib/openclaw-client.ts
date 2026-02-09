@@ -216,8 +216,8 @@ export async function checkHealth(): Promise<{
   error?: string;
 }> {
   try {
-    const result = await gatewayCall<{ ok: boolean }>("health", {}, 10000);
-    return { ok: true, ...result };
+    await gatewayCall<{ ok: boolean }>("health", {}, 10000);
+    return { ok: true };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
@@ -237,7 +237,7 @@ export async function sendToAgent(
       "sessions.send",
       { sessionKey: key, message }
     );
-    return { ok: true, ...result };
+    return { ok: result.ok !== false, error: result.error };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
