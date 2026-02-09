@@ -1,14 +1,16 @@
 /**
  * OpenClaw Gateway Client
- * Connects Mission Control to OpenClaw via WebSocket Gateway RPC.
+ * Connects Mission Control to OpenClaw via WebSocket Gateway protocol v3.
  *
  * Environment variables:
- * - NEXT_PUBLIC_OPENCLAW_GATEWAY_URL: Gateway URL (https://xxx.trycloudflare.com)
- * - OPENCLAW_GATEWAY_PASSWORD: Shared password for auth
- * - OPENCLAW_GATEWAY_TOKEN: Alternative token auth
+ * - NEXT_PUBLIC_OPENCLAW_GATEWAY_URL: Gateway URL (https://xxx.up.railway.app)
+ * - OPENCLAW_GATEWAY_TOKEN: Auth token for gateway
+ * - OPENCLAW_GATEWAY_PASSWORD: Alternative password auth (token preferred)
  */
 
 import WebSocket from "ws";
+
+let reqCounter = 0;
 
 function getWsUrl(): string {
   const url =
@@ -18,120 +20,190 @@ function getWsUrl(): string {
   return url.replace(/^https/, "wss").replace(/^http/, "ws");
 }
 
+function getOriginUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_URL ||
+    process.env.OPENCLAW_GATEWAY_URL ||
+    "http://localhost:18789"
+  );
+}
+
 function getAuthPayload(): Record<string, string> {
-  const password = process.env.OPENCLAW_GATEWAY_PASSWORD;
   const token = process.env.OPENCLAW_GATEWAY_TOKEN;
-  if (token) return { type: "token", token };
-  if (password) return { type: "password", password };
+  const password = process.env.OPENCLAW_GATEWAY_PASSWORD;
+  if (token) return { token };
+  if (password) return { password };
   return {};
 }
 
 /**
- * Make a single RPC call to the OpenClaw Gateway via WebSocket.
- * Opens a connection, authenticates, sends the call, waits for response, closes.
+ * Open a connected + authenticated WebSocket to the OpenClaw Gateway.
+ * Handles the connect.challenge → connect handshake automatically.
  */
-export async function gatewayCall<T = unknown>(
-  method: string,
-  params: Record<string, unknown> = {},
-  timeoutMs = 30000
-): Promise<T> {
+function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
   return new Promise((resolve, reject) => {
     const wsUrl = getWsUrl();
-    const ws = new WebSocket(wsUrl);
-    let resolved = false;
-    let authenticated = false;
+    const origin = getOriginUrl();
+    const ws = new WebSocket(wsUrl, { origin });
+    let done = false;
 
     const timer = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
+      if (!done) {
+        done = true;
         ws.close();
-        reject(new Error(`Gateway call timeout after ${timeoutMs}ms`));
+        reject(new Error(`Gateway connect timeout after ${timeoutMs}ms`));
       }
     }, timeoutMs);
 
     ws.on("open", () => {
-      // Send auth message
-      const auth = getAuthPayload();
-      ws.send(JSON.stringify({ type: "auth", ...auth }));
+      // Wait for connect.challenge
     });
 
     ws.on("message", (data: Buffer) => {
       try {
         const msg = JSON.parse(data.toString());
 
-        // Handle auth response
-        if (msg.type === "auth" || msg.type === "auth-ok" || msg.authenticated) {
-          authenticated = true;
-          // Send the RPC call
+        // Step 1: Respond to connect.challenge
+        if (msg.type === "event" && msg.event === "connect.challenge") {
           ws.send(
             JSON.stringify({
-              type: "call",
-              id: "mc-1",
-              method,
-              params,
+              type: "req",
+              id: "mc-connect",
+              method: "connect",
+              params: {
+                minProtocol: 3,
+                maxProtocol: 3,
+                client: {
+                  id: "openclaw-control-ui",
+                  version: "1.0.0",
+                  platform: "linux",
+                  mode: "ui",
+                },
+                role: "operator",
+                scopes: ["operator.read", "operator.write"],
+                caps: [],
+                commands: [],
+                permissions: {},
+                auth: getAuthPayload(),
+                locale: "en-US",
+                userAgent: "mission-control/1.0.0",
+              },
             })
           );
           return;
         }
 
-        // Handle auth failure
-        if (msg.type === "auth-error" || msg.error) {
-          if (!authenticated) {
-            resolved = true;
+        // Step 2: Handle connect response
+        if (msg.id === "mc-connect") {
+          if (msg.ok) {
+            done = true;
+            clearTimeout(timer);
+            resolve(ws);
+          } else {
+            done = true;
             clearTimeout(timer);
             ws.close();
-            reject(new Error(`Auth failed: ${msg.error || msg.message || "unknown"}`));
-            return;
+            reject(
+              new Error(
+                `Gateway auth failed: ${msg.error?.message || JSON.stringify(msg.error)}`
+              )
+            );
           }
-        }
-
-        // Handle RPC response
-        if (msg.id === "mc-1" || msg.type === "result" || msg.type === "response") {
-          resolved = true;
-          clearTimeout(timer);
-          ws.close();
-          if (msg.error) {
-            reject(new Error(`RPC error: ${msg.error}`));
-          } else {
-            resolve((msg.result || msg.payload || msg) as T);
-          }
-          return;
-        }
-
-        // Handle welcome/hello messages (some gateways send these)
-        if (msg.type === "hello" || msg.type === "welcome") {
-          // Already sent auth on open, just wait
-          return;
-        }
-
-        // Any other message with our call id
-        if (msg.callId === "mc-1") {
-          resolved = true;
-          clearTimeout(timer);
-          ws.close();
-          resolve(msg as T);
           return;
         }
       } catch {
-        // Non-JSON message, ignore
+        // Non-JSON, ignore
       }
     });
 
     ws.on("error", (err: Error) => {
-      if (!resolved) {
-        resolved = true;
+      if (!done) {
+        done = true;
         clearTimeout(timer);
         reject(new Error(`WebSocket error: ${err.message}`));
       }
     });
 
     ws.on("close", () => {
-      if (!resolved) {
-        resolved = true;
+      if (!done) {
+        done = true;
         clearTimeout(timer);
-        reject(new Error("WebSocket closed before response"));
+        reject(new Error("WebSocket closed before auth completed"));
       }
     });
+  });
+}
+
+/**
+ * Make a single RPC call to the OpenClaw Gateway.
+ * Opens connection, authenticates, sends request, returns response, closes.
+ */
+export async function gatewayCall<T = unknown>(
+  method: string,
+  params: Record<string, unknown> = {},
+  timeoutMs = 30000
+): Promise<T> {
+  const ws = await openGatewayWs(timeoutMs);
+
+  return new Promise((resolve, reject) => {
+    const reqId = `mc-${++reqCounter}`;
+    let done = false;
+
+    const timer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        ws.close();
+        reject(new Error(`RPC call ${method} timeout after ${timeoutMs}ms`));
+      }
+    }, timeoutMs);
+
+    ws.on("message", (data: Buffer) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.id === reqId) {
+          done = true;
+          clearTimeout(timer);
+          ws.close();
+          if (msg.ok) {
+            resolve(msg.payload as T);
+          } else {
+            reject(
+              new Error(
+                `RPC error (${method}): ${msg.error?.message || JSON.stringify(msg.error)}`
+              )
+            );
+          }
+        }
+      } catch {
+        // ignore
+      }
+    });
+
+    ws.on("close", () => {
+      if (!done) {
+        done = true;
+        clearTimeout(timer);
+        reject(new Error("WebSocket closed before RPC response"));
+      }
+    });
+
+    ws.on("error", (err: Error) => {
+      if (!done) {
+        done = true;
+        clearTimeout(timer);
+        reject(new Error(`WebSocket error during RPC: ${err.message}`));
+      }
+    });
+
+    // Send the RPC request
+    ws.send(
+      JSON.stringify({
+        type: "req",
+        id: reqId,
+        method,
+        params,
+      })
+    );
   });
 }
 
@@ -144,8 +216,8 @@ export async function checkHealth(): Promise<{
   error?: string;
 }> {
   try {
-    const result = await gatewayCall<{ ok: boolean }>("health");
-    return { ok: result.ok };
+    const result = await gatewayCall<{ ok: boolean }>("health", {}, 10000);
+    return { ok: true, ...result };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
@@ -165,7 +237,7 @@ export async function sendToAgent(
       "sessions.send",
       { sessionKey: key, message }
     );
-    return { ok: result.ok, error: result.error };
+    return { ok: true, ...result };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
