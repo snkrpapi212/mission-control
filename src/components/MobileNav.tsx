@@ -28,7 +28,7 @@ export function MobileNav({
       {/* Hamburger Menu (visible on mobile) */}
       <motion.button
         onClick={() => setMenuOpen(!menuOpen)}
-        className="lg:hidden fixed left-4 top-4 z-40 p-2 rounded hover:bg-[var(--mc-panel-soft)] transition-colors"
+        className="lg:hidden fixed left-[var(--sp-3)] top-[var(--sp-3)] z-40 p-[var(--sp-3)] min-h-[var(--touch-min)] min-w-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center justify-center"
         aria-label="Open menu"
         aria-expanded={menuOpen}
       >
@@ -65,13 +65,13 @@ export function MobileNav({
               className="lg:hidden fixed left-0 top-0 bottom-0 z-40 w-full max-w-xs bg-[var(--mc-panel)] shadow-lg overflow-y-auto"
             >
               {/* Drawer Header */}
-              <div className="p-6 border-b border-[var(--mc-line)] flex items-center justify-between">
+              <div className="p-[var(--sp-6)] border-b border-[var(--mc-line)] flex items-center justify-between">
                 <h2 className="text-[18px] font-semibold text-[var(--mc-text)]">
                   Menu
                 </h2>
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="p-1 rounded hover:bg-[var(--mc-panel-soft)] text-[var(--mc-text-muted)]"
+                  className="p-[var(--sp-2)] min-h-[var(--touch-min)] min-w-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] text-[var(--mc-text-muted)] flex items-center justify-center"
                   aria-label="Close menu"
                 >
                   ✕
@@ -79,13 +79,13 @@ export function MobileNav({
               </div>
 
               {/* Drawer Content */}
-              <div className="p-4 space-y-2">
+              <div className="p-[var(--sp-4)] space-y-[var(--sp-2)]">
                 <button
                   onClick={() => {
                     onTabChange("board");
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-3 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)]"
+                  className="w-full text-left px-[var(--sp-4)] py-[var(--sp-3)] min-h-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)] flex items-center"
                   aria-current={activeTab === "board" ? "page" : undefined}
                 >
                   📋 Task Board
@@ -95,7 +95,7 @@ export function MobileNav({
                     onTabChange("feed");
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-3 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)]"
+                  className="w-full text-left px-[var(--sp-4)] py-[var(--sp-3)] min-h-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)] flex items-center"
                   aria-current={activeTab === "feed" ? "page" : undefined}
                 >
                   📭 Activity Feed
@@ -105,19 +105,19 @@ export function MobileNav({
                     onTabChange("filters");
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-3 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)]"
+                  className="w-full text-left px-[var(--sp-4)] py-[var(--sp-3)] min-h-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)] flex items-center"
                   aria-current={activeTab === "filters" ? "page" : undefined}
                 >
                   🔍 Filters
                 </button>
 
-                <div className="border-t border-[var(--mc-line)] pt-4 mt-4">
+                <div className="border-t border-[var(--mc-line)] pt-[var(--sp-4)] mt-[var(--sp-4)]">
                   <button
                     onClick={() => {
                       onSettingsClick();
                       setMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-accent-green)]"
+                    className="w-full text-left px-[var(--sp-4)] py-[var(--sp-3)] min-h-[var(--touch-min)] rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-accent-green)] flex items-center"
                   >
                     ⚙️ Settings
                   </button>
@@ -132,7 +132,7 @@ export function MobileNav({
       <motion.div
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--mc-line)] bg-[var(--mc-panel)] flex items-center justify-around h-16"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-[var(--mc-line)] bg-[var(--mc-panel)] flex items-stretch h-[calc(var(--touch-min)+var(--sp-2))]"
         role="tablist"
         aria-label="Main navigation"
       >
@@ -140,7 +140,7 @@ export function MobileNav({
           <motion.button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`flex-1 h-full flex flex-col items-center justify-center gap-1 transition-colors ${
+            className={`flex-1 flex flex-col items-center justify-center gap-[var(--sp-1)] transition-colors min-h-[var(--touch-min)] ${
               activeTab === tab.id
                 ? "bg-[var(--mc-accent-green-soft)] text-[var(--mc-accent-green)]"
                 : "text-[var(--mc-text-muted)] hover:text-[var(--mc-text)]"
@@ -148,11 +148,11 @@ export function MobileNav({
             role="tab"
             aria-selected={activeTab === tab.id}
             aria-label={tab.label}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             <span className="text-[20px]">{tab.icon}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.05em]">
               {tab.label}
             </span>
           </motion.button>
@@ -160,7 +160,7 @@ export function MobileNav({
       </motion.div>
 
       {/* Bottom padding on body to account for bottom nav */}
-      <div className="lg:hidden h-16" />
+      <div className="lg:hidden h-[calc(var(--touch-min)+var(--sp-2))]" />
     </>
   );
 }
