@@ -4,7 +4,7 @@ import type { Activity } from "@/types";
 import { timeAgo } from "@/lib/time";
 import { useDarkMode } from "@/context/DarkModeContext";
 import { useState, useMemo } from "react";
-import { Filter, X } from "lucide-react";
+import { Filter, X, Plus, RotateCw, MessageSquare, FileText } from "lucide-react";
 
 interface ActivityFeedProps {
   activities: Activity[];
@@ -12,6 +12,41 @@ interface ActivityFeedProps {
 }
 
 type ActivityType = "task_created" | "task_updated" | "task_completed" | "agent_online" | "agent_offline";
+
+function getTimeGroupLabel(timestamp: number): string {
+  const now = Date.now();
+  const diffMs = now - timestamp;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return "Older";
+}
+
+function getActivityIcon(type: string): React.ReactNode {
+  switch (type) {
+    case "task_created":
+      return "➕";
+    case "task_updated":
+      return "🔄";
+    case "task_completed":
+      return "✅";
+    case "message":
+      return "💬";
+    case "document":
+      return "📄";
+    case "agent_online":
+      return "🟢";
+    case "agent_offline":
+      return "⭕";
+    default:
+      return "•";
+  }
+}
 
 export function ActivityFeed({ activities, agentNames = {} }: ActivityFeedProps) {
   const { isDarkMode } = useDarkMode();
@@ -35,13 +70,44 @@ export function ActivityFeed({ activities, agentNames = {} }: ActivityFeedProps)
     return Array.from(agents).sort();
   }, [activities]);
 
-  // Filter activities
-  const filteredActivities = useMemo(() => {
-    return activities.filter((a) => {
+  // Filter and group activities by time
+  const groupedActivities = useMemo(() => {
+    const filtered = activities.filter((a) => {
       const typeMatch = selectedType === "all" || a.type === selectedType;
       const agentMatch = selectedAgent === "all" || a.agentId === selectedAgent;
       return typeMatch && agentMatch;
     });
+
+    // Group by time label
+    const groups: Record<string, Activity[]> = {
+      "Just now": [],
+      "5 min ago": [],
+      "1 hour ago": [],
+      "Today": [],
+      "Older": [],
+    };
+
+    filtered.forEach((a) => {
+      const diffMins = Math.floor((Date.now() - a.createdAt) / 60000);
+      let group = "Older";
+
+      if (diffMins < 1) group = "Just now";
+      else if (diffMins < 60) group = "5 min ago";
+      else if (diffMins < 1440) group = "1 hour ago"; // 24 hours
+      else if (new Date(a.createdAt).toDateString() === new Date().toDateString())
+        group = "Today";
+
+      groups[group].push(a);
+    });
+
+    // Return only non-empty groups in order
+    const order = ["Just now", "5 min ago", "1 hour ago", "Today", "Older"];
+    return order
+      .filter((label) => groups[label].length > 0)
+      .map((label) => ({
+        label,
+        activities: groups[label],
+      }));
   }, [activities, selectedType, selectedAgent]);
 
   const activityTypeColor = (type: string, isDark: boolean = false): string => {
@@ -156,46 +222,64 @@ export function ActivityFeed({ activities, agentNames = {} }: ActivityFeedProps)
       </div>
 
       {/* Activity List */}
-      <ul className={`flex-1 overflow-y-auto px-4 py-3 space-y-2 divide-y ${
-        isDarkMode ? "divide-gray-700" : "divide-gray-200"
-      }`}>
-        {filteredActivities.length === 0 ? (
-          <li className={`text-xs py-4 text-center ${
+      <div className={`flex-1 overflow-y-auto px-4 py-3 space-y-4`}>
+        {groupedActivities.length === 0 ? (
+          <div className={`text-xs py-8 text-center ${
             isDarkMode ? "text-gray-400" : "text-gray-500"
           }`}>
             No activity
-          </li>
+          </div>
         ) : (
-          filteredActivities.map((a) => (
-            <li key={a._id} className={`py-3 ${
-              isDarkMode
-                ? "hover:bg-gray-700 rounded"
-                : "hover:bg-gray-50 rounded"
-            } transition-colors px-2`}>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${activityTypeColor(a.type, isDarkMode)}`}>
-                  {a.type.replace(/_/g, " ")}
-                </span>
-                <span className={`text-xs flex-shrink-0 ${
-                  isDarkMode ? "text-gray-500" : "text-gray-500"
-                }`}>
-                  {timeAgo(a.createdAt)}
-                </span>
-              </div>
-              <div className={`text-sm ${
-                isDarkMode ? "text-gray-200" : "text-gray-900"
+          groupedActivities.map((group) => (
+            <div key={group.label}>
+              <h3 className={`text-xs font-semibold uppercase tracking-wide mb-2 ${
+                isDarkMode ? "text-gray-500" : "text-gray-400"
               }`}>
-                {a.message}
-              </div>
-              <div className={`text-xs mt-1 ${
-                isDarkMode ? "text-gray-500" : "text-gray-500"
-              }`}>
-                by {agentNames[a.agentId] || a.agentId}
-              </div>
-            </li>
+                {group.label}
+              </h3>
+              <ul className="space-y-2">
+                {group.activities.map((a) => (
+                  <li key={a._id} className={`py-2 px-2 rounded transition-colors ${
+                    isDarkMode
+                      ? "hover:bg-gray-700"
+                      : "hover:bg-gray-50"
+                  }`}>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg flex-shrink-0 mt-0.5">
+                        {getActivityIcon(a.type)}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className={`text-xs font-semibold ${
+                            isDarkMode ? "text-gray-300" : "text-gray-700"
+                          }`}>
+                            {a.type.replace(/_/g, " ")}
+                          </span>
+                          <span className={`text-xs flex-shrink-0 ${
+                            isDarkMode ? "text-gray-500" : "text-gray-500"
+                          }`}>
+                            {timeAgo(a.createdAt)}
+                          </span>
+                        </div>
+                        <div className={`text-sm ${
+                          isDarkMode ? "text-gray-200" : "text-gray-900"
+                        }`}>
+                          {a.message}
+                        </div>
+                        <div className={`text-xs mt-1 ${
+                          isDarkMode ? "text-gray-500" : "text-gray-500"
+                        }`}>
+                          by {agentNames[a.agentId] || a.agentId}
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))
         )}
-      </ul>
+      </div>
     </section>
   );
 }
