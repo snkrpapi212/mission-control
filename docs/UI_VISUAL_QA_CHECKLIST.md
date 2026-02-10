@@ -15,11 +15,18 @@ Reference: `docs/design-reference/mission-control-target-ui.jpg`
 3) Header hierarchy — **PASS**
 - Evidence: `--h-topbar: 72px`; 3-zone header composition in `DashboardShell.tsx` (brand | KPI | controls/time/status).
 
-4) Card density/rhythm — **PENDING (Fix Pack 2)**
-5) Chip/tag styling — **PENDING (Fix Pack 2)**
-6) Accent semantics — **PENDING (Fix Pack 2)**
+4) Card density/rhythm — **PASS**
+- Evidence: `TaskCard.tsx` uses large editorial stack (title/body/meta), denser spacing, and warm-neutral card primitive rhythm.
+
+5) Chip/tag styling — **PASS**
+- Evidence: shared `Chip` primitive (`MissionControlPrimitives.tsx`) used across board/feed/sidebar with pill radius and muted hierarchy.
+
+6) Accent semantics — **PASS**
+- Evidence: semantic 3px left rails in `TaskCard.tsx` map priority to green/amber/red/neutral tokens; status accents use semantic token set.
+
 7) Theme token parity + CSS pipeline — **PENDING (Fix Pack 3)**
 
 ## Screenshot evidence
 - Before: `docs/design-reference/before-after/before-dashboard.png`
 - After Pack 1: `docs/design-reference/before-after/after-pack1.png`
+- After Pack 2: `docs/design-reference/before-after/after-pack2.png`

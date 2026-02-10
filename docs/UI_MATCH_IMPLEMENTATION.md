@@ -18,6 +18,16 @@ Implemented must-fix architecture for hierarchy and composition:
 Evidence screenshot:
 - `docs/design-reference/before-after/after-pack1.png`
 
-## Pending follow-ups
-- Pack 2: card density, chips/tags, accent semantics
+## Fix Pack 2 (Blockers 4–6)
+
+Implemented must-fix visual language for content rhythm:
+- `TaskCard.tsx`: editorial card density and semantic left-accent rails
+- `KanbanBoard.tsx`: compact column header rhythm and reference column order
+- `MissionControlPrimitives.tsx`: unified chip/header primitives
+- `AgentSidebar.tsx` + `ActivityFeed.tsx`: consistent chip hierarchy and restrained semantic accents
+
+Evidence screenshot:
+- `docs/design-reference/before-after/after-pack2.png`
+
+## Pending follow-up
 - Pack 3: dark/light token parity verification + CSS pipeline stability notes
