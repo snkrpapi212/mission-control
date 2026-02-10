@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireIdentity } from "./auth";
 
 export const register = mutation({
   args: {
@@ -11,6 +12,7 @@ export const register = mutation({
     sessionKey: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const existing = await ctx.db
       .query("agents")
       .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId))
@@ -39,6 +41,7 @@ export const updateStatus = mutation({
     status: v.union(v.literal("idle"), v.literal("working"), v.literal("blocked")),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const agent = await ctx.db
       .query("agents")
       .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId))

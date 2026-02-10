@@ -1,11 +1,13 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireIdentity } from "./auth";
 
 export const getUndelivered = query({
   args: {
     agentId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     return await ctx.db
       .query("notifications")
       .withIndex("by_agent_undelivered", (q) =>
@@ -20,6 +22,7 @@ export const markDelivered = mutation({
     id: v.id("notifications"),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     await ctx.db.patch(args.id, {
       delivered: true,
     });
@@ -37,6 +40,7 @@ export const createBulk = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const ids = [];
     const now = Date.now();
 

@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -11,6 +12,7 @@ export const create = mutation({
     tags: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const now = Date.now();
     const taskId = await ctx.db.insert("tasks", {
       title: args.title,
@@ -53,6 +55,7 @@ export const update = mutation({
     agentId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const task = await ctx.db.get(args.id);
     if (!task) {
       throw new Error("Task not found");
@@ -134,6 +137,7 @@ export const clearAll = mutation({
     confirm: v.literal("DELETE_ALL_TASKS"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.adminKey !== process.env.MC_ADMIN_KEY) {
       throw new Error("Unauthorized");
     }

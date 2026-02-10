@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -10,6 +11,7 @@ export const create = mutation({
     attachmentIds: v.optional(v.array(v.id("documents"))),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     const now = Date.now();
 
     // Create message

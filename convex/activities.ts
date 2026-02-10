@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, requireIdentity } from "./auth";
 
 export const log = mutation({
   args: {
@@ -10,6 +11,7 @@ export const log = mutation({
     documentId: v.optional(v.id("documents")),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
     return await ctx.db.insert("activities", {
       type: args.type,
       agentId: args.agentId,
@@ -42,6 +44,7 @@ export const clearAll = mutation({
     confirm: v.literal("DELETE_ALL_ACTIVITIES"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.adminKey !== process.env.MC_ADMIN_KEY) {
       throw new Error("Unauthorized");
     }

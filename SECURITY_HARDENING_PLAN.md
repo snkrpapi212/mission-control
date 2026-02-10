@@ -26,10 +26,17 @@ Ship fast protections without architecture rewrite.
 Move from perimeter auth to function-level auth.
 
 ### Tasks
-1. Integrate Convex auth identity checks in all mutating functions.
-2. Enforce role-based authorization (`admin`, `lead`, `agent`, `viewer`).
+1. Integrate Convex auth identity checks in mutating functions.
+2. Enforce role-based authorization (`admin`, `lead`, `agent`, `viewer`) for destructive operations.
 3. Stop trusting client-provided actor IDs (`agentId`, `createdBy`); derive from identity/session mapping.
 4. Add tests for unauthorized read/write attempts.
+
+### Status
+- [x] Added shared Convex auth helpers (`convex/auth.ts`) with `requireIdentity` and `requireAdmin`.
+- [x] Added auth guard checks on mutating functions (tasks, agents, activities, documents, messages, notifications) when `MC_AUTH_ENABLED=true`.
+- [x] Added admin-role guard on destructive clear-all mutations.
+- [ ] Actor/identity binding (removing trust in client-supplied agent IDs) — next.
+- [ ] Authorization tests — next.
 
 ## Phase 3 — Session Hardening + UX
 ### Goals
