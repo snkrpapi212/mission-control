@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { TaskMessages } from "@/components/TaskMessages";
 import { TaskDocuments } from "@/components/TaskDocuments";
 import { TaskActivity } from "@/components/TaskActivity";
+import {
+  useFocusTrap,
+  useFocusRestore,
+  useEscapeKey,
+  useAnnounce,
+  useUniqueId,
+} from "@/lib/accessibility";
 
 interface TaskDetailModalProps {
   task: Doc<"tasks"> | null;
@@ -23,12 +30,25 @@ const TABS: Array<{ id: TabType; label: string; icon: string }> = [
 
 export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("messages");
+  const announce = useAnnounce();
+
+  // Accessibility
+  const containerRef = useFocusTrap(!!task);
+  useFocusRestore(!!task);
+  useEscapeKey(!!task, onClose);
+  const titleId = useUniqueId("task-detail-title");
+  const tabsId = useUniqueId("task-tabs");
+
+  // Announce task opening
+  useEffect(() => {
+    if (task) {
+      announce(`Opened task: ${task.title}. Status: ${task.status}. Priority: ${task.priority}`, "polite");
+    }
+  }, [task?.title, announce]);
 
   if (!task) return null;
 
-  const assignee = agents.find((a) =>
-    task.assigneeIds.includes(a.agentId)
-  );
+  const assignee = agents.find((a) => task.assigneeIds.includes(a.agentId));
 
   return (
     <AnimatePresence>
@@ -48,16 +68,28 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
 
           {/* Modal */}
           <motion.div
+            ref={containerRef}
             initial={{ opacity: 0, x: 400 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
-            transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+            transition={{
+              duration: 0.25,
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+            }}
             className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-2xl bg-[var(--mc-panel)] shadow-lg overflow-hidden flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
           >
             {/* Header - sticky */}
             <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-6 py-4 flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <h2 className="text-[20px] font-semibold text-[var(--mc-text)] line-clamp-2">
+                <h2
+                  id={titleId}
+                  className="text-[20px] font-semibold text-[var(--mc-text)] line-clamp-2"
+                >
                   {task.title}
                 </h2>
                 <p className="text-[13px] text-[var(--mc-text-soft)] mt-1">
@@ -66,23 +98,27 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
               </div>
               <button
                 onClick={onClose}
-                className="p-2 rounded hover:bg-[var(--mc-line)] transition-colors text-[var(--mc-text-muted)]"
-                aria-label="Close"
+                className="p-2 rounded hover:bg-[var(--mc-line)] transition-colors text-[var(--mc-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--mc-accent-green)] ml-4"
+                aria-label="Close task details"
               >
                 ✕
               </button>
             </div>
 
             {/* Metadata Row */}
-            <div className="border-b border-[var(--mc-line)] px-6 py-3 bg-[var(--mc-panel)] grid grid-cols-2 gap-4 text-[13px]">
+            <div
+              className="border-b border-[var(--mc-line)] px-6 py-3 bg-[var(--mc-panel)] grid grid-cols-2 gap-4 text-[13px]"
+              role="region"
+              aria-label="Task metadata"
+            >
               <div>
                 <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.08em] font-semibold mb-1">
                   Assigned to
                 </p>
                 {assignee ? (
                   <p className="text-[var(--mc-text)] flex items-center gap-2">
-                    <span>{assignee.emoji}</span>
-                    {assignee.name}
+                    <span aria-hidden="true">{assignee.emoji}</span>
+                    <span>{assignee.name}</span>
                   </p>
                 ) : (
                   <p className="text-[var(--mc-text-soft)]">Unassigned</p>
@@ -121,12 +157,17 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                 </span>
               </div>
               <div>
-                <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.08em] font-semibold mb-1">
+                <label
+                  htmlFor="task-status"
+                  className="block text-[var(--mc-text-soft)] uppercase tracking-[0.08em] font-semibold mb-1"
+                >
                   Status
-                </p>
+                </label>
                 <select
+                  id="task-status"
                   defaultValue={task.status}
-                  className="px-2 py-1 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] text-[var(--mc-text)]"
+                  className="px-2 py-1 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] text-[var(--mc-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mc-accent-green)]"
+                  aria-label="Change task status"
                 >
                   <option value="inbox">Inbox</option>
                   <option value="assigned">Assigned</option>
@@ -139,29 +180,49 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
             </div>
 
             {/* Tab Navigation */}
-            <div className="border-b border-[var(--mc-line)] px-6 py-0 flex gap-6 bg-[var(--mc-panel)]">
+            <div
+              className="border-b border-[var(--mc-line)] px-6 py-0 flex gap-6 bg-[var(--mc-panel)]"
+              role="tablist"
+              aria-label="Task sections"
+              id={tabsId}
+            >
               {TABS.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`py-3 text-[13px] font-semibold uppercase tracking-[0.1em] border-b-2 transition-colors ${
+                  id={`tab-${tab.id}`}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    announce(`Showing ${tab.label} tab`, "polite");
+                  }}
+                  className={`py-3 text-[13px] font-semibold uppercase tracking-[0.1em] border-b-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--mc-accent-green)] focus:ring-offset-2 ${
                     activeTab === tab.id
                       ? "border-[var(--mc-accent-green)] text-[var(--mc-text)]"
                       : "border-transparent text-[var(--mc-text-muted)] hover:text-[var(--mc-text)]"
                   }`}
+                  role="tab"
+                  aria-selected={activeTab === tab.id}
+                  aria-controls={`panel-${tab.id}`}
+                  tabIndex={activeTab === tab.id ? 0 : -1}
                 >
-                  <span className="mr-2">{tab.icon}</span>
+                  <span className="mr-2" aria-hidden="true">{tab.icon}</span>
                   {tab.label}
                 </button>
               ))}
             </div>
 
             {/* Tab Content - scrollable */}
-            <div className="flex-1 overflow-y-auto">
+            <div
+              className="flex-1 overflow-y-auto"
+              role="region"
+              aria-live="polite"
+            >
               <AnimatePresence mode="wait">
                 {activeTab === "messages" && (
                   <motion.div
                     key="messages"
+                    id="panel-messages"
+                    role="tabpanel"
+                    aria-labelledby="tab-messages"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -174,6 +235,9 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                 {activeTab === "docs" && (
                   <motion.div
                     key="docs"
+                    id="panel-docs"
+                    role="tabpanel"
+                    aria-labelledby="tab-docs"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -186,6 +250,9 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                 {activeTab === "activity" && (
                   <motion.div
                     key="activity"
+                    id="panel-activity"
+                    role="tabpanel"
+                    aria-labelledby="tab-activity"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
