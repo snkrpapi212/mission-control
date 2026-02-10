@@ -77,6 +77,11 @@ export function DashboardShell() {
     applyTheme(next);
   };
 
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
+
   // Update timestamp on data changes
   useEffect(() => {
     setLastUpdated(new Date());
@@ -200,6 +205,14 @@ export function DashboardShell() {
             <div className="hidden md:block">
               <ConnectionStatus />
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="hidden sm:inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium"
+              style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)", color: "var(--mc-text)" }}
+            >
+              Logout
+            </button>
             <button type="button" onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>
               <Plus size={13} />
               New Task
@@ -311,12 +324,18 @@ export function DashboardShell() {
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
             {mobileTab === "more" ? (
-              <div className="xl:hidden p-6 space-y-4">
+              <div className="xl:hidden p-6 space-y-3">
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="w-full px-4 py-3 rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
                 >
                   + Create Task
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="w-full rounded border border-[var(--mc-line)] px-4 py-3 text-[13px] font-medium text-[var(--mc-text)]"
+                >
+                  Logout
                 </button>
               </div>
             ) : null}
