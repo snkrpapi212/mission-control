@@ -48,7 +48,7 @@
   --w-left: clamp(300px, 15vw, 520px);
   --w-right: clamp(420px, 23vw, 800px);
 
-  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--mc-green) 45%, transparent);
+  --focus-ring: 0 0 0 2px rgba(34, 197, 94, 0.45);
   --tr-fast: 140ms ease-out;
 }
 
