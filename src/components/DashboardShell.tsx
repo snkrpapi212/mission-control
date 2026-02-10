@@ -17,6 +17,7 @@ import {
 import { useOptimisticUI } from "@/hooks/useOptimisticUI";
 import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
+import { MobileNav } from "@/components/MobileNav";
 import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
@@ -30,7 +31,7 @@ export function DashboardShell() {
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"board" | "feed">("board");
+  const [mobileTab, setMobileTab] = useState<"board" | "feed" | "filters" | "more">("board");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [filters, setFilters] = useState<FilterState>({
@@ -126,7 +127,19 @@ export function DashboardShell() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--mc-bg)", color: "var(--mc-text)" }}>
-      <header className="sticky top-0 z-30 border-b mc-panel" style={{ backdropFilter: "blur(6px)" }}>
+      {/* Accessibility: Skip to main content link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-0 focus:left-0 focus:z-50 focus:bg-[var(--mc-accent-green)] focus:text-white focus:p-2 focus:rounded"
+      >
+        Skip to main content
+      </a>
+
+      <header 
+        className="sticky top-0 z-30 border-b mc-panel" 
+        style={{ backdropFilter: "blur(6px)" }}
+        role="banner"
+      >
         <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
             <div className="text-base" style={{ color: "var(--mc-accent-amber)" }}>◇</div>
@@ -170,7 +183,12 @@ export function DashboardShell() {
             <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
           )}
 
-          <main className="border-x px-3 py-3 md:px-4 md:py-4" style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}>
+          <main 
+            id="main-content"
+            className="border-x px-3 py-3 md:px-4 md:py-4" 
+            style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}
+            role="main"
+          >
             <div className="mb-3 flex items-center justify-between xl:hidden">
               <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
                 <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
@@ -195,6 +213,21 @@ export function DashboardShell() {
               </div>
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
+            {mobileTab === "filters" ? (
+              <div className="xl:hidden">
+                <SmartFilters agents={agents} onFiltersChange={setFilters} />
+              </div>
+            ) : null}
+            {mobileTab === "more" ? (
+              <div className="xl:hidden p-6 space-y-4">
+                <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="w-full px-4 py-3 rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
+                >
+                  + Create Task
+                </button>
+              </div>
+            ) : null}
           </main>
 
           {customizationPrefs.showActivityFeed && (
@@ -216,6 +249,15 @@ export function DashboardShell() {
           /* TODO: implement agent jump */
         }}
         onCreateTask={() => setShowCreateModal(true)}
+      />
+
+      {/* Mobile Navigation */}
+      <MobileNav
+        activeTab={mobileTab}
+        onTabChange={setMobileTab}
+        onSettingsClick={() => {
+          /* MobileNav will handle settings via DashboardCustomization */
+        }}
       />
       
       <ToastContainer />
