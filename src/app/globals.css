@@ -103,6 +103,10 @@ body {
   line-height: 1.5;
 }
 
+#main-content {
+  scroll-margin-top: calc(var(--h-topbar) + 8px);
+}
+
 /* Accessibility: Screen reader only content */
 .sr-only {
   position: absolute;

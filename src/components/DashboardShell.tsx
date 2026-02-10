@@ -33,8 +33,11 @@ export function DashboardShell() {
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"board" | "agents" | "feed" | "filters" | "more">("board");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [mobileTab, setMobileTab] = useState<"board" | "agents" | "feed" | "more">("board");
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    if (typeof document === "undefined") return "light";
+    return (document.documentElement.getAttribute("data-theme") as "light" | "dark") || "light";
+  });
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [filters, setFilters] = useState<FilterState>({
     statuses: [],
@@ -51,11 +54,6 @@ export function DashboardShell() {
   });
   const { moveTask } = useOptimisticUI();
 
-  useEffect(() => {
-    const saved = (localStorage.getItem("mc-theme") as "light" | "dark" | null) || "light";
-    setTheme(saved);
-    document.documentElement.setAttribute("data-theme", saved);
-  }, []);
 
   const toggleTheme = () => {
     const next = theme === "light" ? "dark" : "light";
@@ -304,11 +302,6 @@ export function DashboardShell() {
               </div>
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
-            {mobileTab === "filters" ? (
-              <div className="xl:hidden">
-                <SmartFilters agents={agents} onFiltersChange={setFilters} />
-              </div>
-            ) : null}
             {mobileTab === "more" ? (
               <div className="xl:hidden p-6 space-y-4">
                 <button

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Users, Bell, MoreHorizontal, X, Settings, Filter } from "lucide-react";
+import { LayoutGrid, Users, Bell, MoreHorizontal, X, Settings, Plus } from "lucide-react";
 
 interface MobileNavProps {
-  activeTab: "board" | "agents" | "feed" | "filters" | "more";
-  onTabChange: (_tab: "board" | "agents" | "feed" | "filters" | "more") => void;
+  activeTab: "board" | "agents" | "feed" | "more";
+  onTabChange: (_tab: "board" | "agents" | "feed" | "more") => void;
   onSettingsClick: () => void;
 }
 
@@ -74,7 +74,6 @@ export function MobileNav({
                   { id: "board" as const, label: "Task Board", icon: LayoutGrid },
                   { id: "agents" as const, label: "Agents", icon: Users },
                   { id: "feed" as const, label: "Activity Feed", icon: Bell },
-                  { id: "filters" as const, label: "Filters", icon: Filter },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -97,7 +96,17 @@ export function MobileNav({
                   );
                 })}
 
-                <div className="border-t border-[var(--mc-line)] pt-3 mt-3">
+                <div className="border-t border-[var(--mc-line)] pt-3 mt-3 space-y-1">
+                  <button
+                    onClick={() => {
+                      onTabChange("more");
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+                  >
+                    <Plus size={18} className="text-[var(--mc-accent-green)]" />
+                    Create Task
+                  </button>
                   <button
                     onClick={() => {
                       onSettingsClick();
