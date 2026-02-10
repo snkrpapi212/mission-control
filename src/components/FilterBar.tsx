@@ -25,7 +25,7 @@ export function FilterBar({
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value as TaskStatus | "all")}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50"
+        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
       >
         <option value="all">All Status</option>
         <option value="inbox">Inbox</option>
@@ -39,7 +39,7 @@ export function FilterBar({
       <select
         value={priorityFilter}
         onChange={(e) => onPriorityChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50"
+        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
       >
         <option value="all">All Priorities</option>
         <option value="low">Low</option>
@@ -51,7 +51,7 @@ export function FilterBar({
       <select
         value={agentFilter}
         onChange={(e) => onAgentChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50"
+        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
       >
         <option value="all">All Agents</option>
         {agents.map((a) => (
@@ -69,7 +69,7 @@ export function FilterBar({
             onPriorityChange("all");
             onAgentChange("all");
           }}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 font-medium"
+          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium transition-colors duration-200"
         >
           Clear filters
         </button>

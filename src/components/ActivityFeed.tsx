@@ -239,11 +239,11 @@ export function ActivityFeed({ activities, agentNames = {} }: ActivityFeedProps)
               </h3>
               <ul className="space-y-2">
                 {group.activities.map((a) => (
-                  <li key={a._id} className={`py-2 px-2 rounded transition-colors ${
+                  <li key={a._id} className={`py-2 px-2 rounded transition-all duration-200 ease-out ${
                     isDarkMode
                       ? "hover:bg-gray-700"
                       : "hover:bg-gray-50"
-                  }`}>
+                  } animate-in fade-in duration-300`}>
                     <div className="flex items-start gap-2">
                       <span className="text-lg flex-shrink-0 mt-0.5">
                         {getActivityIcon(a.type)}

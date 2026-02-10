@@ -47,7 +47,7 @@ export function TaskCard({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-lg border p-3 shadow-sm hover:shadow-md transition-all ${
+      className={`w-full text-left rounded-lg border p-3 shadow-sm hover:shadow-md transition-all duration-200 ease-out hover:-translate-y-0.5 ${
         isDark
           ? "border-gray-700 bg-gray-750 hover:bg-gray-700"
           : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
