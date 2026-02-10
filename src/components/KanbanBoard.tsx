@@ -6,7 +6,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { TaskCard } from "@/components/TaskCard";
-import { Chip, PanelHeader } from "@/components/MissionControlPrimitives";
+import { PanelHeader } from "@/components/MissionControlPrimitives";
 
 const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string }> = [
   { status: "inbox", title: "Inbox", dotClass: "text-[var(--mc-line-strong)]" },
@@ -91,16 +91,16 @@ export function KanbanBoard({
       <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
           placeholder="Search tasks"
-          className="mc-focus h-9 w-[260px] rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
+          className="h-9 w-[260px] rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)] focus:outline-none focus:ring-2 focus:ring-[var(--mc-accent-green)]"
         />
         <div className="flex items-center gap-2">
-          <Chip className="border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] text-[var(--mc-amber)]">
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--mc-amber)]">
             All
-          </Chip>
-          <Chip>Tasks</Chip>
-          <Chip>Priority</Chip>
+          </span>
+          <span className="mc-chip">Tasks</span>
+          <span className="mc-chip">Priority</span>
         </div>
       </div>
 
@@ -121,7 +121,7 @@ export function KanbanBoard({
                     <span className={`mr-2 ${col.dotClass}`}>●</span>
                     {col.title}
                   </h3>
-                  <Chip>{tasks.length}</Chip>
+                  <span className="mc-chip">{tasks.length}</span>
                 </div>
 
                 <Droppable droppableId={col.status} type={`tasks-${col.status}`}>
@@ -139,14 +139,14 @@ export function KanbanBoard({
                         Array.from({ length: 2 }).map((_, idx) => (
                           <div
                             key={idx}
-                            className="mc-card h-32 animate-pulse p-4"
+                            className="h-32 animate-pulse bg-[var(--mc-line)] rounded-[var(--r-card)] border border-[var(--mc-border)]"
                           />
                         ))
                       ) : tasks.length === 0 ? (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
+                          className="rounded-[var(--r-card)] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
                         >
                           <div className="text-[24px] mb-2">📭</div>
                           No tasks in {col.title}

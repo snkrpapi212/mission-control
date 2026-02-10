@@ -18,6 +18,7 @@ import { useOptimisticUI } from "@/hooks/useOptimisticUI";
 import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import { MobileNav } from "@/components/MobileNav";
+import { Button, IconButton, Badge } from "@/components/MissionControlPrimitives";
 import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
@@ -144,7 +145,7 @@ export function DashboardShell() {
           <div className="flex items-center gap-3">
             <div className="text-base" style={{ color: "var(--mc-accent-amber)" }}>◇</div>
             <h1 className="text-[18px] font-semibold tracking-[0.16em]">MISSION CONTROL</h1>
-            <span className="mc-chip px-2 py-0.5 text-[11px]">SiteGPT</span>
+            <Badge>SiteGPT</Badge>
           </div>
 
           <div className="hidden md:flex items-center gap-6">
@@ -162,9 +163,18 @@ export function DashboardShell() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="mc-input hidden sm:inline-flex rounded-md px-3 py-1.5 text-xs">🗂 Docs</button>
-            <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">🔔<span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span></button>
-            <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">{theme === "light" ? "🌙" : "☀️"}</button>
+            <Button variant="secondary" size="sm" className="hidden sm:inline-flex">
+              🗂 Docs
+            </Button>
+            <IconButton variant="secondary" className="relative">
+              🔔
+              <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--mc-red)] px-1 text-[10px] text-white">
+                3
+              </span>
+            </IconButton>
+            <IconButton variant="secondary" onClick={toggleTheme}>
+              {theme === "light" ? "🌙" : "☀️"}
+            </IconButton>
             <DashboardCustomization
               prefs={customizationPrefs}
               onPrefsChange={setCustomizationPrefs}
@@ -172,7 +182,9 @@ export function DashboardShell() {
             <div className="hidden md:block">
               <ConnectionStatus />
             </div>
-            <button type="button" onClick={() => setShowCreateModal(true)} className="rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>+ New Task</button>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateModal(true)}>
+              + New Task
+            </Button>
           </div>
         </div>
       </header>
@@ -191,8 +203,22 @@ export function DashboardShell() {
           >
             <div className="mb-3 flex items-center justify-between xl:hidden">
               <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
+                <Button
+                  variant={mobileTab === "board" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setMobileTab("board")}
+                  className="rounded-md px-3 py-1.5"
+                >
+                  Board
+                </Button>
+                <Button
+                  variant={mobileTab === "feed" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setMobileTab("feed")}
+                  className="rounded-md px-3 py-1.5"
+                >
+                  Feed
+                </Button>
               </div>
               <div className="text-xs mc-subtle">Updated {timeAgoString}</div>
             </div>
@@ -220,12 +246,14 @@ export function DashboardShell() {
             ) : null}
             {mobileTab === "more" ? (
               <div className="xl:hidden p-6 space-y-4">
-                <button
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={() => setShowCreateModal(true)}
-                  className="w-full px-4 py-3 rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
+                  className="w-full"
                 >
                   + Create Task
-                </button>
+                </Button>
               </div>
             ) : null}
           </main>
