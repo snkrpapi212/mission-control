@@ -127,3 +127,30 @@ The dashboard polish is now good enough that the next quality ceiling is auth co
 3. Error copy must be actionable, not just descriptive.
 4. Expected security checks must not look like runtime failures.
 5. UX decisions must be validated under slow-network conditions, not localhost speed.
+
+---
+
+## Round 2 Retry Addendum (23:41+ UTC)
+
+### Retry outcome
+- **MiniMax (Agent 4): ✅ completed on retry**
+  - Report: `/data/workspace/mission-control/outputs/collab-ux/agent4-minimax/UX_REVIEW_REPORT.md`
+  - Screenshots: `/data/workspace/mission-control/outputs/collab-ux/agent4-minimax/*.png`
+- **Opus (Agent 2): ❌ no output (session timed out/no messages)**
+
+### New signals from MiniMax
+MiniMax reinforced the same core direction: auth confidence and trust cues are now the biggest UX leverage points.
+
+High-value additions from MiniMax:
+1. Add visible trust scaffolding on login (help/support, privacy/terms, brand/footer).
+2. Clarify auth model expectations with explicit guidance text.
+3. Improve dashboard reassurance cues (session/account visibility, status cues, support access).
+
+### Coordinator decision update
+No major reprioritization needed. Round 2 **strengthened** the existing priority stack instead of changing it:
+- Keep auth-state clarity as P0.
+- Add trust microcopy/trust footer as P1 (can likely be done same sprint).
+- Defer broader dashboard nav expansion until authenticated flows are fully confidence-safe.
+
+### Remaining gap
+Opus perspective is still missing due to runtime/session instability. If you want strict 4-model parity, next step is a dedicated Opus-only rerun once gateway load is lower.

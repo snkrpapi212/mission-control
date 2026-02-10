@@ -1,0 +1,21 @@
+{
+  "title": "Mission Control",
+  "h1": [
+    "Mission Control Login"
+  ],
+  "h2": [],
+  "h3": [],
+  "labels": [
+    "Password"
+  ],
+  "buttons": [
+    {
+      "text": "Sign in",
+      "type": "submit"
+    }
+  ],
+  "links": [],
+  "navItems": [],
+  "cards": [],
+  "textContent": "Mission Control Login\n\nEnter password to continue.\n\nPassword\nSign in"
+}
