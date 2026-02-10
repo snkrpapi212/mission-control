@@ -16,7 +16,7 @@ import {
   useTasksByStatusLive,
 } from "@/hooks/useConvexData";
 import { useOptimisticUI } from "@/hooks/useOptimisticUI";
-import { SmartFilters, type FilterState } from "@/components/SmartFilters";
+import type { FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import { MobileNav } from "@/components/MobileNav";
 import { Bell, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
@@ -39,7 +39,7 @@ export function DashboardShell() {
     return (document.documentElement.getAttribute("data-theme") as "light" | "dark") || "light";
   });
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters] = useState<FilterState>({
     statuses: [],
     agentIds: [],
     priorities: [],
@@ -210,11 +210,7 @@ export function DashboardShell() {
                   key="board-view"
                                               className="mb-3"
                 >
-                  <div className="hidden md:flex items-center justify-between">
-                    <SmartFilters agents={agents} onFiltersChange={setFilters} />
-                    <div className="text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
-                  </div>
-                  <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)] md:hidden">Updated {timeAgoString}</div>
+                  <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
                   <KanbanBoard
                     tasksByStatus={filteredTasksByStatus}
                     agents={agents}
