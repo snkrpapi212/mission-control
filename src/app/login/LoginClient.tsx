@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginClient() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/dashboard";
   const [password, setPassword] = useState("");
@@ -29,8 +28,7 @@ export default function LoginClient() {
       return;
     }
 
-    router.push(next);
-    router.refresh();
+    window.location.assign(next);
   };
 
   return (
