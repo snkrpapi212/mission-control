@@ -41,7 +41,7 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
-                  className="border-b border-[var(--mc-line)] p-4"
+                  className="border-b border-[var(--mc-line)] p-[var(--sp-4)]"
                 >
                   <div className="mc-card h-20 animate-pulse" />
                 </motion.li>
@@ -63,10 +63,10 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                   >
                     <motion.button
                       onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
-                      className="w-full px-4 py-3 text-left hover:bg-[var(--mc-panel-soft)] transition-colors"
+                      className="w-full px-[var(--sp-4)] py-[var(--sp-3)] text-left hover:bg-[var(--mc-panel-soft)] transition-colors"
                       whileHover={{ backgroundColor: "var(--mc-panel-soft)" }}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-[var(--sp-3)]">
                         <div className="relative">
                           <div className="grid h-12 w-12 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[20px]">
                             {agent.emoji || "🤖"}
@@ -83,13 +83,13 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-[24px] font-semibold leading-none text-[var(--mc-text)]">
+                          <div className="flex items-center gap-[var(--sp-2)]">
+                            <p className="truncate text-[15px] font-semibold leading-none text-[var(--mc-text)]">
                               {agent.name}
                             </p>
                             <Chip>{roleBadge(agent.level)}</Chip>
                           </div>
-                          <p className="truncate text-[20px] text-[var(--mc-text-muted)]">
+                          <p className="truncate text-[13px] text-[var(--mc-text-muted)] mt-[var(--sp-1)]">
                             {agent.role}
                           </p>
                         </div>
@@ -103,8 +103,8 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                         </motion.div>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-muted)]">
+                      <div className="mt-[var(--sp-2)] flex items-center justify-between gap-[var(--sp-2)]">
+                        <div className="flex items-center gap-[var(--sp-2)] text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-muted)]">
                           <span
                             className={`inline-block h-2.5 w-2.5 rounded-full ${statusClass(
                               agent.status
@@ -112,7 +112,7 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           />
                           {agent.status}
                         </div>
-                        <p className="truncate text-[13px] text-[var(--mc-text-soft)]">
+                        <p className="truncate text-[12px] text-[var(--mc-text-soft)]">
                           {currentTask || "No active task"}
                         </p>
                       </div>
@@ -128,13 +128,13 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           transition={{ duration: 0.2 }}
                           className="overflow-hidden border-t border-[var(--mc-line)]"
                         >
-                          <div className="px-4 py-3 space-y-3 bg-[var(--mc-panel-soft)]">
+                          <div className="px-[var(--sp-4)] py-[var(--sp-3)] space-y-[var(--sp-3)] bg-[var(--mc-panel-soft)]">
                             {/* Performance sparkline placeholder */}
                             <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1.5">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-[var(--sp-2)]">
                                 This week
                               </p>
-                              <div className="h-8 rounded bg-[var(--mc-line)] flex items-end gap-0.5 p-1">
+                              <div className="h-8 rounded bg-[var(--mc-line)] flex items-end gap-[var(--sp-1)] p-[var(--sp-1)]">
                                 {[3, 5, 2, 6, 4, 8, 5].map((value, i) => (
                                   <motion.div
                                     key={i}
@@ -153,7 +153,7 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                                 e.stopPropagation();
                                 setSelectedAgent(agent);
                               }}
-                              className="w-full rounded px-3 py-2 text-[13px] font-semibold text-[var(--mc-text)] bg-[var(--mc-button-bg)] hover:bg-[var(--mc-button-hover)] transition-colors"
+                              className="w-full rounded px-[var(--sp-3)] py-[var(--sp-2)] text-[13px] font-semibold text-[var(--mc-text)] bg-[var(--mc-button-bg)] hover:bg-[var(--mc-button-hover)] transition-colors"
                             >
                               View Full Profile
                             </button>
