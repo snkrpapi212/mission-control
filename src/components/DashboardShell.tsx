@@ -50,16 +50,29 @@ export function DashboardShell() {
     showActivityFeed: true,
     showNotifications: true,
     columnOrder: ["inbox", "assigned", "in_progress", "review", "done", "blocked"],
-    theme: "light",
+    theme,
   });
   const { moveTask } = useOptimisticUI();
 
+  const applyTheme = (next: "light" | "dark") => {
+    setTheme(next);
+    setCustomizationPrefs((prev) => ({ ...prev, theme: next }));
+    localStorage.setItem("mc-theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("mc-theme");
+    if (saved === "light" || saved === "dark") {
+      setTheme(saved);
+      setCustomizationPrefs((prev) => ({ ...prev, theme: saved }));
+      document.documentElement.setAttribute("data-theme", saved);
+    }
+  }, []);
 
   const toggleTheme = () => {
     const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    localStorage.setItem("mc-theme", next);
-    document.documentElement.setAttribute("data-theme", next);
+    applyTheme(next);
   };
 
   // Update timestamp on data changes
@@ -177,7 +190,10 @@ export function DashboardShell() {
             </button>
             <DashboardCustomization
               prefs={customizationPrefs}
-              onPrefsChange={setCustomizationPrefs}
+              onPrefsChange={(next) => {
+                setCustomizationPrefs(next);
+                if (next.theme !== theme) applyTheme(next.theme);
+              }}
             />
             <div className="hidden md:block">
               <ConnectionStatus />
