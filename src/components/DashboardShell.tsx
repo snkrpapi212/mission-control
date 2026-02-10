@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
-import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
+import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
 import { ToastContainer } from "@/components/Toast";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
@@ -151,7 +151,7 @@ export function DashboardShell() {
         </div>
       </div>
 
-      {selectedTask ? <TaskDetailDrawer task={selectedTask} agents={agents} onClose={() => setSelectedTask(null)} /> : null}
+      {selectedTask && <TaskDetailModal task={selectedTask} agents={agents} onClose={() => setSelectedTask(null)} />}
       {showCreateModal ? <CreateTaskModal agents={agents} onClose={() => setShowCreateModal(false)} /> : null}
       
       <CommandPalette
