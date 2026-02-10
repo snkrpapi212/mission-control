@@ -140,14 +140,14 @@ export function DashboardShell() {
         style={{ backdropFilter: "blur(6px)" }}
         role="banner"
       >
-        <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex h-[var(--h-topbar)] max-w-[1800px] items-center justify-between px-[var(--sp-4)] lg:px-[var(--sp-6)]">
+          <div className="flex items-center gap-[var(--sp-3)]">
             <div className="text-base" style={{ color: "var(--mc-accent-amber)" }}>◇</div>
             <h1 className="text-[18px] font-semibold tracking-[0.16em]">MISSION CONTROL</h1>
             <span className="mc-chip px-2 py-0.5 text-[11px]">SiteGPT</span>
           </div>
 
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-[var(--sp-6)]">
             <div className="hidden lg:flex items-center gap-10 text-center">
               <div>
                 <div className="text-[30px] leading-none font-semibold">{activeAgentCount}</div>
@@ -158,11 +158,11 @@ export function DashboardShell() {
                 <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Tasks In Queue</div>
               </div>
             </div>
-            <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[240px] rounded-md px-3 text-xs" />
+            <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[240px] rounded-md px-[var(--sp-3)] text-xs" />
           </div>
 
-          <div className="flex items-center gap-2">
-            <button className="mc-input hidden sm:inline-flex rounded-md px-3 py-1.5 text-xs">🗂 Docs</button>
+          <div className="flex items-center gap-[var(--sp-2)]">
+            <button className="mc-input hidden sm:inline-flex rounded-md px-[var(--sp-3)] py-[var(--sp-2)] text-xs">🗂 Docs</button>
             <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">🔔<span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span></button>
             <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">{theme === "light" ? "🌙" : "☀️"}</button>
             <DashboardCustomization
@@ -172,34 +172,34 @@ export function DashboardShell() {
             <div className="hidden md:block">
               <ConnectionStatus />
             </div>
-            <button type="button" onClick={() => setShowCreateModal(true)} className="rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>+ New Task</button>
+            <button type="button" onClick={() => setShowCreateModal(true)} className="rounded-md border px-[var(--sp-3)] py-[var(--sp-2)] text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>+ New Task</button>
           </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-[1800px]">
-        <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
+        <div className="grid grid-cols-1 xl:grid-cols-[var(--w-sidebar)_minmax(0,1fr)_var(--w-feed)]">
           {customizationPrefs.showAgentsSidebar && (
             <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
           )}
 
           <main 
             id="main-content"
-            className="border-x px-3 py-3 md:px-4 md:py-4" 
+            className="border-x px-[var(--sp-3)] py-[var(--sp-3)] md:px-[var(--sp-4)] md:py-[var(--sp-4)]" 
             style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}
             role="main"
           >
-            <div className="mb-3 flex items-center justify-between xl:hidden">
-              <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
+            <div className="mb-[var(--sp-3)] flex items-center justify-between xl:hidden">
+              <div className="inline-flex rounded-lg border p-[var(--sp-1)] text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
+                <button className={`rounded-md px-[var(--sp-3)] py-[var(--sp-2)] ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
+                <button className={`rounded-md px-[var(--sp-3)] py-[var(--sp-2)] ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
               </div>
               <div className="text-xs mc-subtle">Updated {timeAgoString}</div>
             </div>
 
             {mobileTab === "board" ? (
               <div>
-                <div className="mb-3 flex items-center justify-between text-xs mc-subtle">
+                <div className="mb-[var(--sp-3)] flex items-center justify-between text-xs mc-subtle">
                   <span>Updated {timeAgoString}</span>
                 </div>
                 <SmartFilters agents={agents} onFiltersChange={setFilters} />
@@ -219,10 +219,10 @@ export function DashboardShell() {
               </div>
             ) : null}
             {mobileTab === "more" ? (
-              <div className="xl:hidden p-6 space-y-4">
+              <div className="xl:hidden p-[var(--sp-6)] space-y-[var(--sp-4)]">
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="w-full px-4 py-3 rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
+                  className="w-full px-[var(--sp-4)] py-[var(--sp-3)] rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
                 >
                   + Create Task
                 </button>
