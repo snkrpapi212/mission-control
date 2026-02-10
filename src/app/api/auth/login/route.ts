@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 const SESSION_COOKIE = "mc_session";
 
 export async function POST(req: Request) {
+  if (process.env.MC_AUTH_ENABLED !== "true") {
+    return NextResponse.json({ error: "Auth is disabled" }, { status: 400 });
+  }
+
   const body = (await req.json().catch(() => ({}))) as { password?: string };
   const password = body.password || "";
 

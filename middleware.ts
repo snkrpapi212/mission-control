@@ -4,6 +4,8 @@ import type { NextRequest } from "next/server";
 const SESSION_COOKIE = "mc_session";
 
 export function middleware(req: NextRequest) {
+  const authEnabled = process.env.MC_AUTH_ENABLED === "true";
+  if (!authEnabled) return NextResponse.next();
   const { pathname, search } = req.nextUrl;
 
   if (!pathname.startsWith("/dashboard")) {
