@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface TaskActivityProps {
-  // eslint-disable-next-line no-unused-vars
   task: Doc<"tasks">;
 }
 
@@ -105,7 +104,7 @@ const isYesterday = (date: Date, now: Date) => {
   );
 };
 
-export function TaskActivity({ task }: TaskActivityProps) {
+export function TaskActivity({ task: _task }: TaskActivityProps) {
   const groupedActivity = groupByDay(MOCK_ACTIVITY);
 
   return (

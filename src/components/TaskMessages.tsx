@@ -6,7 +6,6 @@ import ReactMarkdown from "react-markdown";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface TaskMessagesProps {
-  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
   task: Doc<"tasks">;
   agents: Doc<"agents">[];
 }
@@ -40,7 +39,7 @@ const MOCK_MESSAGES: Message[] = [
   },
 ];
 
-export function TaskMessages({ task, agents }: TaskMessagesProps) {
+export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
   const [newMessage, setNewMessage] = useState("");
   const [mentionSearch, setMentionSearch] = useState("");
   const [showMentions, setShowMentions] = useState(false);

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileNavProps {
   activeTab: "board" | "feed" | "filters" | "more";
-  onTabChange: (tab: "board" | "feed" | "filters" | "more") => void;
+  onTabChange: (_tab: "board" | "feed" | "filters" | "more") => void;
   onSettingsClick: () => void;
 }
 
