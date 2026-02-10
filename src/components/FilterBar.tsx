@@ -21,11 +21,11 @@ export function FilterBar({
   onAgentChange: (_agentId: string) => void;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap gap-3 items-center rounded-lg bg-white border border-gray-200 p-3">
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-[14px] border border-[var(--mc-line)] bg-[var(--mc-card)] p-3">
       <select
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value as TaskStatus | "all")}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+        className="rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-panel)] px-3 py-1.5 text-[13px] text-[var(--mc-text)] transition-colors duration-200 hover:border-[var(--mc-line-strong)]"
       >
         <option value="all">All Status</option>
         <option value="inbox">Inbox</option>
@@ -39,7 +39,7 @@ export function FilterBar({
       <select
         value={priorityFilter}
         onChange={(e) => onPriorityChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+        className="rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-panel)] px-3 py-1.5 text-[13px] text-[var(--mc-text)] transition-colors duration-200 hover:border-[var(--mc-line-strong)]"
       >
         <option value="all">All Priorities</option>
         <option value="low">Low</option>
@@ -51,7 +51,7 @@ export function FilterBar({
       <select
         value={agentFilter}
         onChange={(e) => onAgentChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+        className="rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-panel)] px-3 py-1.5 text-[13px] text-[var(--mc-text)] transition-colors duration-200 hover:border-[var(--mc-line-strong)]"
       >
         <option value="all">All Agents</option>
         {agents.map((a) => (
@@ -69,7 +69,7 @@ export function FilterBar({
             onPriorityChange("all");
             onAgentChange("all");
           }}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium transition-colors duration-200"
+          className="rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-panel)] px-3 py-1.5 text-[13px] font-medium text-[var(--mc-text-muted)] transition-colors duration-200 hover:border-[var(--mc-line-strong)] hover:text-[var(--mc-text)]"
         >
           Clear filters
         </button>

@@ -7,6 +7,8 @@ import { KanbanBoard } from "@/components/KanbanBoard";
 import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
 import { Chip } from "@/components/MissionControlPrimitives";
+import { FilterBar } from "@/components/FilterBar";
+import type { TaskStatus } from "@/types";
 import { useActivitiesLive, useAgentsLive, useTasksByStatusLive } from "@/hooks/useConvexData";
 
 export function DashboardShell() {
@@ -19,9 +21,21 @@ export function DashboardShell() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [mobileTab, setMobileTab] = useState<"board" | "feed">("board");
   const [darkMode, setDarkMode] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all");
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
+    const savedTheme = window.localStorage.getItem("mission-control-theme");
+    if (savedTheme === "dark") setDarkMode(true);
+    if (savedTheme === "light") setDarkMode(false);
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-theme", darkMode ? "dark" : "light");
+    root.classList.toggle("dark", darkMode);
+    window.localStorage.setItem("mission-control-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
   const flattenedTasks = useMemo(() => Object.values(tasksByStatus).flat(), [tasksByStatus]);
@@ -31,6 +45,20 @@ export function DashboardShell() {
     return map;
   }, [flattenedTasks]);
 
+  const filteredTasksByStatus = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(tasksByStatus).map(([status, tasks]) => {
+        const filtered = tasks.filter((task) => {
+          const statusOk = statusFilter === "all" || task.status === statusFilter;
+          const priorityOk = priorityFilter === "all" || task.priority === priorityFilter;
+          const agentOk = agentFilter === "all" || task.assigneeIds.includes(agentFilter);
+          return statusOk && priorityOk && agentOk;
+        });
+        return [status, filtered];
+      })
+    ) as typeof tasksByStatus;
+  }, [tasksByStatus, statusFilter, priorityFilter, agentFilter]);
+
   const activeAgentCount = agents.filter((a) => a.status === "working").length;
 
   return (
@@ -39,17 +67,17 @@ export function DashboardShell() {
         <div className="grid h-[var(--h-topbar)] grid-cols-[1fr_auto_1fr] items-center px-4">
           <div className="flex items-center gap-3">
             <span className="text-[20px] text-[var(--mc-amber)]">◇</span>
-            <h1 className="text-[31px] font-semibold tracking-[0.08em]">MISSION CONTROL</h1>
+            <h1 className="text-[22px] md:text-[28px] font-semibold tracking-[0.08em]">MISSION CONTROL</h1>
             <Chip>SiteGPT</Chip>
           </div>
 
           <div className="flex items-center gap-10 text-center">
             <div>
-              <p className="text-[50px] font-semibold leading-none">{activeAgentCount}</p>
+              <p className="text-[30px] md:text-[38px] font-semibold leading-none">{activeAgentCount}</p>
               <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">Agents Active</p>
             </div>
             <div>
-              <p className="text-[50px] font-semibold leading-none">{flattenedTasks.length}</p>
+              <p className="text-[30px] md:text-[38px] font-semibold leading-none">{flattenedTasks.length}</p>
               <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">Tasks In Queue</p>
             </div>
           </div>
@@ -63,7 +91,7 @@ export function DashboardShell() {
               {darkMode ? "Light" : "Dark"}
             </button>
             <div className="text-right">
-              <p className="font-mono text-[28px] leading-none">
+              <p className="font-mono text-[20px] md:text-[24px] leading-none">
                 {new Date().toLocaleTimeString("en-US", { hour12: false })}
               </p>
               <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">
@@ -97,8 +125,20 @@ export function DashboardShell() {
             </div>
           </div>
 
+          <div className="px-3 pt-3">
+            <FilterBar
+              statusFilter={statusFilter}
+              priorityFilter={priorityFilter}
+              agentFilter={agentFilter}
+              agents={agents}
+              onStatusChange={setStatusFilter}
+              onPriorityChange={setPriorityFilter}
+              onAgentChange={setAgentFilter}
+            />
+          </div>
+
           {mobileTab === "board" ? (
-            <KanbanBoard tasksByStatus={tasksByStatus} agents={agents} loading={loading} onSelectTask={(task) => setSelectedTask(task)} />
+            <KanbanBoard tasksByStatus={filteredTasksByStatus} agents={agents} loading={loading} onSelectTask={(task) => setSelectedTask(task)} />
           ) : null}
           {mobileTab === "feed" ? (
             <div className="p-3 xl:hidden">

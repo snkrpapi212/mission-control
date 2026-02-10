@@ -12,6 +12,7 @@ const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string }> = 
   { status: "in_progress", title: "In Progress", dotClass: "text-[var(--mc-green)]" },
   { status: "review", title: "Review", dotClass: "text-[var(--mc-amber)]" },
   { status: "done", title: "Done", dotClass: "text-[var(--mc-green)]" },
+  { status: "blocked", title: "Blocked", dotClass: "text-[var(--mc-red)]" },
 ];
 
 export function KanbanBoard({
