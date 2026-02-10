@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { LayoutGrid, Users, Bell, MoreHorizontal, X, Settings, Plus } from "lucide-react";
 
 interface MobileNavProps {
@@ -31,22 +31,14 @@ export function MobileNav({
         {menuOpen && (
           <>
             {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+            <div
               onClick={() => setMenuOpen(false)}
               className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
               aria-hidden="true"
             />
 
             {/* Drawer */}
-            <motion.div
-              initial={{ opacity: 0, x: -320 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -320 }}
-              transition={{ duration: 0.25, type: "spring", stiffness: 320, damping: 28 }}
+            <div
               className="fixed left-0 top-0 bottom-0 z-50 w-full max-w-[280px] bg-[var(--mc-panel)] border-r border-[var(--mc-line)] shadow-xl overflow-y-auto lg:hidden"
             >
               {/* Drawer Header */}
@@ -119,15 +111,13 @@ export function MobileNav({
                   </button>
                 </div>
               </nav>
-            </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
 
       {/* Bottom Tab Navigation (visible on mobile only) */}
-      <motion.div
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
+      <div
         className="fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--mc-line)] bg-[var(--mc-panel)]/95 backdrop-blur-md lg:hidden safe-area-pb"
         role="tablist"
         aria-label="Main navigation"
@@ -137,7 +127,7 @@ export function MobileNav({
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <motion.button
+              <button
                 key={tab.id}
                 onClick={() => {
                   if (tab.id === "more") {
@@ -154,7 +144,6 @@ export function MobileNav({
                 role="tab"
                 aria-selected={isActive}
                 aria-label={tab.label}
-                whileTap={{ scale: 0.95 }}
               >
                 <div className={`p-1.5 rounded-lg transition-colors ${isActive ? "bg-[var(--mc-accent-green-soft)]" : ""}`}>
                   <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
@@ -162,11 +151,11 @@ export function MobileNav({
                 <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
                   {tab.label}
                 </span>
-              </motion.button>
+              </button>
             );
           })}
         </div>
-      </motion.div>
+      </div>
 
       {/* Bottom safe area spacer */}
       <div className="h-16 lg:hidden" />

@@ -105,10 +105,7 @@ export function KanbanBoard({
             return (
               <motion.div
                 key={col.status}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)]"
+                      className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)]"
               >
                 <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
                   <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
@@ -138,9 +135,7 @@ export function KanbanBoard({
                         ))
                       ) : tasks.length === 0 ? (
                         <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
+                                                      className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
                         >
                           <div className="text-[24px] mb-2">📭</div>
                           No tasks in {col.title}

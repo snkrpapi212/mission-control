@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import type { Doc } from "../../convex/_generated/dataModel";
 import { PanelHeader, Chip } from "@/components/MissionControlPrimitives";
 import { AgentDetailModal } from "@/components/AgentDetailModal";
@@ -64,15 +64,12 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
         <ul className="overflow-y-auto">
           {loading
             ? Array.from({ length: 7 }).map((_, idx) => (
-                <motion.li
+                <li
                   key={`skeleton-${idx}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
                   className="border-b border-[var(--mc-line)] p-4"
                 >
                   <div className="mc-card h-20 animate-pulse" />
-                </motion.li>
+                </li>
               ))
             : agents.map((agent) => {
                 const currentTask = agent.currentTaskId
@@ -81,19 +78,14 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                 const isExpanded = expandedAgentId === agent._id;
 
                 return (
-                  <motion.li
+                  <li
                     key={agent._id}
-                    layout
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
                     className="border-b border-[var(--mc-line)]"
                   >
-                    <motion.button
+                    <button
                       onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
                       className="w-full px-4 py-3 text-left hover:bg-[var(--mc-panel-soft)] transition-colors"
-                      whileHover={{ backgroundColor: "var(--mc-panel-soft)" }}
-                    >
+                          >
                       <div className="flex items-center gap-3">
                         <div className="relative">
                           <div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[var(--mc-text)]">
@@ -112,10 +104,8 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                             aria-label={isOnline(agent.lastHeartbeat) ? "Online" : "Offline"}
                           />
                           {agent.status === "working" && isOnline(agent.lastHeartbeat) && (
-                            <motion.div
+                            <div
                               className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[var(--mc-green)]"
-                              animate={{ scale: [1, 1.5, 1] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
                               aria-hidden="true"
                             />
                           )}
@@ -133,15 +123,11 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           </p>
                         </div>
 
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-[var(--mc-text-muted)]"
-                        >
+                        <div className="text-[var(--mc-text-muted)]">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="m6 9 6 6 6-6"/>
                           </svg>
-                        </motion.div>
+                        </div>
                       </div>
 
                       <div className="mt-2 flex items-center justify-between gap-2">
@@ -164,18 +150,11 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           {currentTask ? `Working on: ${currentTask}` : "No active task"}
                         </p>
                       </div>
-                    </motion.button>
+                    </button>
 
                     {/* Expanded detail section */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden border-t border-[var(--mc-line)]"
-                        >
+                    {isExpanded && (
+                        <div className="overflow-hidden border-t border-[var(--mc-line)]">
                           <div className="px-4 py-3 space-y-3 bg-[var(--mc-panel-soft)]">
                             {/* Detail modal trigger */}
                             <button
@@ -188,10 +167,9 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                               View Full Profile
                             </button>
                           </div>
-                        </motion.div>
+                        </div>
                       )}
-                    </AnimatePresence>
-                  </motion.li>
+                  </li>
                 );
               })}
         </ul>

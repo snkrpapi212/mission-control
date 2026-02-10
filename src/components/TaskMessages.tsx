@@ -102,14 +102,11 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
     <div className="flex flex-col h-full">
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {MOCK_MESSAGES.map((msg, idx) => {
+        {MOCK_MESSAGES.map((msg) => {
           const author = byAgentId.get(msg.authorId);
           return (
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1, duration: 0.2 }}
               className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4"
             >
               {/* Message Header */}
@@ -208,10 +205,7 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
           {/* @mention Autocomplete */}
           {showMentions && mentionSearch && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-full left-0 right-0 mb-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg max-h-[200px] overflow-y-auto"
+                              className="absolute bottom-full left-0 right-0 mb-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg max-h-[200px] overflow-y-auto"
             >
               {filteredMentions.map((agent) => (
                 <button

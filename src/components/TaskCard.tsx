@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
 import { Chip } from "@/components/MissionControlPrimitives";
@@ -35,29 +33,11 @@ export function TaskCard({
   onClick?: () => void;
   isDragging?: boolean;
 }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [canHover, setCanHover] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const update = () => setCanHover(mq.matches);
-    update();
-    mq.addEventListener?.("change", update);
-    return () => mq.removeEventListener?.("change", update);
-  }, []);
 
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      whileHover={canHover ? { y: -4, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)" } : undefined}
-      transition={{ duration: 0.15 }}
       className={`mc-card mc-focus relative w-full overflow-hidden p-4 text-left before:absolute before:inset-y-0 before:left-0 before:w-[3px] ${railClass(
         task.priority
       )} ${
@@ -89,14 +69,11 @@ export function TaskCard({
       {/* Tags */}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {(task.tags ?? []).slice(0, 4).map((tag) => (
-          <motion.div
+          <div
             key={tag}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.15 }}
-          >
+                >
             <Chip className="bg-[var(--mc-line)] text-[var(--mc-text-soft)] text-[10px] px-1.5 py-0.5">{tag}</Chip>
-          </motion.div>
+          </div>
         ))}
       </div>
 
@@ -120,14 +97,13 @@ export function TaskCard({
           )}
         </div>
         {assignee && (
-          <motion.div
-            animate={{ scale: isHovered ? 1.1 : 1 }}
+          <div
             className="h-5 w-5 rounded-full bg-[var(--mc-accent-green-soft)] flex items-center justify-center"
           >
             <Check size={12} className="text-[var(--mc-accent-green)]" />
-          </motion.div>
+          </div>
         )}
       </div>
-    </motion.button>
+    </button>
   );
 }

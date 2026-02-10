@@ -58,12 +58,9 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
       {/* Documents List */}
       {docs.length > 0 ? (
         <div className="space-y-2">
-          {docs.map((doc, idx) => (
+          {docs.map((doc) => (
             <motion.div
               key={doc._id}
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.06, duration: 0.2 }}
               className="group rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-3.5 transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)]"
             >
               <div className="flex items-start justify-between gap-3">
@@ -96,9 +93,7 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
         </div>
       ) : (
         <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="py-10 px-6 text-center rounded-[var(--r-card)] border border-dashed border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50"
+                  className="py-10 px-6 text-center rounded-[var(--r-card)] border border-dashed border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50"
         >
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--r-card)] bg-[var(--mc-line)] text-[var(--mc-text-muted)] mb-3">
             <FileText size={24} />
@@ -111,8 +106,6 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
       )}
 
       <motion.button
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
         onClick={handleCreateQuickDoc}
         disabled={creating}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--r-card)] border-2 border-dashed border-[var(--mc-line)] bg-transparent py-3 text-[14px] font-medium text-[var(--mc-text)] transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)] disabled:opacity-60"
@@ -125,17 +118,10 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
       <AnimatePresence>
         {activeDoc && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setActiveDocId(null)}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 28 }}
               className="w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >

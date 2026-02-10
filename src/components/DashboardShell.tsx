@@ -208,10 +208,7 @@ export function DashboardShell() {
               {mobileTab === "board" ? (
                 <motion.div 
                   key="board-view"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="mb-3"
+                                              className="mb-3"
                 >
                   <div className="flex items-center justify-between">
                     <SmartFilters agents={agents} onFiltersChange={setFilters} />
@@ -257,8 +254,7 @@ export function DashboardShell() {
                         const t = flattenedTasks.find((x) => x._id === agent.currentTaskId);
                         if (t) setSelectedTask(t);
                       }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
+                                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
