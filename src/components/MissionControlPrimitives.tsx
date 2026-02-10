@@ -14,9 +14,10 @@ export function PanelHeader({
   count?: number;
 }) {
   return (
-    <div className="flex h-[var(--h-section)] items-center justify-between border-b border-[var(--mc-line)] px-4">
-      <h2 className="text-[22px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text)]">
-        <span className={`mr-2 text-[var(--mc-green)] ${dotClass ?? ""}`}>•</span>
+    <div className="flex h-[var(--h-section)] items-center justify-between border-b border-[var(--mc-border)] px-4">
+      {/* H1 typography: 20px per design system */}
+      <h2 className="text-[length:var(--mc-font-h1)] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text)]">
+        <span className={`mr-2 text-[var(--mc-accent)] ${dotClass ?? ""}`}>•</span>
         {title}
       </h2>
       {typeof count === "number" ? <Chip>{count}</Chip> : null}
