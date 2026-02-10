@@ -27,11 +27,12 @@ export function KanbanBoard({
   tasksByStatus: Record<TaskStatus, Doc<"tasks">[]>;
   agents: Doc<"agents">[];
   loading?: boolean;
+  // eslint-disable-next-line no-unused-vars
   onSelectTask?: (..._args: [Doc<"tasks">]) => void;
+  // eslint-disable-next-line no-unused-vars
   onTaskMove?: (taskId: string, newStatus: TaskStatus) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
 
   const byAgent = useMemo(() => {
     const map = new Map<string, Doc<"agents">>();
@@ -57,7 +58,6 @@ export function KanbanBoard({
     const { source, destination, draggableId } = result;
 
     if (!destination) {
-      setDraggedTaskId(null);
       return;
     }
 
@@ -65,7 +65,6 @@ export function KanbanBoard({
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) {
-      setDraggedTaskId(null);
       return;
     }
 
@@ -79,8 +78,6 @@ export function KanbanBoard({
     if (task && onTaskMove && destColumnStatus !== sourceColumnStatus) {
       onTaskMove(draggableId, destColumnStatus);
     }
-
-    setDraggedTaskId(null);
   };
 
   return (
@@ -107,7 +104,7 @@ export function KanbanBoard({
         </div>
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd} onDragStart={(start) => setDraggedTaskId(start.draggableId)}>
+      <DragDropContext onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-2 2xl:grid-cols-6">
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
@@ -162,13 +159,10 @@ export function KanbanBoard({
                             index={index}
                           >
                             {(provided, snapshot) => (
-                              <motion.div
+                              <div
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                layout
                               >
                                 <TaskCard
                                   task={task}
@@ -180,7 +174,7 @@ export function KanbanBoard({
                                   onClick={() => onSelectTask?.(task)}
                                   isDragging={snapshot.isDragging}
                                 />
-                              </motion.div>
+                              </div>
                             )}
                           </Draggable>
                         ))

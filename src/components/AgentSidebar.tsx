@@ -18,11 +18,6 @@ function statusClass(status: Doc<"agents">["status"]) {
   return "bg-[var(--mc-amber)]";
 }
 
-function statusPulseClass(status: Doc<"agents">["status"]) {
-  if (status === "working") return "animate-pulse bg-[var(--mc-green)] shadow-lg shadow-[var(--mc-green)]/30";
-  return "";
-}
-
 interface AgentListProps {
   agents: Doc<"agents">[];
   taskTitles: Map<string, string>;

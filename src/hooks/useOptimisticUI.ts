@@ -36,14 +36,16 @@ export function useOptimisticUI() {
         await updateTask({
           id: task._id,
           status: newStatus,
+          agentId: task.createdBy,
         });
 
         // Success feedback
         toast.success(successMessage);
-      } catch (error) {
+      } catch {
         // Error feedback
         toast.error(errorMessage);
-        console.error("Task mutation failed:", error);
+        // eslint-disable-next-line no-console
+        console.error("Task mutation failed");
       }
     },
     [updateTask, toast]
@@ -53,6 +55,7 @@ export function useOptimisticUI() {
     async (
       taskId: string,
       updates: Partial<Doc<"tasks">>,
+      agentId: string,
       options: OptimisticUpdateOptions = {}
     ) => {
       const {
@@ -65,14 +68,16 @@ export function useOptimisticUI() {
         optimisticUpdate?.();
 
         await updateTask({
-          id: taskId,
+          id: taskId as import("../../convex/_generated/dataModel").Id<"tasks">,
+          agentId,
           ...updates,
         });
 
         toast.success(successMessage);
-      } catch (error) {
+      } catch {
         toast.error(errorMessage);
-        console.error("Update failed:", error);
+        // eslint-disable-next-line no-console
+        console.error("Update failed");
       }
     },
     [updateTask, toast]
