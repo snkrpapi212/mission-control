@@ -1,6 +1,7 @@
 "use client";
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { DarkModeProvider } from "@/context/DarkModeContext";
 
 // Production Convex deployment - hardcoded to ensure it works in all environments
 const PRODUCTION_CONVEX_URL = "https://tidy-salamander-925.eu-west-1.convex.cloud";
@@ -20,6 +21,12 @@ export function ConvexClientProvider({
 }: {
   children: React.ReactNode;
 }) {
-  if (!client) return <>{children}</>;
-  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+  const content = (
+    <DarkModeProvider>
+      {children}
+    </DarkModeProvider>
+  );
+
+  if (!client) return content;
+  return <ConvexProvider client={client}>{content}</ConvexProvider>;
 }
