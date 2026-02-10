@@ -43,7 +43,7 @@ export function CreateTaskModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim()) {
       alert("Title is required");
       return;
@@ -66,44 +66,44 @@ export function CreateTaskModal({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-lg shadow-xl border border-gray-200">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-[var(--sh-modal)]">
         <form onSubmit={handleSubmit}>
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-base font-bold text-gray-900">Create New Task</h2>
+          <div className="border-b border-[var(--mc-line)] px-4 py-4">
+            <h2 className="text-[16px] font-semibold text-[var(--mc-text)]">Create New Task</h2>
           </div>
 
-          <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="max-h-[70vh] space-y-4 overflow-y-auto px-4 py-4">
             <label className="block">
-              <div className="text-xs font-semibold text-gray-900 mb-1">Title *</div>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Title *</div>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter task title"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2 text-sm text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-soft)] focus:border-[var(--mc-green)] focus:shadow-[var(--focus-ring)]"
                 required
               />
             </label>
 
             <label className="block">
-              <div className="text-xs font-semibold text-gray-900 mb-1">Description</div>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Description</div>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Enter task description"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                className="w-full rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2 text-sm text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-soft)] focus:border-[var(--mc-green)] focus:shadow-[var(--focus-ring)]"
                 rows={4}
               />
             </label>
 
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <div className="text-xs font-semibold text-gray-900 mb-1">Priority</div>
+                <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Priority</div>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high" | "urgent")}
-                  className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm"
+                  className="w-full rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-2 py-2 text-sm text-[var(--mc-text)] outline-none focus:border-[var(--mc-green)] focus:shadow-[var(--focus-ring)]"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -113,11 +113,11 @@ export function CreateTaskModal({
               </label>
 
               <label className="block">
-                <div className="text-xs font-semibold text-gray-900 mb-1">Created by</div>
+                <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Created by</div>
                 <select
                   value={createdBy}
                   onChange={(e) => setCreatedBy(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm"
+                  className="w-full rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-2 py-2 text-sm text-[var(--mc-text)] outline-none focus:border-[var(--mc-green)] focus:shadow-[var(--focus-ring)]"
                 >
                   {agents.map((a) => (
                     <option key={a._id} value={a.agentId}>
@@ -129,24 +129,24 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <div className="text-xs font-semibold text-gray-900 mb-1">Assignees</div>
-              <div className="rounded-md border border-gray-300 p-2 max-h-40 overflow-y-auto">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Assignees</div>
+              <div className="max-h-40 overflow-y-auto rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] p-2">
                 {agents.length === 0 ? (
-                  <div className="text-xs text-gray-400">No agents available</div>
+                  <div className="text-xs text-[var(--mc-text-soft)]">No agents available</div>
                 ) : (
                   <div className="space-y-1">
                     {agents.map((agent) => (
                       <label
                         key={agent._id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-[var(--mc-panel-soft)]"
                       >
                         <input
                           type="checkbox"
                           checked={selectedAgentIds.includes(agent.agentId)}
                           onChange={() => toggleAgent(agent.agentId)}
-                          className="rounded border-gray-300"
+                          className="rounded border-[var(--mc-line)]"
                         />
-                        <span className="text-sm text-gray-900">
+                        <span className="text-sm text-[var(--mc-text)]">
                           {agent.name} ({agent.agentId})
                         </span>
                       </label>
@@ -157,8 +157,8 @@ export function CreateTaskModal({
             </div>
 
             <div>
-              <div className="text-xs font-semibold text-gray-900 mb-1">Tags</div>
-              <div className="flex gap-2 mb-2">
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Tags</div>
+              <div className="mb-2 flex gap-2">
                 <input
                   type="text"
                   value={tagInput}
@@ -170,12 +170,12 @@ export function CreateTaskModal({
                     }
                   }}
                   placeholder="Add a tag"
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm"
+                  className="flex-1 rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-1 text-sm text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-soft)] focus:border-[var(--mc-green)] focus:shadow-[var(--focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={addTag}
-                  className="rounded-md border border-gray-300 px-3 py-1 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+                  className="rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-1 text-sm font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)]"
                 >
                   Add
                 </button>
@@ -185,13 +185,13 @@ export function CreateTaskModal({
                   {tags.map((tag) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center gap-1 bg-gray-100 border border-gray-200 rounded px-2 py-1 text-xs"
+                      className="inline-flex items-center gap-1 rounded border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-2 py-1 text-xs text-[var(--mc-text-muted)]"
                     >
                       {tag}
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-[var(--mc-text-soft)] hover:text-[var(--mc-text)]"
                       >
                         ×
                       </button>
@@ -202,17 +202,17 @@ export function CreateTaskModal({
             </div>
           </div>
 
-          <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
+          <div className="flex justify-end gap-2 border-t border-[var(--mc-line)] px-4 py-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+              className="rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-sm font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
+              className="rounded-md border border-[var(--mc-text)] bg-[var(--mc-text)] px-4 py-2 text-sm font-semibold text-[var(--mc-bg)] hover:opacity-90"
             >
               Create Task
             </button>
