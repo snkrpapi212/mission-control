@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAdmin, requireIdentity } from "./auth";
+import { requireAdmin, requireActorMatch, requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -13,6 +13,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.createdBy);
     const now = Date.now();
     const taskId = await ctx.db.insert("tasks", {
       title: args.title,
@@ -56,6 +57,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.agentId);
     const task = await ctx.db.get(args.id);
     if (!task) {
       throw new Error("Task not found");

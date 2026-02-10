@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireIdentity } from "./auth";
+import { requireActorMatch, requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -18,6 +18,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.createdBy);
     const now = Date.now();
 
     const docId = await ctx.db.insert("documents", {

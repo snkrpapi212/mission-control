@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireAdmin, requireIdentity } from "./auth";
+import { requireAdmin, requireActorMatch, requireIdentity } from "./auth";
 
 export const log = mutation({
   args: {
@@ -12,6 +12,7 @@ export const log = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.agentId);
     return await ctx.db.insert("activities", {
       type: args.type,
       agentId: args.agentId,

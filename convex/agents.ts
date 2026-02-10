@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireIdentity } from "./auth";
+import { requireActorMatch, requireIdentity } from "./auth";
 
 export const register = mutation({
   args: {
@@ -13,6 +13,7 @@ export const register = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.agentId);
     const existing = await ctx.db
       .query("agents")
       .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId))
@@ -42,6 +43,7 @@ export const updateStatus = mutation({
   },
   handler: async (ctx, args) => {
     await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.agentId);
     const agent = await ctx.db
       .query("agents")
       .withIndex("by_agentId", (q) => q.eq("agentId", args.agentId))
