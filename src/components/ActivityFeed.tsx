@@ -5,12 +5,12 @@ import { timeAgo } from "@/lib/time";
 import { Chip, PanelHeader } from "@/components/MissionControlPrimitives";
 
 const ICON_BY_TYPE: Record<string, string> = {
-  task_created: "◉",
-  task_updated: "◌",
-  status_changed: "◎",
-  message_created: "✎",
-  document_created: "▣",
-  heartbeat: "•",
+  task_created: "TC",
+  task_updated: "TU",
+  status_changed: "SC",
+  message_created: "MS",
+  document_created: "DC",
+  heartbeat: "HB",
 };
 
 export function ActivityFeed({
@@ -55,7 +55,7 @@ export function ActivityFeed({
             {activities.map((activity) => (
               <li key={activity._id} className="border-b border-[var(--mc-line)] px-4 py-4 hover:bg-[var(--mc-panel-soft)]">
                 <div className="flex gap-3">
-                  <span className="mt-1 text-[18px] text-[var(--mc-amber)]">{ICON_BY_TYPE[activity.type] || "•"}</span>
+                  <span className="mt-0.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-1 text-[10px] font-semibold tracking-[0.04em] text-[var(--mc-text-soft)]">{ICON_BY_TYPE[activity.type] || "EV"}</span>
                   <div className="min-w-0">
                     <p className="text-[14px] leading-[1.4] text-[var(--mc-text)]">
                       <span className="font-semibold">{activity.agentId}</span> {activity.message}

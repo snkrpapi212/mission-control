@@ -15,10 +15,10 @@ function railClass(priority: Doc<"tasks">["priority"]) {
 
 function priorityLabel(priority: Doc<"tasks">["priority"]) {
   const labels: Record<string, string> = {
-    urgent: "🔴 URGENT",
-    high: "🟠 HIGH",
-    medium: "🟢 MEDIUM",
-    low: "⚪ LOW",
+    urgent: "URGENT",
+    high: "HIGH",
+    medium: "MEDIUM",
+    low: "LOW",
   };
   return labels[priority] || "LOW";
 }

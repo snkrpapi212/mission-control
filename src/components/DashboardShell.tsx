@@ -18,6 +18,7 @@ import { useOptimisticUI } from "@/hooks/useOptimisticUI";
 import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import { MobileNav } from "@/components/MobileNav";
+import { Bell, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
 import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
@@ -136,15 +137,17 @@ export function DashboardShell() {
       </a>
 
       <header 
-        className="sticky top-0 z-30 border-b mc-panel" 
-        style={{ backdropFilter: "blur(6px)" }}
+        className="sticky top-0 z-30 border-b border-[var(--mc-line)] bg-[color:color-mix(in_srgb,var(--mc-panel)_92%,white_8%)]" 
+        style={{ backdropFilter: "blur(10px)" }}
         role="banner"
       >
         <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            <div className="text-base" style={{ color: "var(--mc-accent-amber)" }}>◇</div>
-            <h1 className="text-[18px] font-semibold tracking-[0.16em]">MISSION CONTROL</h1>
-            <span className="mc-chip px-2 py-0.5 text-[11px]">SiteGPT</span>
+            <div className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] text-[var(--mc-amber)]">
+              <Sparkles size={14} />
+            </div>
+            <h1 className="text-[16px] font-semibold tracking-[0.08em]">Mission Control</h1>
+            <span className="mc-chip px-2 py-0.5 text-[11px]">Live Ops</span>
           </div>
 
           <div className="hidden md:flex items-center gap-6">
@@ -158,13 +161,21 @@ export function DashboardShell() {
                 <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Tasks In Queue</div>
               </div>
             </div>
-            <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[240px] rounded-md px-3 text-xs" />
+            <div className="relative">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--mc-text-soft)]" />
+              <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[260px] rounded-md pl-9 pr-3 text-xs" />
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="mc-input hidden sm:inline-flex rounded-md px-3 py-1.5 text-xs">🗂 Docs</button>
-            <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">🔔<span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span></button>
-            <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">{theme === "light" ? "🌙" : "☀️"}</button>
+            <button className="mc-input hidden sm:inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs">Docs</button>
+            <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs" aria-label="Notifications">
+              <Bell size={14} />
+              <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span>
+            </button>
+            <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs" aria-label="Toggle theme">
+              {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
+            </button>
             <DashboardCustomization
               prefs={customizationPrefs}
               onPrefsChange={setCustomizationPrefs}
@@ -172,7 +183,10 @@ export function DashboardShell() {
             <div className="hidden md:block">
               <ConnectionStatus />
             </div>
-            <button type="button" onClick={() => setShowCreateModal(true)} className="rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>+ New Task</button>
+            <button type="button" onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>
+              <Plus size={13} />
+              New Task
+            </button>
           </div>
         </div>
       </header>
