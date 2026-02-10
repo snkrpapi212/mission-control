@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { PanelHeader, Chip } from "@/components/MissionControlPrimitives";
@@ -12,10 +12,25 @@ function roleBadge(level: Doc<"agents">["level"]) {
   return "SPC";
 }
 
-function statusClass(status: Doc<"agents">["status"]) {
+function workStatusClass(status: Doc<"agents">["status"]) {
   if (status === "working") return "bg-[var(--mc-green)]";
   if (status === "blocked") return "bg-[var(--mc-red)]";
   return "bg-[var(--mc-amber)]";
+}
+
+function isOnline(lastHeartbeat: number) {
+  // consider online if heartbeat seen in the last 2 minutes
+  return Date.now() - lastHeartbeat < 2 * 60 * 1000;
+}
+
+function lastSeenLabel(lastHeartbeat: number) {
+  const diffMs = Date.now() - lastHeartbeat;
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h ago`;
 }
 
 interface AgentListProps {
@@ -27,6 +42,11 @@ interface AgentListProps {
 export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
   const [selectedAgent, setSelectedAgent] = useState<Doc<"agents"> | null>(null);
   const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+
+  const selectedAgentTaskTitle = useMemo(() => {
+    if (!selectedAgent?.currentTaskId) return undefined;
+    return taskTitles.get(selectedAgent.currentTaskId);
+  }, [selectedAgent, taskTitles]);
 
   return (
     <>
@@ -71,13 +91,21 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           <div className="grid h-10 w-10 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[16px]">
                             {agent.emoji || "🤖"}
                           </div>
-                          {/* Pulse animation on active status */}
-                          {agent.status === "working" && (
+                          {/* Presence + work pulse */}
+                          <span
+                            className={`absolute -bottom-1 -right-1 inline-block h-3 w-3 rounded-full border-2 border-[var(--mc-panel)] ${
+                              isOnline(agent.lastHeartbeat)
+                                ? "bg-[var(--mc-green)]"
+                                : "bg-[var(--mc-text-soft)]"
+                            }`}
+                            aria-label={isOnline(agent.lastHeartbeat) ? "Online" : "Offline"}
+                          />
+                          {agent.status === "working" && isOnline(agent.lastHeartbeat) && (
                             <motion.div
                               className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-[var(--mc-green)]"
-                              animate={{ scale: [1, 1.3, 1] }}
+                              animate={{ scale: [1, 1.45, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
-                              aria-label="Active status"
+                              aria-hidden="true"
                             />
                           )}
                         </div>
@@ -106,11 +134,14 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-muted)]">
                           <span
-                            className={`inline-block h-2.5 w-2.5 rounded-full ${statusClass(
+                            className={`inline-block h-2.5 w-2.5 rounded-full ${workStatusClass(
                               agent.status
                             )}`}
                           />
                           {agent.status}
+                          <span className="text-[11px] tracking-[0.06em] text-[var(--mc-text-soft)]">
+                            • {isOnline(agent.lastHeartbeat) ? "online" : `offline (${lastSeenLabel(agent.lastHeartbeat)})`}
+                          </span>
                         </div>
                         <p className="truncate text-[13px] text-[var(--mc-text-soft)]">
                           {currentTask || "No active task"}
@@ -168,7 +199,11 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
       </aside>
 
       {/* Agent detail modal */}
-      <AgentDetailModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
+      <AgentDetailModal
+        agent={selectedAgent}
+        currentTaskTitle={selectedAgentTaskTitle}
+        onClose={() => setSelectedAgent(null)}
+      />
     </>
   );
 }

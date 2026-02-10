@@ -5,10 +5,25 @@ import type { Doc } from "../../convex/_generated/dataModel";
 
 interface AgentDetailModalProps {
   agent: Doc<"agents"> | null;
+  currentTaskTitle?: string;
   onClose: () => void;
 }
 
-export function AgentDetailModal({ agent, onClose }: AgentDetailModalProps) {
+function isOnline(lastHeartbeat: number) {
+  return Date.now() - lastHeartbeat < 2 * 60 * 1000;
+}
+
+function lastSeenLabel(lastHeartbeat: number) {
+  const diffMs = Date.now() - lastHeartbeat;
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  return `${hr}h ago`;
+}
+
+export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDetailModalProps) {
   if (!agent) return null;
 
   return (
@@ -51,16 +66,38 @@ export function AgentDetailModal({ agent, onClose }: AgentDetailModalProps) {
             {/* Content */}
             <div className="p-4 space-y-6">
               {/* Profile Info */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1">
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
                     Role
                   </p>
                   <p className="text-[16px] text-[var(--mc-text)]">{agent.role}</p>
                 </div>
+
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1">
-                    Status
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
+                    Presence
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-block h-2.5 w-2.5 rounded-full ${
+                        isOnline(agent.lastHeartbeat)
+                          ? "bg-[var(--mc-green)]"
+                          : "bg-[var(--mc-text-soft)]"
+                      }`}
+                    />
+                    <span className="text-[16px] text-[var(--mc-text)] capitalize">
+                      {isOnline(agent.lastHeartbeat) ? "online" : "offline"}
+                    </span>
+                    {!isOnline(agent.lastHeartbeat) && (
+                      <span className="text-[13px] text-[var(--mc-text-soft)]">({lastSeenLabel(agent.lastHeartbeat)})</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
+                    Work state
                   </p>
                   <div className="flex items-center gap-2">
                     <span
@@ -76,6 +113,13 @@ export function AgentDetailModal({ agent, onClose }: AgentDetailModalProps) {
                       {agent.status}
                     </span>
                   </div>
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
+                    Current task
+                  </p>
+                  <p className="text-[14px] text-[var(--mc-text)]">{currentTaskTitle || "No active task"}</p>
                 </div>
               </div>
 
@@ -98,7 +142,7 @@ export function AgentDetailModal({ agent, onClose }: AgentDetailModalProps) {
                     Last Heartbeat
                   </p>
                   <p className="text-[14px] text-[var(--mc-text)]">
-                    {new Date(agent.lastHeartbeat).toLocaleString()}
+                    {new Date(agent.lastHeartbeat).toLocaleString()} • {lastSeenLabel(agent.lastHeartbeat)}
                   </p>
                 </div>
               )}
