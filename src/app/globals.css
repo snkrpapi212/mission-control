@@ -50,6 +50,8 @@
 
   --focus-ring: 0 0 0 2px color-mix(in srgb, var(--mc-green) 45%, transparent);
   --tr-fast: 140ms ease-out;
+  --tr-medium: 160ms ease-out;
+  --tr-slow: 180ms ease-out;
 }
 
 [data-theme="dark"] {
@@ -161,4 +163,198 @@ textarea:focus-visible {
 .mc-focus:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* Standardized Interaction States */
+.mc-interactive {
+  transition: background-color var(--tr-fast), 
+              border-color var(--tr-fast), 
+              color var(--tr-fast),
+              transform var(--tr-fast),
+              box-shadow var(--tr-fast);
+}
+
+.mc-interactive:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--mc-panel-soft);
+}
+
+.mc-interactive:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
+.mc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--r-tile);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  border: 1px solid var(--mc-line);
+  background: var(--mc-card);
+  color: var(--mc-text);
+  transition: background-color var(--tr-fast), 
+              border-color var(--tr-fast), 
+              color var(--tr-fast),
+              transform var(--tr-fast),
+              opacity var(--tr-fast);
+}
+
+.mc-btn:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--mc-panel-soft);
+  border-color: var(--mc-line-strong);
+}
+
+.mc-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.97);
+}
+
+.mc-btn:disabled,
+.mc-btn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mc-btn-primary {
+  background: var(--mc-green);
+  border-color: var(--mc-green);
+  color: white;
+}
+
+.mc-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--mc-green) 90%, black 10%);
+  border-color: color-mix(in srgb, var(--mc-green) 90%, black 10%);
+}
+
+.mc-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.mc-btn-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--mc-panel-soft);
+}
+
+/* Form Elements */
+.mc-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--r-tile);
+  border: 1px solid var(--mc-line);
+  background: var(--mc-card);
+  color: var(--mc-text);
+  font-size: 13px;
+  line-height: 1.4;
+  transition: border-color var(--tr-fast), 
+              box-shadow var(--tr-fast),
+              background-color var(--tr-fast);
+}
+
+.mc-input:hover:not(:disabled):not([readonly]) {
+  border-color: var(--mc-line-strong);
+}
+
+.mc-input:focus {
+  outline: none;
+  border-color: var(--mc-green);
+  box-shadow: var(--focus-ring);
+}
+
+.mc-input:disabled {
+  background: var(--mc-panel-soft);
+  color: var(--mc-text-soft);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.mc-input[aria-invalid="true"],
+.mc-input.mc-error {
+  border-color: var(--mc-red);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mc-red) 30%, transparent);
+}
+
+.mc-input::placeholder {
+  color: var(--mc-text-soft);
+}
+
+.mc-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238c897f' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.mc-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mc-text);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.mc-help-text {
+  font-size: 12px;
+  color: var(--mc-text-soft);
+  margin-top: 4px;
+}
+
+.mc-error-text {
+  font-size: 12px;
+  color: var(--mc-red);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Checkbox/Radio styling */
+.mc-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--mc-line-strong);
+  border-radius: 4px;
+  background: var(--mc-card);
+  cursor: pointer;
+  transition: background-color var(--tr-fast), 
+              border-color var(--tr-fast),
+              box-shadow var(--tr-fast);
+  position: relative;
+}
+
+.mc-checkbox:hover:not(:disabled) {
+  border-color: var(--mc-green);
+}
+
+.mc-checkbox:checked {
+  background: var(--mc-green);
+  border-color: var(--mc-green);
+}
+
+.mc-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.mc-checkbox:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.mc-checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Command } from "cmdk";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -22,16 +22,47 @@ const ACTIONS = [
     title: "Create task",
     icon: "➕",
     shortcut: "⌘+Shift+N",
+    shortcutDisplay: "⌘⇧N",
   },
   {
     id: "mark-done",
     title: "Mark complete",
     icon: "✓",
     shortcut: "⌘+Enter",
+    shortcutDisplay: "⌘↵",
   },
-  { id: "archive", title: "Archive", icon: "📦", shortcut: "⌘+⌫" },
-  { id: "share", title: "Share", icon: "🔗", shortcut: "⌘+Shift+S" },
+  { 
+    id: "archive", 
+    title: "Archive", 
+    icon: "📦", 
+    shortcut: "⌘+⌫",
+    shortcutDisplay: "⌘⌫",
+  },
+  { 
+    id: "share", 
+    title: "Share", 
+    icon: "🔗", 
+    shortcut: "⌘+Shift+S",
+    shortcutDisplay: "⌘⇧S",
+  },
 ];
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const panelVariants = {
+  hidden: { opacity: 0, scale: 0.96, y: -10 },
+  visible: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.96, y: -10 },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
 
 export function CommandPalette({
   tasks,
@@ -56,25 +87,32 @@ export function CommandPalette({
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleSelectTask = (task: Doc<"tasks">) => {
+  // Reset search when closing
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+    }
+  }, [open]);
+
+  const handleSelectTask = useCallback((task: Doc<"tasks">) => {
     onSelectTask?.(task);
     setOpen(false);
     setSearch("");
-  };
+  }, [onSelectTask]);
 
-  const handleSelectAgent = (agent: Doc<"agents">) => {
+  const handleSelectAgent = useCallback((agent: Doc<"agents">) => {
     onSelectAgent?.(agent);
     setOpen(false);
     setSearch("");
-  };
+  }, [onSelectAgent]);
 
-  const handleCreateTask = () => {
+  const handleCreateTask = useCallback(() => {
     onCreateTask?.();
     setOpen(false);
     setSearch("");
-  };
+  }, [onCreateTask]);
 
-  const handleAction = (actionId: string) => {
+  const handleAction = useCallback((actionId: string) => {
     switch (actionId) {
       case "create-task":
         handleCreateTask();
@@ -89,150 +127,180 @@ export function CommandPalette({
         // TODO: implement share
         break;
     }
-  };
+  }, [handleCreateTask]);
+
+  const filteredTasks = search 
+    ? tasks.filter(
+        (task) =>
+          task.title.toLowerCase().includes(search.toLowerCase()) ||
+          task.description.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
+
+  const filteredAgents = search
+    ? agents.filter((agent) =>
+        agent.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   return (
     <AnimatePresence>
       {open && (
-        <>
+        <div 
+          className="fixed inset-0 z-50"
+          onClick={() => setOpen(false)}
+        >
           {/* Backdrop */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-50 bg-black/40"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.14 }}
+            className="absolute inset-0 bg-black/40"
             style={{ backdropFilter: "blur(4px)" }}
             aria-hidden="true"
           />
 
           {/* Command Palette Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2, type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"
+            variants={panelVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.16, ease: [0.25, 0.1, 0.25, 1] }}
+            className="fixed left-1/2 top-[20%] -translate-x-1/2 z-50 w-full max-w-2xl px-4"
+            onClick={(e) => e.stopPropagation()}
           >
             <Command
-              className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-lg"
+              className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden"
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
+                  e.preventDefault();
                   setOpen(false);
                 }
               }}
+              loop
             >
               {/* Search Input */}
               <div className="flex items-center border-b border-[var(--mc-line)] px-4 py-3">
-                <span className="text-[20px] text-[var(--mc-text-muted)] mr-3">
-                  🔍
-                </span>
+                <svg 
+                  className="w-5 h-5 text-[var(--mc-text-muted)] mr-3 flex-shrink-0" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
                 <Command.Input
                   placeholder="Search tasks, agents, actions..."
                   value={search}
                   onValueChange={setSearch}
-                  className="h-12 flex-1 bg-transparent text-[16px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-muted)] outline-none"
+                  className="h-10 flex-1 bg-transparent text-[15px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-muted)] outline-none"
+                  aria-label="Search commands"
                 />
-                <span className="text-[12px] text-[var(--mc-text-soft)]">
-                  ESC to close
-                </span>
+                <kbd className="hidden sm:inline-flex items-center px-2 py-1 rounded bg-[var(--mc-panel-soft)] border border-[var(--mc-line)] text-[11px] text-[var(--mc-text-soft)] font-mono">
+                  ESC
+                </kbd>
               </div>
 
               {/* Results List */}
-              <Command.List className="max-h-[60vh] overflow-y-auto">
-                {/* "Create Task" Action (always visible) */}
-                <Command.Item
-                  value="create-task"
-                  onSelect={() => handleCreateTask()}
-                  className="px-4 py-3 text-[14px] cursor-pointer hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="text-[18px]">➕</span>
-                    <span className="text-[var(--mc-text)]">Create task</span>
-                  </span>
-                  <span className="text-[12px] text-[var(--mc-text-soft)]">
-                    ⌘+Shift+N
-                  </span>
-                </Command.Item>
+              <Command.List className="max-h-[60vh] overflow-y-auto p-2">
+                {/* "Create Task" Action (always visible at top) */}
+                <Command.Group heading="Quick Actions" className="px-1 py-1">
+                  <Command.Item
+                    value="create-task"
+                    onSelect={() => handleCreateTask()}
+                    className="group flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] cursor-pointer transition-colors duration-120 aria-selected:bg-[var(--mc-panel-soft)] aria-selected:text-[var(--mc-text)] outline-none"
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-[18px] w-6 text-center" aria-hidden="true">➕</span>
+                      <span className="text-[var(--mc-text)]">Create task</span>
+                    </span>
+                    <kbd className="text-[11px] text-[var(--mc-text-soft)] bg-[var(--mc-panel-soft)] px-1.5 py-0.5 rounded border border-[var(--mc-line)]">
+                      {ACTIONS[0].shortcutDisplay}
+                    </kbd>
+                  </Command.Item>
+                </Command.Group>
 
                 {/* Search Results: Tasks */}
-                {search && tasks.length > 0 && (
+                {search && filteredTasks.length > 0 && (
                   <>
-                    <Command.Separator className="bg-[var(--mc-line)]" />
-                    <Command.Group heading="Tasks" className="overflow-hidden px-2 py-1.5">
-                      {tasks
-                        .filter(
-                          (task) =>
-                            task.title.toLowerCase().includes(search.toLowerCase()) ||
-                            task.description.toLowerCase().includes(search.toLowerCase())
-                        )
-                        .map((task) => (
-                          <motion.div
-                            key={task._id}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.15 }}
+                    <Command.Separator className="h-px bg-[var(--mc-line)] my-2 mx-1" />
+                    <Command.Group heading={`Tasks (${filteredTasks.length})`} className="px-1 py-1">
+                      {filteredTasks.map((task, index) => (
+                        <motion.div
+                          key={task._id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          transition={{ duration: 0.1, delay: index * 0.02 }}
+                        >
+                          <Command.Item
+                            value={`task-${task._id}`}
+                            onSelect={() => handleSelectTask(task)}
+                            className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] cursor-pointer transition-colors duration-120 aria-selected:bg-[var(--mc-panel-soft)] aria-selected:text-[var(--mc-text)] outline-none"
                           >
-                            <Command.Item
-                              value={task._id}
-                              onSelect={() => handleSelectTask(task)}
-                              className="px-2 py-2 text-[14px] cursor-pointer rounded hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
-                            >
-                              <span className="text-[16px]">📋</span>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[var(--mc-text)]">
-                                  {task.title}
-                                </p>
-                                <p className="text-[12px] text-[var(--mc-text-soft)] truncate">
-                                  {task.status} •{" "}
-                                  {task.priority === "urgent"
-                                    ? "🔴 URGENT"
-                                    : task.priority === "high"
-                                    ? "🟠 HIGH"
-                                    : "🟢 " + task.priority.toUpperCase()}
-                                </p>
-                              </div>
-                            </Command.Item>
-                          </motion.div>
-                        ))}
+                            <span className="text-[18px] w-6 text-center flex-shrink-0" aria-hidden="true">📋</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[var(--mc-text)] font-medium">
+                                {task.title}
+                              </p>
+                              <p className="text-[12px] text-[var(--mc-text-soft)] truncate flex items-center gap-1.5">
+                                <span className="capitalize">{task.status.replace("_", " ")}</span>
+                                <span aria-hidden="true">•</span>
+                                <span 
+                                  className="uppercase text-[11px] font-medium"
+                                  style={{
+                                    color: task.priority === "urgent" 
+                                      ? "var(--mc-red)" 
+                                      : task.priority === "high"
+                                      ? "var(--mc-amber)"
+                                      : "var(--mc-green)"
+                                  }}
+                                >
+                                  {task.priority}
+                                </span>
+                              </p>
+                            </div>
+                          </Command.Item>
+                        </motion.div>
+                      ))}
                     </Command.Group>
                   </>
                 )}
 
                 {/* Search Results: Agents */}
-                {search && agents.length > 0 && (
+                {search && filteredAgents.length > 0 && (
                   <>
-                    <Command.Separator className="bg-[var(--mc-line)]" />
-                    <Command.Group heading="Agents" className="overflow-hidden px-2 py-1.5">
-                      {agents
-                        .filter((agent) =>
-                          agent.name.toLowerCase().includes(search.toLowerCase())
-                        )
-                        .map((agent) => (
-                          <motion.div
-                            key={agent._id}
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.15 }}
+                    <Command.Separator className="h-px bg-[var(--mc-line)] my-2 mx-1" />
+                    <Command.Group heading={`Agents (${filteredAgents.length})`} className="px-1 py-1">
+                      {filteredAgents.map((agent, index) => (
+                        <motion.div
+                          key={agent._id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          transition={{ duration: 0.1, delay: index * 0.02 }}
+                        >
+                          <Command.Item
+                            value={`agent-${agent._id}`}
+                            onSelect={() => handleSelectAgent(agent)}
+                            className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] cursor-pointer transition-colors duration-120 aria-selected:bg-[var(--mc-panel-soft)] aria-selected:text-[var(--mc-text)] outline-none"
                           >
-                            <Command.Item
-                              value={agent._id}
-                              onSelect={() => handleSelectAgent(agent)}
-                              className="px-2 py-2 text-[14px] cursor-pointer rounded hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
-                            >
-                              <span className="text-[16px]">{agent.emoji}</span>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-[var(--mc-text)]">
-                                  {agent.name}
-                                </p>
-                                <p className="text-[12px] text-[var(--mc-text-soft)]">
-                                  {agent.role}
-                                </p>
-                              </div>
-                            </Command.Item>
-                          </motion.div>
-                        ))}
+                            <span className="text-[18px] w-6 text-center flex-shrink-0" aria-hidden="true">{agent.emoji}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[var(--mc-text)] font-medium">
+                                {agent.name}
+                              </p>
+                              <p className="text-[12px] text-[var(--mc-text-soft)] truncate">
+                                {agent.role}
+                              </p>
+                            </div>
+                          </Command.Item>
+                        </motion.div>
+                      ))}
                     </Command.Group>
                   </>
                 )}
@@ -240,22 +308,22 @@ export function CommandPalette({
                 {/* Actions Section */}
                 {!search && (
                   <>
-                    <Command.Separator className="bg-[var(--mc-line)]" />
-                    <Command.Group heading="Actions" className="overflow-hidden px-2 py-1.5">
-                      {ACTIONS.map((action) => (
+                    <Command.Separator className="h-px bg-[var(--mc-line)] my-2 mx-1" />
+                    <Command.Group heading="Actions" className="px-1 py-1">
+                      {ACTIONS.slice(1).map((action) => (
                         <Command.Item
                           key={action.id}
                           value={action.id}
                           onSelect={() => handleAction(action.id)}
-                          className="px-2 py-2 text-[14px] cursor-pointer rounded hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center justify-between"
+                          className="group flex items-center justify-between px-3 py-2.5 rounded-lg text-[14px] cursor-pointer transition-colors duration-120 aria-selected:bg-[var(--mc-panel-soft)] aria-selected:text-[var(--mc-text)] outline-none"
                         >
-                          <span className="flex items-center gap-2">
-                            <span className="text-[16px]">{action.icon}</span>
+                          <span className="flex items-center gap-3">
+                            <span className="text-[18px] w-6 text-center" aria-hidden="true">{action.icon}</span>
                             <span className="text-[var(--mc-text)]">{action.title}</span>
                           </span>
-                          <span className="text-[12px] text-[var(--mc-text-soft)]">
-                            {action.shortcut}
-                          </span>
+                          <kbd className="text-[11px] text-[var(--mc-text-soft)] bg-[var(--mc-panel-soft)] px-1.5 py-0.5 rounded border border-[var(--mc-line)]">
+                            {action.shortcutDisplay}
+                          </kbd>
                         </Command.Item>
                       ))}
                     </Command.Group>
@@ -263,13 +331,36 @@ export function CommandPalette({
                 )}
 
                 {/* Empty State */}
-                <Command.Empty className="px-4 py-8 text-center text-[14px] text-[var(--mc-text-soft)]">
-                  No results found.
+                <Command.Empty className="px-4 py-12 text-center">
+                  <div className="text-[40px] mb-2" aria-hidden="true">🔍</div>
+                  <p className="text-[14px] text-[var(--mc-text-muted)]">
+                    No results found
+                  </p>
+                  <p className="text-[12px] text-[var(--mc-text-soft)] mt-1">
+                    Try a different search term
+                  </p>
                 </Command.Empty>
               </Command.List>
+
+              {/* Footer */}
+              <div className="border-t border-[var(--mc-line)] px-4 py-2 flex items-center justify-between text-[11px] text-[var(--mc-text-soft)] bg-[var(--mc-panel-soft)]">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded bg-[var(--mc-card)] border border-[var(--mc-line)] font-mono">↑↓</kbd>
+                    to navigate
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="px-1.5 py-0.5 rounded bg-[var(--mc-card)] border border-[var(--mc-line)] font-mono">↵</kbd>
+                    to select
+                  </span>
+                </div>
+                <span>
+                  {filteredTasks.length + filteredAgents.length} results
+                </span>
+              </div>
             </Command>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -26,6 +26,12 @@ interface Preset {
 const STATUSES: TaskStatus[] = ["inbox", "assigned", "in_progress", "review", "done", "blocked"];
 const PRIORITIES = ["urgent", "high", "medium", "low"];
 
+const dropdownVariants = {
+  hidden: { opacity: 0, y: -6 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -6 },
+};
+
 export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     statuses: [],
@@ -34,6 +40,9 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
   });
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [pressedDropdown, setPressedDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
   const [presets, setPresets] = useState<Preset[]>([
     {
       id: "my-tasks",
@@ -66,6 +75,19 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
 
   const [savePresetOpen, setSavePresetOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
+  const [presetNameError, setPresetNameError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleStatusToggle = (status: TaskStatus) => {
     const newStatuses = filters.statuses.includes(status)
@@ -98,17 +120,33 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
     setOpenDropdown(null);
   };
 
-  const savePreset = () => {
-    if (presetName.trim()) {
-      const newPreset: Preset = {
-        id: `preset-${Date.now()}`,
-        name: presetName,
-        filters,
-      };
-      setPresets([...presets, newPreset]);
-      setPresetName("");
-      setSavePresetOpen(false);
+  const savePreset = async () => {
+    setPresetNameError("");
+    
+    if (!presetName.trim()) {
+      setPresetNameError("Preset name is required");
+      return;
     }
+    
+    if (presets.some(p => p.name.toLowerCase() === presetName.trim().toLowerCase())) {
+      setPresetNameError("A preset with this name already exists");
+      return;
+    }
+
+    setIsSaving(true);
+    
+    // Simulate async save
+    await new Promise(resolve => setTimeout(resolve, 150));
+    
+    const newPreset: Preset = {
+      id: `preset-${Date.now()}`,
+      name: presetName.trim(),
+      filters,
+    };
+    setPresets([...presets, newPreset]);
+    setPresetName("");
+    setSavePresetOpen(false);
+    setIsSaving(false);
   };
 
   const clearAllFilters = () => {
@@ -124,47 +162,76 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
     filters.agentIds.length > 0 ||
     filters.priorities.length > 0;
 
+  const FilterButton = ({ 
+    id, 
+    label, 
+    count 
+  }: { 
+    id: string; 
+    label: string; 
+    count: number;
+  }) => (
+    <button
+      onClick={() => setOpenDropdown(openDropdown === id ? null : id)}
+      onMouseDown={() => setPressedDropdown(id)}
+      onMouseUp={() => setPressedDropdown(null)}
+      onMouseLeave={() => setPressedDropdown(null)}
+      onTouchStart={() => setPressedDropdown(id)}
+      onTouchEnd={() => setPressedDropdown(null)}
+      aria-expanded={openDropdown === id}
+      aria-haspopup="listbox"
+      className={`mc-btn ${openDropdown === id ? 'bg-[var(--mc-panel-soft)] border-[var(--mc-line-strong)]' : ''} ${pressedDropdown === id ? 'scale-[0.97]' : ''}`}
+    >
+      <span>{label}</span>
+      {count > 0 && (
+        <span className="bg-[var(--mc-green)] text-white rounded-full px-1.5 min-w-[20px] text-[11px] font-bold flex items-center justify-center">
+          {count}
+        </span>
+      )}
+      <svg 
+        className={`w-3 h-3 text-[var(--mc-text-soft)] transition-transform duration-150 ${openDropdown === id ? 'rotate-180' : ''}`} 
+        fill="currentColor" 
+        viewBox="0 0 12 12"
+        aria-hidden="true"
+      >
+        <path d="M6 8L1 3h10z" />
+      </svg>
+    </button>
+  );
+
   return (
-    <div className="border-b border-[var(--mc-line)] bg-[var(--mc-panel)] px-4 py-3 sticky top-[calc(var(--h-topbar)+var(--h-panelheader))] z-20">
+    <div ref={dropdownRef} className="border-b border-[var(--mc-line)] bg-[var(--mc-panel)] px-4 py-3 sticky top-[calc(var(--h-topbar)+var(--h-panelheader))] z-20">
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         {/* Status Filter */}
         <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === "status" ? null : "status")
-            }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
-          >
-            Status
-            {filters.statuses.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
-                {filters.statuses.length}
-              </span>
-            )}
-            <span>▼</span>
-          </button>
+          <FilterButton id="status" label="Status" count={filters.statuses.length} />
 
           {/* Status Dropdown */}
           <AnimatePresence>
             {openDropdown === "status" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[200px]"
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.14, ease: [0.25, 0.1, 0.25, 1] }}
+                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded-lg bg-[var(--mc-panel)] shadow-lg z-30 min-w-[200px] overflow-hidden"
+                role="listbox"
+                aria-label="Status filter options"
               >
-                <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="p-2 space-y-0.5 max-h-[300px] overflow-y-auto">
                   {STATUSES.map((status) => (
                     <label
                       key={status}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
+                      className="flex items-center gap-3 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] px-3 py-2 rounded-md transition-colors duration-120"
                     >
                       <input
                         type="checkbox"
                         checked={filters.statuses.includes(status)}
                         onChange={() => handleStatusToggle(status)}
-                        className="w-4 h-4 rounded cursor-pointer"
+                        className="mc-checkbox"
+                        aria-checked={filters.statuses.includes(status)}
                       />
                       <span className="capitalize">{status.replace("_", " ")}</span>
                     </label>
@@ -177,46 +244,42 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
 
         {/* Agent Filter */}
         <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === "agent" ? null : "agent")
-            }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
-          >
-            Agent
-            {filters.agentIds.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
-                {filters.agentIds.length}
-              </span>
-            )}
-            <span>▼</span>
-          </button>
+          <FilterButton id="agent" label="Agent" count={filters.agentIds.length} />
 
           {/* Agent Dropdown */}
           <AnimatePresence>
             {openDropdown === "agent" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[200px]"
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.14, ease: [0.25, 0.1, 0.25, 1] }}
+                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded-lg bg-[var(--mc-panel)] shadow-lg z-30 min-w-[220px] overflow-hidden"
+                role="listbox"
+                aria-label="Agent filter options"
               >
-                <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
-                  {agents.map((agent) => (
-                    <label
-                      key={agent._id}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={filters.agentIds.includes(agent.agentId)}
-                        onChange={() => handleAgentToggle(agent.agentId)}
-                        className="w-4 h-4 rounded cursor-pointer"
-                      />
-                      <span className="text-[16px]">{agent.emoji}</span>
-                      <span>{agent.name}</span>
-                    </label>
-                  ))}
+                <div className="p-2 space-y-0.5 max-h-[300px] overflow-y-auto">
+                  {agents.length === 0 ? (
+                    <p className="text-[13px] text-[var(--mc-text-soft)] px-3 py-2">No agents available</p>
+                  ) : (
+                    agents.map((agent) => (
+                      <label
+                        key={agent._id}
+                        className="flex items-center gap-3 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] px-3 py-2 rounded-md transition-colors duration-120"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.agentIds.includes(agent.agentId)}
+                          onChange={() => handleAgentToggle(agent.agentId)}
+                          className="mc-checkbox"
+                          aria-checked={filters.agentIds.includes(agent.agentId)}
+                        />
+                        <span className="text-[16px]" aria-hidden="true">{agent.emoji}</span>
+                        <span>{agent.name}</span>
+                      </label>
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}
@@ -225,41 +288,33 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
 
         {/* Priority Filter */}
         <div className="relative">
-          <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === "priority" ? null : "priority")
-            }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
-          >
-            Priority
-            {filters.priorities.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
-                {filters.priorities.length}
-              </span>
-            )}
-            <span>▼</span>
-          </button>
+          <FilterButton id="priority" label="Priority" count={filters.priorities.length} />
 
           {/* Priority Dropdown */}
           <AnimatePresence>
             {openDropdown === "priority" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[150px]"
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.14, ease: [0.25, 0.1, 0.25, 1] }}
+                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded-lg bg-[var(--mc-panel)] shadow-lg z-30 min-w-[160px] overflow-hidden"
+                role="listbox"
+                aria-label="Priority filter options"
               >
-                <div className="p-3 space-y-2">
+                <div className="p-2 space-y-0.5">
                   {PRIORITIES.map((priority) => (
                     <label
                       key={priority}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
+                      className="flex items-center gap-3 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] px-3 py-2 rounded-md transition-colors duration-120"
                     >
                       <input
                         type="checkbox"
                         checked={filters.priorities.includes(priority)}
                         onChange={() => handlePriorityToggle(priority)}
-                        className="w-4 h-4 rounded cursor-pointer"
+                        className="mc-checkbox"
+                        aria-checked={filters.priorities.includes(priority)}
                       />
                       <span className="capitalize">{priority}</span>
                     </label>
@@ -273,38 +328,53 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
         {/* Presets Dropdown */}
         <div className="relative ml-auto">
           <button
-            onClick={() =>
-              setOpenDropdown(openDropdown === "presets" ? null : "presets")
-            }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
+            onClick={() => setOpenDropdown(openDropdown === "presets" ? null : "presets")}
+            onMouseDown={() => setPressedDropdown("presets")}
+            onMouseUp={() => setPressedDropdown(null)}
+            onMouseLeave={() => setPressedDropdown(null)}
+            aria-expanded={openDropdown === "presets"}
+            aria-haspopup="listbox"
+            className={`mc-btn mc-btn-ghost ${pressedDropdown === "presets" ? 'scale-[0.97]' : ''}`}
           >
-            Presets <span>▼</span>
+            <span>Presets</span>
+            <svg 
+              className={`w-3 h-3 text-[var(--mc-text-soft)] transition-transform duration-150 ${openDropdown === "presets" ? 'rotate-180' : ''}`} 
+              fill="currentColor" 
+              viewBox="0 0 12 12"
+              aria-hidden="true"
+            >
+              <path d="M6 8L1 3h10z" />
+            </svg>
           </button>
 
           <AnimatePresence>
             {openDropdown === "presets" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full right-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[180px]"
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{ duration: 0.14, ease: [0.25, 0.1, 0.25, 1] }}
+                className="absolute top-full right-0 mt-2 border border-[var(--mc-line)] rounded-lg bg-[var(--mc-panel)] shadow-lg z-30 min-w-[180px] overflow-hidden"
+                role="listbox"
+                aria-label="Filter presets"
               >
-                <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto">
+                <div className="p-1.5 space-y-0.5 max-h-[300px] overflow-y-auto">
                   {presets.map((preset) => (
                     <button
                       key={preset.id}
                       onClick={() => loadPreset(preset)}
-                      className="w-full text-left px-3 py-2 rounded text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+                      className="w-full text-left px-3 py-2 rounded-md text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors duration-120"
                     >
                       {preset.name}
                     </button>
                   ))}
-                  <div className="border-t border-[var(--mc-line)] pt-2 mt-2">
+                  <div className="border-t border-[var(--mc-line)] pt-1.5 mt-1.5">
                     <button
                       onClick={() => setSavePresetOpen(true)}
-                      className="w-full text-left px-3 py-2 rounded text-[13px] text-[var(--mc-accent-green)] hover:bg-[var(--mc-panel-soft)] transition-colors font-semibold"
+                      className="w-full text-left px-3 py-2 rounded-md text-[13px] text-[var(--mc-green)] hover:bg-[var(--mc-panel-soft)] transition-colors duration-120 font-semibold flex items-center gap-2"
                     >
-                      + Save Current as Preset
+                      <span>+</span> Save Current as Preset
                     </button>
                   </div>
                 </div>
@@ -317,7 +387,7 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
-            className="px-3 py-2 rounded text-[13px] text-[var(--mc-text-soft)] hover:text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+            className="mc-btn mc-btn-ghost text-[var(--mc-text-soft)] hover:text-[var(--mc-text)]"
           >
             Clear All
           </button>
@@ -331,39 +401,84 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.14 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-            onClick={() => setSavePresetOpen(false)}
+            onClick={() => !isSaving && setSavePresetOpen(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="save-preset-title"
           >
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-              className="bg-[var(--mc-panel)] rounded border border-[var(--mc-line)] p-6 min-w-[320px]"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.14, ease: [0.25, 0.1, 0.25, 1] }}
+              className="bg-[var(--mc-panel)] rounded-lg border border-[var(--mc-line)] p-6 min-w-[320px] max-w-[90vw] shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-[16px] font-semibold text-[var(--mc-text)] mb-4">
+              <h3 
+                id="save-preset-title"
+                className="text-[16px] font-semibold text-[var(--mc-text)] mb-4"
+              >
                 Save Preset
               </h3>
-              <input
-                type="text"
-                value={presetName}
-                onChange={(e) => setPresetName(e.target.value)}
-                placeholder="Preset name (e.g., Q1 Priority Tasks)"
-                className="w-full px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)] outline-none focus:border-[var(--mc-accent-green)] mb-4"
-              />
+              
+              <div className="mb-4">
+                <label htmlFor="preset-name" className="mc-label">
+                  Preset Name
+                </label>
+                <input
+                  id="preset-name"
+                  type="text"
+                  value={presetName}
+                  onChange={(e) => {
+                    setPresetName(e.target.value);
+                    setPresetNameError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !isSaving) {
+                      savePreset();
+                    }
+                    if (e.key === "Escape") {
+                      setSavePresetOpen(false);
+                    }
+                  }}
+                  placeholder="e.g., Q1 Priority Tasks"
+                  className={`mc-input ${presetNameError ? 'mc-error' : ''}`}
+                  disabled={isSaving}
+                  aria-invalid={presetNameError ? "true" : "false"}
+                  aria-describedby={presetNameError ? "preset-error" : undefined}
+                  autoFocus
+                />
+                {presetNameError && (
+                  <p id="preset-error" className="mc-error-text">
+                    <span aria-hidden="true">⚠</span> {presetNameError}
+                  </p>
+                )}
+              </div>
+              
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setSavePresetOpen(false)}
-                  className="px-4 py-2 rounded text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+                  disabled={isSaving}
+                  className="mc-btn mc-btn-ghost"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={savePreset}
-                  disabled={!presetName.trim()}
-                  className="px-4 py-2 rounded bg-[var(--mc-accent-green)] text-white text-[13px] font-semibold disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  disabled={!presetName.trim() || isSaving}
+                  className="mc-btn mc-btn-primary min-w-[80px]"
                 >
-                  Save
+                  {isSaving ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </span>
+                  ) : "Save"}
                 </button>
               </div>
             </motion.div>
