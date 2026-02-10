@@ -10,6 +10,10 @@ const nextConfig = {
     dirs: ['src', 'convex'],
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    // Ensure App Router handles all routing
+    optimizePackageImports: ['lucide-react'],
+  },
   webpack: (config) => {
     config.resolve.alias['@'] = path.join(__dirname, 'src');
     return config;
