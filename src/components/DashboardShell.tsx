@@ -6,155 +6,133 @@ import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
-import { Chip } from "@/components/MissionControlPrimitives";
-import { FilterBar } from "@/components/FilterBar";
-import type { TaskStatus } from "@/types";
-import { useActivitiesLive, useAgentsLive, useTasksByStatusLive } from "@/hooks/useConvexData";
+import { ToastContainer } from "@/components/Toast";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
+import {
+  useActivitiesLive,
+  useAgentsLive,
+  useTasksByStatusLive,
+} from "@/hooks/useConvexData";
 
 export function DashboardShell() {
-  const agents = useAgentsLive();
+  const agentsRaw = useAgentsLive();
   const tasksByStatus = useTasksByStatusLive();
-  const activities = useActivitiesLive(30);
-  const loading = false;
+  const activitiesRaw = useActivitiesLive(24);
+
+  const agents = useMemo(() => agentsRaw || [], [agentsRaw]);
+  const activities = useMemo(() => activitiesRaw || [], [activitiesRaw]);
+  const loading = agentsRaw === undefined || activitiesRaw === undefined;
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [mobileTab, setMobileTab] = useState<"board" | "feed">("board");
-  const [darkMode, setDarkMode] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [agentFilter, setAgentFilter] = useState("all");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem("mission-control-theme");
-    if (savedTheme === "dark") setDarkMode(true);
-    if (savedTheme === "light") setDarkMode(false);
+    const saved = (localStorage.getItem("mc-theme") as "light" | "dark" | null) || "light";
+    setTheme(saved);
+    document.documentElement.setAttribute("data-theme", saved);
   }, []);
 
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("mc-theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+  };
+
+  // Update timestamp on data changes
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute("data-theme", darkMode ? "dark" : "light");
-    root.classList.toggle("dark", darkMode);
-    window.localStorage.setItem("mission-control-theme", darkMode ? "dark" : "light");
-  }, [darkMode]);
+    setLastUpdated(new Date());
+  }, [tasksByStatus, agentsRaw]);
 
   const flattenedTasks = useMemo(() => Object.values(tasksByStatus).flat(), [tasksByStatus]);
+  const taskCount = flattenedTasks.length;
+  const activeAgentCount = agents.filter((a) => a.status === "working").length;
+
   const currentTaskById = useMemo(() => {
     const map = new Map<string, string>();
-    for (const task of flattenedTasks) map.set(task._id, task.title);
+    for (const t of flattenedTasks) map.set(t._id, t.title);
     return map;
   }, [flattenedTasks]);
 
-  const filteredTasksByStatus = useMemo(() => {
-    return Object.fromEntries(
-      Object.entries(tasksByStatus).map(([status, tasks]) => {
-        const filtered = tasks.filter((task) => {
-          const statusOk = statusFilter === "all" || task.status === statusFilter;
-          const priorityOk = priorityFilter === "all" || task.priority === priorityFilter;
-          const agentOk = agentFilter === "all" || task.assigneeIds.includes(agentFilter);
-          return statusOk && priorityOk && agentOk;
-        });
-        return [status, filtered];
-      })
-    ) as typeof tasksByStatus;
-  }, [tasksByStatus, statusFilter, priorityFilter, agentFilter]);
-
-  const activeAgentCount = agents.filter((a) => a.status === "working").length;
+  const timeAgoString = (() => {
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - lastUpdated.getTime()) / 1000);
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    return `${Math.floor(diff / 3600)}h ago`;
+  })();
 
   return (
-    <div className="min-h-screen bg-[var(--mc-bg)] text-[var(--mc-text)]">
-      <header className="sticky top-0 z-30 border-b border-[var(--mc-line-strong)] bg-[var(--mc-panel)]">
-        <div className="grid h-[var(--h-topbar)] grid-cols-[1fr_auto_1fr] items-center px-4">
+    <div className="min-h-screen" style={{ background: "var(--mc-bg)", color: "var(--mc-text)" }}>
+      <header className="sticky top-0 z-30 border-b mc-panel" style={{ backdropFilter: "blur(6px)" }}>
+        <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-3">
-            <span className="text-[20px] text-[var(--mc-amber)]">◇</span>
-            <h1 className="text-[22px] md:text-[28px] font-semibold tracking-[0.08em]">MISSION CONTROL</h1>
-            <Chip>SiteGPT</Chip>
+            <div className="text-base" style={{ color: "var(--mc-accent-amber)" }}>◇</div>
+            <h1 className="text-[18px] font-semibold tracking-[0.16em]">MISSION CONTROL</h1>
+            <span className="mc-chip px-2 py-0.5 text-[11px]">SiteGPT</span>
           </div>
 
-          <div className="flex items-center gap-10 text-center">
-            <div>
-              <p className="text-[30px] md:text-[38px] font-semibold leading-none">{activeAgentCount}</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">Agents Active</p>
+          <div className="hidden md:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-10 text-center">
+              <div>
+                <div className="text-[30px] leading-none font-semibold">{activeAgentCount}</div>
+                <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Agents Active</div>
+              </div>
+              <div>
+                <div className="text-[30px] leading-none font-semibold">{taskCount}</div>
+                <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Tasks In Queue</div>
+              </div>
             </div>
-            <div>
-              <p className="text-[30px] md:text-[38px] font-semibold leading-none">{flattenedTasks.length}</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">Tasks In Queue</p>
-            </div>
+            <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[240px] rounded-md px-3 text-xs" />
           </div>
 
-          <div className="flex items-center justify-end gap-2">
-            <button className="mc-focus rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-1.5 text-[12px]">Docs</button>
-            <button
-              onClick={() => setDarkMode((v) => !v)}
-              className="mc-focus rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-1.5 text-[12px]"
-            >
-              {darkMode ? "Light" : "Dark"}
-            </button>
-            <div className="text-right">
-              <p className="font-mono text-[20px] md:text-[24px] leading-none">
-                {new Date().toLocaleTimeString("en-US", { hour12: false })}
-              </p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--mc-text-soft)]">
-                {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-              </p>
+          <div className="flex items-center gap-2">
+            <button className="mc-input hidden sm:inline-flex rounded-md px-3 py-1.5 text-xs">🗂 Docs</button>
+            <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">🔔<span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span></button>
+            <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">{theme === "light" ? "🌙" : "☀️"}</button>
+            <div className="hidden md:block">
+              <ConnectionStatus />
             </div>
-            <Chip className="border-[var(--mc-green)] bg-[var(--mc-green-soft)] text-[var(--mc-green)]">Online</Chip>
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="mc-focus rounded-[12px] border border-[var(--mc-text)] bg-[var(--mc-text)] px-3 py-1.5 text-[12px] font-semibold text-[var(--mc-panel)]"
-            >
-              + New Task
-            </button>
+            <button type="button" onClick={() => setShowCreateModal(true)} className="rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>+ New Task</button>
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[var(--w-left)_minmax(0,1fr)_var(--w-right)]">
-        <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
+      <div className="mx-auto max-w-[1800px]">
+        <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
+          <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
 
-        <main className="border-x border-[var(--mc-line)] bg-[var(--mc-panel-soft)]">
-          <div className="mb-3 flex items-center justify-between border-b border-[var(--mc-line)] px-3 py-2 xl:hidden">
-            <div className="inline-flex rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] p-1 text-[12px]">
-              <button className={`rounded-[10px] px-3 py-1 ${mobileTab === "board" ? "bg-[var(--mc-panel-soft)]" : ""}`} onClick={() => setMobileTab("board")}>
-                Board
-              </button>
-              <button className={`rounded-[10px] px-3 py-1 ${mobileTab === "feed" ? "bg-[var(--mc-panel-soft)]" : ""}`} onClick={() => setMobileTab("feed")}>
-                Feed
-              </button>
+          <main className="border-x px-3 py-3 md:px-4 md:py-4" style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}>
+            <div className="mb-3 flex items-center justify-between xl:hidden">
+              <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
+                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
+                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
+              </div>
+              <div className="text-xs mc-subtle">Updated {timeAgoString}</div>
             </div>
-          </div>
 
-          <div className="px-3 pt-3">
-            <FilterBar
-              statusFilter={statusFilter}
-              priorityFilter={priorityFilter}
-              agentFilter={agentFilter}
-              agents={agents}
-              onStatusChange={setStatusFilter}
-              onPriorityChange={setPriorityFilter}
-              onAgentChange={setAgentFilter}
-            />
-          </div>
+            {mobileTab === "board" ? (
+              <div>
+                <div className="mb-3 flex items-center justify-between text-xs mc-subtle">
+                  <span>Updated {timeAgoString}</span>
+                </div>
+                <KanbanBoard tasksByStatus={tasksByStatus} agents={agents} loading={loading} onSelectTask={(t) => setSelectedTask(t)} />
+              </div>
+            ) : null}
+            {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
+          </main>
 
-          {mobileTab === "board" ? (
-            <KanbanBoard tasksByStatus={filteredTasksByStatus} agents={agents} loading={loading} onSelectTask={(task) => setSelectedTask(task)} />
-          ) : null}
-          {mobileTab === "feed" ? (
-            <div className="p-3 xl:hidden">
-              <ActivityFeed activities={activities} loading={loading} compact />
-            </div>
-          ) : null}
-        </main>
-
-        <div className="hidden xl:block">
-          <ActivityFeed activities={activities} loading={loading} />
+          <div className="hidden xl:block"><ActivityFeed activities={activities} loading={loading} /></div>
         </div>
       </div>
 
       {selectedTask ? <TaskDetailDrawer task={selectedTask} agents={agents} onClose={() => setSelectedTask(null)} /> : null}
-
       {showCreateModal ? <CreateTaskModal agents={agents} onClose={() => setShowCreateModal(false)} /> : null}
+      
+      <ToastContainer />
     </div>
   );
 }
