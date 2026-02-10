@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AgentSidebar } from "@/components/AgentSidebar";
+import { AgentDetailModal } from "@/components/AgentDetailModal";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
@@ -32,6 +33,7 @@ export function DashboardShell() {
   const loading = agentsRaw === undefined || activitiesRaw === undefined;
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<import("../../convex/_generated/dataModel").Doc<"agents"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [mobileTab, setMobileTab] = useState<"board" | "agents" | "feed" | "more">("board");
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -263,11 +265,8 @@ export function DashboardShell() {
                   return (
                     <motion.button
                       key={agent._id}
-                      onClick={() => {
-                        const t = flattenedTasks.find((x) => x._id === agent.currentTaskId);
-                        if (t) setSelectedTask(t);
-                      }}
-                                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
+                      onClick={() => setSelectedAgent(agent)}
+                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
@@ -332,6 +331,13 @@ export function DashboardShell() {
       </div>
 
       {selectedTask && <TaskDetailModal task={selectedTask} agents={agents} onClose={() => setSelectedTask(null)} />}
+      {selectedAgent && (
+        <AgentDetailModal
+          agent={selectedAgent}
+          currentTaskTitle={selectedAgent.currentTaskId ? currentTaskById.get(selectedAgent.currentTaskId) : undefined}
+          onClose={() => setSelectedAgent(null)}
+        />
+      )}
       {showCreateModal ? <CreateTaskModal agents={agents} onClose={() => setShowCreateModal(false)} /> : null}
       
       <CommandPalette
