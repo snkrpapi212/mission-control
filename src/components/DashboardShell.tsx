@@ -145,19 +145,19 @@ export function DashboardShell() {
             <div className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] text-[var(--mc-amber)]">
               <Sparkles size={14} />
             </div>
-            <h1 className="text-[16px] font-semibold tracking-[0.08em]">Mission Control</h1>
-            <span className="mc-chip px-2 py-0.5 text-[11px]">Live Ops</span>
+            <h1 className="text-[16px] font-semibold tracking-[0.01em]">Mission Control</h1>
+            <span className="mc-chip px-2 py-0.5 text-[11px]">Live ops</span>
           </div>
 
           <div className="hidden md:flex items-center gap-6">
             <div className="hidden lg:flex items-center gap-10 text-center">
               <div>
                 <div className="text-[24px] leading-none font-semibold">{activeAgentCount}</div>
-                <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Agents Active</div>
+                <div className="mc-subtle mt-1 text-[10px] tracking-[0.04em]">Agents active</div>
               </div>
               <div>
                 <div className="text-[24px] leading-none font-semibold">{taskCount}</div>
-                <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Tasks In Queue</div>
+                <div className="mc-subtle mt-1 text-[10px] tracking-[0.04em]">Tasks in queue</div>
               </div>
             </div>
             <div className="relative">

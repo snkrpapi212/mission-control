@@ -27,17 +27,9 @@ export function ActivityFeed({
       <PanelHeader title="Live Feed" count={activities.length} />
 
       <div className="border-b border-[var(--mc-line)] px-4 py-3">
-        <div className="mb-2 flex flex-wrap gap-2">
-          <Chip className="border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] text-[var(--mc-amber)]">All</Chip>
-          <Chip>Tasks</Chip>
-          <Chip>Comments</Chip>
-          <Chip>Decisions</Chip>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Chip>All Agents</Chip>
-          <Chip>Jarvis</Chip>
-          <Chip>Friday</Chip>
-          <Chip>Loki</Chip>
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] text-[var(--mc-text-soft)]">Realtime team activity</p>
+          <Chip>Latest</Chip>
         </div>
       </div>
 

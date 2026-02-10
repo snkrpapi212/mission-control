@@ -15,7 +15,7 @@ export function PanelHeader({
 }) {
   return (
     <div className="flex h-[var(--h-section)] items-center justify-between border-b border-[var(--mc-line)] px-4">
-      <h2 className="text-[18px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text)]">
+      <h2 className="text-[15px] font-semibold tracking-[0.01em] text-[var(--mc-text)]">
         <span className={`mr-2 text-[var(--mc-green)] ${dotClass ?? ""}`}>•</span>
         {title}
       </h2>

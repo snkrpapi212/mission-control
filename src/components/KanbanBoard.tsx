@@ -93,15 +93,9 @@ export function KanbanBoard({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tasks"
-          className="mc-focus h-9 w-[260px] rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
+          className="mc-focus h-9 w-[260px] rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
         />
-        <div className="flex items-center gap-2">
-          <Chip className="border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] text-[var(--mc-amber)]">
-            All
-          </Chip>
-          <Chip>Tasks</Chip>
-          <Chip>Priority</Chip>
-        </div>
+        <div className="text-[12px] text-[var(--mc-text-soft)]">{totalVisible} active</div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -117,7 +111,7 @@ export function KanbanBoard({
                 className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)]"
               >
                 <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
-                  <h3 className="text-[14px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text)]">
+                  <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
                     <span className={`mr-2 ${col.dotClass}`}>●</span>
                     {col.title}
                   </h3>
