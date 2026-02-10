@@ -8,6 +8,7 @@ import { TaskDetailDrawer } from "@/components/TaskDetailDrawer";
 import { CreateTaskModal } from "@/components/CreateTaskModal";
 import { ToastContainer } from "@/components/Toast";
 import { ConnectionStatus } from "@/components/ConnectionStatus";
+import { CommandPalette } from "@/components/CommandPalette";
 import {
   useActivitiesLive,
   useAgentsLive,
@@ -152,6 +153,16 @@ export function DashboardShell() {
 
       {selectedTask ? <TaskDetailDrawer task={selectedTask} agents={agents} onClose={() => setSelectedTask(null)} /> : null}
       {showCreateModal ? <CreateTaskModal agents={agents} onClose={() => setShowCreateModal(false)} /> : null}
+      
+      <CommandPalette
+        tasks={flattenedTasks}
+        agents={agents}
+        onSelectTask={(t) => setSelectedTask(t)}
+        onSelectAgent={() => {
+          /* TODO: implement agent jump */
+        }}
+        onCreateTask={() => setShowCreateModal(true)}
+      />
       
       <ToastContainer />
     </div>
