@@ -18,19 +18,27 @@ function workStatusClass(status: Doc<"agents">["status"]) {
   return "bg-[var(--mc-amber)]";
 }
 
+function workStatusLabel(status: Doc<"agents">["status"]) {
+  if (status === "working") return "Working";
+  if (status === "blocked") return "Blocked";
+  return "Idle";
+}
+
 function isOnline(lastHeartbeat: number) {
-  // consider online if heartbeat seen in the last 2 minutes
+  // Consider online if heartbeat seen in the last 2 minutes
   return Date.now() - lastHeartbeat < 2 * 60 * 1000;
 }
 
-function lastSeenLabel(lastHeartbeat: number) {
+function lastSeenLabel(lastHeartbeat: number): string {
   const diffMs = Date.now() - lastHeartbeat;
   const sec = Math.floor(diffMs / 1000);
-  if (sec < 60) return `${sec}s ago`;
+  if (sec < 60) return "Just now";
   const min = Math.floor(sec / 60);
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
-  return `${hr}h ago`;
+  if (hr < 24) return `${hr}h ago`;
+  const days = Math.floor(hr / 24);
+  return `${days}d ago`;
 }
 
 interface AgentListProps {
@@ -88,12 +96,15 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className="grid h-10 w-10 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[16px]">
-                            {agent.emoji || "🤖"}
+                          <div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[var(--mc-text)]">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="8" r="4"/>
+                              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                            </svg>
                           </div>
                           {/* Presence + work pulse */}
                           <span
-                            className={`absolute -bottom-1 -right-1 inline-block h-3 w-3 rounded-full border-2 border-[var(--mc-panel)] ${
+                            className={`absolute -bottom-0.5 -right-0.5 inline-block h-3 w-3 rounded-full border-2 border-[var(--mc-panel)] ${
                               isOnline(agent.lastHeartbeat)
                                 ? "bg-[var(--mc-green)]"
                                 : "bg-[var(--mc-text-soft)]"
@@ -102,8 +113,8 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           />
                           {agent.status === "working" && isOnline(agent.lastHeartbeat) && (
                             <motion.div
-                              className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-[var(--mc-green)]"
-                              animate={{ scale: [1, 1.45, 1] }}
+                              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[var(--mc-green)]"
+                              animate={{ scale: [1, 1.5, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
                               aria-hidden="true"
                             />
@@ -127,24 +138,30 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           transition={{ duration: 0.2 }}
                           className="text-[var(--mc-text-muted)]"
                         >
-                          ▼
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m6 9 6 6 6-6"/>
+                          </svg>
                         </motion.div>
                       </div>
 
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-muted)]">
+                        <div className="flex items-center gap-2 text-[13px] font-medium">
                           <span
-                            className={`inline-block h-2.5 w-2.5 rounded-full ${workStatusClass(
+                            className={`inline-block h-2 w-2 rounded-full ${workStatusClass(
                               agent.status
                             )}`}
                           />
-                          {agent.status}
-                          <span className="text-[11px] tracking-[0.06em] text-[var(--mc-text-soft)]">
-                            • {isOnline(agent.lastHeartbeat) ? "online" : `offline (${lastSeenLabel(agent.lastHeartbeat)})`}
+                          <span className="text-[var(--mc-text)]">{workStatusLabel(agent.status)}</span>
+                          <span className="text-[var(--mc-text-soft)]">·</span>
+                          <span className={isOnline(agent.lastHeartbeat) ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}>
+                            {isOnline(agent.lastHeartbeat) ? "Online" : lastSeenLabel(agent.lastHeartbeat)}
                           </span>
                         </div>
-                        <p className="truncate text-[13px] text-[var(--mc-text-soft)]">
-                          {currentTask || "No active task"}
+                      </div>
+                      
+                      <div className="mt-2">
+                        <p className="truncate text-[12px] text-[var(--mc-text-muted)]">
+                          {currentTask ? `Working on: ${currentTask}` : "No active task"}
                         </p>
                       </div>
                     </motion.button>

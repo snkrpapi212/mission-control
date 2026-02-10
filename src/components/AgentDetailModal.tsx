@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
+import { X, User, Circle, Clock, Briefcase, FileText, Activity } from "lucide-react";
 
 interface AgentDetailModalProps {
   agent: Doc<"agents"> | null;
@@ -26,6 +27,9 @@ function lastSeenLabel(lastHeartbeat: number) {
 export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDetailModalProps) {
   if (!agent) return null;
 
+  const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-amber)]";
+  const statusLabel = agent.status === "working" ? "Working" : agent.status === "blocked" ? "Blocked" : "Idle";
+
   return (
     <AnimatePresence>
       {agent && (
@@ -37,124 +41,115 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             aria-hidden="true"
           />
 
-          {/* Modal */}
+          {/* Modal - Mobile optimized */}
           <motion.div
             initial={{ opacity: 0, x: 400 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
-            transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md bg-[var(--mc-panel)] shadow-lg overflow-y-auto"
+            transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 28 }}
+            className="fixed right-0 top-0 bottom-0 z-50 w-full sm:max-w-md bg-[var(--mc-panel)] shadow-2xl overflow-y-auto border-l border-[var(--mc-line)]"
           >
             {/* Header */}
-            <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel-soft)] p-4 flex items-center justify-between">
-              <h2 className="text-[24px] font-semibold text-[var(--mc-text)]">
-                {agent.emoji} {agent.name}
-              </h2>
+            <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel)] p-4 sm:p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-[var(--mc-panel-soft)] border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text)]">
+                  <User size={24} />
+                </div>
+                <div>
+                  <h2 className="text-[18px] font-semibold text-[var(--mc-text)] leading-tight">
+                    {agent.name}
+                  </h2>
+                  <p className="text-[13px] text-[var(--mc-text-muted)]">{agent.role}</p>
+                </div>
+              </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded hover:bg-[var(--mc-line)] transition-colors text-[var(--mc-text-muted)]"
+                className="p-2 rounded-lg hover:bg-[var(--mc-line)] transition-colors text-[var(--mc-text-muted)]"
                 aria-label="Close"
               >
-                ✕
+                <X size={20} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-6">
-              {/* Profile Info */}
-              <div className="space-y-3">
-                <div>
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
-                    Role
-                  </p>
-                  <p className="text-[16px] text-[var(--mc-text)]">{agent.role}</p>
-                </div>
-
-                <div>
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
-                    Presence
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-block h-2.5 w-2.5 rounded-full ${
-                        isOnline(agent.lastHeartbeat)
-                          ? "bg-[var(--mc-green)]"
-                          : "bg-[var(--mc-text-soft)]"
-                      }`}
-                    />
-                    <span className="text-[16px] text-[var(--mc-text)] capitalize">
-                      {isOnline(agent.lastHeartbeat) ? "online" : "offline"}
-                    </span>
-                    {!isOnline(agent.lastHeartbeat) && (
-                      <span className="text-[13px] text-[var(--mc-text-soft)]">({lastSeenLabel(agent.lastHeartbeat)})</span>
-                    )}
+            <div className="p-4 sm:p-5 space-y-5">
+              {/* Status Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                  <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-2">
+                    <Circle size={14} />
+                    <span className="text-[11px] font-medium uppercase tracking-wide">Presence</span>
                   </div>
-                </div>
-
-                <div>
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
-                    Work state
-                  </p>
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-block h-2.5 w-2.5 rounded-full ${
-                        agent.status === "working"
-                          ? "bg-[var(--mc-green)]"
-                          : agent.status === "blocked"
-                          ? "bg-[var(--mc-red)]"
-                          : "bg-[var(--mc-amber)]"
-                      }`}
-                    />
-                    <span className="text-[16px] text-[var(--mc-text)] capitalize">
-                      {agent.status}
+                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${isOnline(agent.lastHeartbeat) ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
+                    <span className="text-[15px] font-medium text-[var(--mc-text)]">
+                      {isOnline(agent.lastHeartbeat) ? "Online" : "Offline"}
                     </span>
                   </div>
+                  {!isOnline(agent.lastHeartbeat) && (
+                    <p className="text-[12px] text-[var(--mc-text-muted)] mt-1">
+                      Last seen {lastSeenLabel(agent.lastHeartbeat)}
+                    </p>
+                  )}
                 </div>
 
-                <div>
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)]">
-                    Current task
-                  </p>
-                  <p className="text-[14px] text-[var(--mc-text)]">{currentTaskTitle || "No active task"}</p>
+                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                  <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-2">
+                    <Briefcase size={14} />
+                    <span className="text-[11px] font-medium uppercase tracking-wide">Work State</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColor}`} />
+                    <span className="text-[15px] font-medium text-[var(--mc-text)]">{statusLabel}</span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Current Task */}
+              <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-3">
+                  <FileText size={14} />
+                  <span className="text-[11px] font-medium uppercase tracking-wide">Current Task</span>
+                </div>
+                <p className="text-[15px] text-[var(--mc-text)]">
+                  {currentTaskTitle || "No active task"}
+                </p>
               </div>
 
               {/* Session Info */}
               {agent.sessionKey && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-2">
-                    Session
-                  </p>
-                  <code className="block text-[13px] text-[var(--mc-text-soft)] bg-[var(--mc-line)] rounded p-2 break-all font-mono">
+                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                  <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-3">
+                    <Activity size={14} />
+                    <span className="text-[11px] font-medium uppercase tracking-wide">Session</span>
+                  </div>
+                  <code className="block text-[12px] text-[var(--mc-text-muted)] bg-[var(--mc-panel-soft)] rounded-lg p-3 break-all font-mono">
                     {agent.sessionKey}
                   </code>
                 </div>
               )}
 
-              {/* Last Heartbeat */}
-              {agent.lastHeartbeat && (
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1">
-                    Last Heartbeat
-                  </p>
-                  <p className="text-[14px] text-[var(--mc-text)]">
-                    {new Date(agent.lastHeartbeat).toLocaleString()} • {lastSeenLabel(agent.lastHeartbeat)}
-                  </p>
+              {/* Metadata */}
+              <div className="space-y-3 pt-2">
+                {agent.lastHeartbeat && (
+                  <div className="flex items-center justify-between text-[13px]">
+                    <span className="text-[var(--mc-text-soft)] flex items-center gap-1.5">
+                      <Clock size={14} />
+                      Last Heartbeat
+                    </span>
+                    <span className="text-[var(--mc-text)]">
+                      {lastSeenLabel(agent.lastHeartbeat)}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-[var(--mc-text-soft)]">Agent ID</span>
+                  <code className="text-[var(--mc-text)] font-mono">{agent.agentId}</code>
                 </div>
-              )}
-
-              {/* Agent ID */}
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1">
-                  Agent ID
-                </p>
-                <code className="text-[13px] text-[var(--mc-text-soft)] font-mono break-all">
-                  {agent.agentId}
-                </code>
               </div>
             </div>
           </motion.div>
