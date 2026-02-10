@@ -55,7 +55,7 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
             className="fixed right-0 top-0 bottom-0 z-50 w-full sm:max-w-xl bg-[var(--mc-panel)] shadow-2xl overflow-hidden flex flex-col border-l border-[var(--mc-line)]"
           >
             {/* Header */}
-            <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel)] px-4 sm:px-6 py-4 flex items-start justify-between">
+            <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel)] px-4 sm:px-5 py-4 flex items-start justify-between">
               <div className="min-w-0 flex-1">
                 <h2 className="text-[18px] sm:text-[20px] font-semibold text-[var(--mc-text)] leading-tight">
                   {task.title}
@@ -66,7 +66,7 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                     {task.status}
                   </span>
                   <span className="text-[var(--mc-line-strong)]">·</span>
-                  <span>{task.priority.toUpperCase()}</span>
+                  <span>{task.priority}</span>
                 </p>
               </div>
               <button
@@ -79,9 +79,9 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
             </div>
 
             {/* Metadata Row */}
-            <div className="border-b border-[var(--mc-line)] px-4 sm:px-6 py-4 bg-[var(--mc-panel-soft)] grid grid-cols-2 gap-4 text-[13px]">
+            <div className="border-b border-[var(--mc-line)] px-4 sm:px-5 py-4 bg-[var(--mc-panel-soft)] grid grid-cols-2 gap-3 text-[13px]">
               <div>
-                <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.06em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
+                <p className="text-[var(--mc-text-soft)] tracking-[0.02em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
                   <User size={12} />
                   Assigned to
                 </p>
@@ -97,14 +97,14 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                 )}
               </div>
               <div>
-                <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.06em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
+                <p className="text-[var(--mc-text-soft)] tracking-[0.02em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
                   <Calendar size={12} />
                   Created
                 </p>
                 <span className="text-[var(--mc-text)]">{new Date(task.createdAt).toLocaleDateString()}</span>
               </div>
               <div>
-                <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.06em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
+                <p className="text-[var(--mc-text-soft)] tracking-[0.02em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
                   <Flag size={12} />
                   Priority
                 </p>
@@ -125,11 +125,11 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                         : "var(--mc-green)",
                   }}
                 >
-                  {task.priority.toUpperCase()}
+                  {task.priority}
                 </span>
               </div>
               <div>
-                <p className="text-[var(--mc-text-soft)] uppercase tracking-[0.06em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
+                <p className="text-[var(--mc-text-soft)] tracking-[0.02em] font-medium text-[11px] mb-1.5 flex items-center gap-1.5">
                   <CircleDot size={12} />
                   Status
                 </p>

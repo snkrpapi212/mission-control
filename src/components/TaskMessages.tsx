@@ -110,7 +110,7 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1, duration: 0.2 }}
-              className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] p-4"
+              className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4"
             >
               {/* Message Header */}
               <div className="flex items-center justify-between mb-2">

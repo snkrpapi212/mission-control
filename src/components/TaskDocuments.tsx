@@ -64,7 +64,7 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.06, duration: 0.2 }}
-              className="group rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] p-3.5 transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)]"
+              className="group rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-3.5 transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)]"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -75,7 +75,7 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
                     </h3>
                   </div>
                   <div className="flex items-center gap-3 text-[11px] text-[var(--mc-text-soft)]">
-                    <span className="rounded-md bg-[var(--mc-line)] px-2 py-0.5 font-medium uppercase tracking-[0.05em]">
+                    <span className="rounded-md bg-[var(--mc-line)] px-2 py-0.5 font-medium tracking-[0.02em]">
                       {TYPE_MAP[doc.type]?.label || doc.type}
                     </span>
                     <span>{new Date(doc.updatedAt).toLocaleDateString()}</span>
@@ -98,9 +98,9 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="py-10 px-6 text-center rounded-xl border border-dashed border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50"
+          className="py-10 px-6 text-center rounded-[var(--r-card)] border border-dashed border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50"
         >
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--mc-line)] text-[var(--mc-text-muted)] mb-3">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--r-card)] bg-[var(--mc-line)] text-[var(--mc-text-muted)] mb-3">
             <FileText size={24} />
           </div>
           <h3 className="text-[15px] font-medium text-[var(--mc-text)] mb-1">No documents yet</h3>
@@ -115,7 +115,7 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
         whileTap={{ scale: 0.99 }}
         onClick={handleCreateQuickDoc}
         disabled={creating}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[var(--mc-line)] bg-transparent py-3 text-[14px] font-medium text-[var(--mc-text)] transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)] disabled:opacity-60"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--r-card)] border-2 border-dashed border-[var(--mc-line)] bg-transparent py-3 text-[14px] font-medium text-[var(--mc-text)] transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)] disabled:opacity-60"
       >
         <Plus size={18} />
         {creating ? "Creating..." : "Add Document"}
@@ -152,7 +152,7 @@ export function TaskDocuments({ task }: TaskDocumentsProps) {
                 </div>
                 <button
                   onClick={() => setActiveDocId(null)}
-                  className="shrink-0 rounded-lg p-2 text-[var(--mc-text-muted)] hover:bg-[var(--mc-line)] hover:text-[var(--mc-text)] transition-colors"
+                  className="shrink-0 rounded-[var(--r-card)] p-2 text-[var(--mc-text-muted)] hover:bg-[var(--mc-line)] hover:text-[var(--mc-text)] transition-colors"
                   aria-label="Close document"
                 >
                   <X size={20} />

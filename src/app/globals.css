@@ -32,8 +32,8 @@
   --mc-chip-text: #9b988f;
 
   /* radii */
-  --r-card: 12px;
-  --r-tile: 8px;
+  --r-card: 10px;
+  --r-tile: 10px;
   --r-pill: 999px;
 
   /* shadow - premium but restrained */

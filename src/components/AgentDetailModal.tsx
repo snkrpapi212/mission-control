@@ -56,7 +56,7 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
             {/* Header */}
             <div className="sticky top-0 z-10 border-b border-[var(--mc-line)] bg-[var(--mc-panel)] p-4 sm:p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-[var(--mc-panel-soft)] border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text)]">
+                <div className="h-12 w-12 rounded-[var(--r-card)] bg-[var(--mc-panel-soft)] border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text)]">
                   <User size={24} />
                 </div>
                 <div>
@@ -79,10 +79,10 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
             <div className="p-4 sm:p-5 space-y-5">
               {/* Status Cards */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
                   <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-2">
                     <Circle size={14} />
-                    <span className="text-[11px] font-medium uppercase tracking-wide">Presence</span>
+                    <span className="text-[11px] font-medium uppercase tracking-[0.02em]">Presence</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${isOnline(agent.lastHeartbeat) ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
@@ -97,10 +97,10 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
                   )}
                 </div>
 
-                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
                   <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-2">
                     <Briefcase size={14} />
-                    <span className="text-[11px] font-medium uppercase tracking-wide">Work State</span>
+                    <span className="text-[11px] font-medium uppercase tracking-[0.02em]">Work State</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`inline-block h-2.5 w-2.5 rounded-full ${statusColor}`} />
@@ -110,10 +110,10 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
               </div>
 
               {/* Current Task */}
-              <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+              <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
                 <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-3">
                   <FileText size={14} />
-                  <span className="text-[11px] font-medium uppercase tracking-wide">Current Task</span>
+                  <span className="text-[11px] font-medium uppercase tracking-[0.02em]">Current Task</span>
                 </div>
                 <p className="text-[15px] text-[var(--mc-text)]">
                   {currentTaskTitle || "No active task"}
@@ -122,10 +122,10 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
 
               {/* Session Info */}
               {agent.sessionKey && (
-                <div className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
                   <div className="flex items-center gap-2 text-[var(--mc-text-soft)] mb-3">
                     <Activity size={14} />
-                    <span className="text-[11px] font-medium uppercase tracking-wide">Session</span>
+                    <span className="text-[11px] font-medium uppercase tracking-[0.02em]">Session</span>
                   </div>
                   <code className="block text-[12px] text-[var(--mc-text-muted)] bg-[var(--mc-panel-soft)] rounded-lg p-3 break-all font-mono">
                     {agent.sessionKey}

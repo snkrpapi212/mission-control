@@ -177,31 +177,13 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                           className="overflow-hidden border-t border-[var(--mc-line)]"
                         >
                           <div className="px-4 py-3 space-y-3 bg-[var(--mc-panel-soft)]">
-                            {/* Performance sparkline placeholder */}
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1.5">
-                                This week
-                              </p>
-                              <div className="h-8 rounded bg-[var(--mc-line)] flex items-end gap-0.5 p-1">
-                                {[3, 5, 2, 6, 4, 8, 5].map((value, i) => (
-                                  <motion.div
-                                    key={i}
-                                    className="flex-1 bg-[var(--mc-green)] rounded-t"
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${(value / 8) * 100}%` }}
-                                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-
                             {/* Detail modal trigger */}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedAgent(agent);
                               }}
-                              className="w-full rounded px-3 py-2 text-[13px] font-semibold text-[var(--mc-text)] bg-[var(--mc-button-bg)] hover:bg-[var(--mc-button-hover)] transition-colors"
+                              className="w-full rounded-[var(--r-tile)] border border-[var(--mc-line)] px-3 py-2 text-[13px] font-medium text-[var(--mc-text)] bg-[var(--mc-card)] hover:bg-[var(--mc-panel)] transition-colors"
                             >
                               View Full Profile
                             </button>
