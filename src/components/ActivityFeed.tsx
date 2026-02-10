@@ -28,7 +28,7 @@ export function ActivityFeed({
 
       <div className="border-b border-[var(--mc-line)] px-4 py-3">
         <div className="mb-2 flex flex-wrap gap-2">
-          <Chip className="border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] text-[var(--mc-amber)]">All</Chip>
+          <span className="inline-flex items-center gap-1 rounded-full border border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--mc-amber)]">All</span>
           <Chip>Tasks</Chip>
           <Chip>Comments</Chip>
           <Chip>Decisions</Chip>
@@ -45,7 +45,7 @@ export function ActivityFeed({
         {loading ? (
           <div className="space-y-3 p-3">
             {Array.from({ length: 7 }).map((_, idx) => (
-              <div key={idx} className="mc-card h-28 animate-pulse" />
+              <div key={idx} className="h-28 animate-pulse bg-[var(--mc-line)] rounded border border-[var(--mc-border)]" />
             ))}
           </div>
         ) : activities.length === 0 ? (
