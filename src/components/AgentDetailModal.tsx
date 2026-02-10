@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { X, User, Circle, Clock, Briefcase, FileText, Activity } from "lucide-react";
+import { useActivitiesLive } from "@/hooks/useConvexData";
+import { timeAgo } from "@/lib/time";
 
 interface AgentDetailModalProps {
   agent: Doc<"agents"> | null;
@@ -25,10 +27,15 @@ function lastSeenLabel(lastHeartbeat: number) {
 }
 
 export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDetailModalProps) {
+  const activities = useActivitiesLive(80);
   if (!agent) return null;
 
   const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-amber)]";
   const statusLabel = agent.status === "working" ? "Working" : agent.status === "blocked" ? "Blocked" : "Idle";
+
+  const recentOutput = activities
+    .filter((a) => a.agentId === agent.agentId && a.type !== "heartbeat")
+    .slice(0, 6);
 
   return (
     <AnimatePresence>
@@ -133,8 +140,32 @@ export function AgentDetailModal({ agent, currentTaskTitle, onClose }: AgentDeta
                 </div>
               )}
 
+              {/* Recent Output / Feedback */}
+              <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-[13px] font-semibold text-[var(--mc-text)]">Recent output</p>
+                  <span className="text-[11px] text-[var(--mc-text-soft)]">{recentOutput.length} items</span>
+                </div>
+
+                {recentOutput.length === 0 ? (
+                  <p className="text-[13px] text-[var(--mc-text-soft)]">No recent output yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {recentOutput.map((item) => (
+                      <li key={item._id} className="rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-3 py-2">
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="text-[11px] text-[var(--mc-text-soft)]">{item.type}</span>
+                          <span className="text-[11px] text-[var(--mc-text-soft)]">{timeAgo(item.createdAt)}</span>
+                        </div>
+                        <p className="line-clamp-3 text-[13px] text-[var(--mc-text)]">{item.message}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               {/* Metadata */}
-              <div className="space-y-3 pt-2">
+              <div className="space-y-3 pt-1">
                 {agent.lastHeartbeat && (
                   <div className="flex items-center justify-between text-[13px]">
                     <span className="text-[var(--mc-text-soft)] flex items-center gap-1.5">
