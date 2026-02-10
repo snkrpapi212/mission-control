@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
+const ReactMarkdown = dynamic(() => import("react-markdown"), { ssr: false });
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface TaskMessagesProps {
