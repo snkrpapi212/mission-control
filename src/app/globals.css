@@ -2,18 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* nicer default text rendering */
 :root {
   color-scheme: light;
+
+  --mc-bg: #f6f6f4;
+  --mc-panel: #fbfaf7;
+  --mc-panel-2: #f8f8f6;
+  --mc-card: #ffffff;
+  --mc-border: #dfded8;
+  --mc-border-soft: #e9e7df;
+
+  --mc-text: #24231f;
+  --mc-text-muted: #706c61;
+  --mc-text-subtle: #9a968b;
+
+  --mc-accent-green: #4ea56a;
+  --mc-accent-amber: #c89a46;
+  --mc-accent-red: #b44c4c;
+
+  --mc-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-body {
-  @apply text-gray-900;
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --mc-bg: #171816;
+  --mc-panel: #1e201d;
+  --mc-panel-2: #232522;
+  --mc-card: #272a26;
+  --mc-border: #373b36;
+  --mc-border-soft: #30342f;
+
+  --mc-text: #f1f1ee;
+  --mc-text-muted: #c0bdae;
+  --mc-text-subtle: #9f9c91;
+
+  --mc-accent-green: #68c38a;
+  --mc-accent-amber: #d2aa5a;
+  --mc-accent-red: #d66c6c;
+
+  --mc-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -22,9 +53,42 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  margin: 0;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--mc-bg);
+  color: var(--mc-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.mc-panel {
+  background: var(--mc-panel);
+  border-color: var(--mc-border);
+}
+
+.mc-card {
+  background: var(--mc-card);
+  border-color: var(--mc-border-soft);
+  box-shadow: var(--mc-shadow);
+}
+
+.mc-input {
+  background: var(--mc-card);
+  color: var(--mc-text);
+  border: 1px solid var(--mc-border);
+}
+
+.mc-chip {
+  border: 1px solid var(--mc-border);
+  border-radius: 9999px;
+  background: var(--mc-card);
+  color: var(--mc-text-muted);
+}
+
+.mc-muted {
+  color: var(--mc-text-muted);
+}
+
+.mc-subtle {
+  color: var(--mc-text-subtle);
 }

@@ -27,6 +27,7 @@ export function KanbanBoard({
 }) {
   const [query, setQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "urgent" | "high" | "medium" | "low">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | TaskStatus>("all");
 
   const byAgent = useMemo(() => {
     const map = new Map<string, Doc<"agents">>();
@@ -36,6 +37,7 @@ export function KanbanBoard({
 
   const passesFilter = (task: Doc<"tasks">) => {
     if (priorityFilter !== "all" && task.priority !== priorityFilter) return false;
+    if (statusFilter !== "all" && task.status !== statusFilter) return false;
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (
@@ -47,22 +49,22 @@ export function KanbanBoard({
 
   return (
     <section className="flex-1">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#e2e0d7] bg-white px-3 py-2">
-        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.15em] text-[#5e5b53]">
-          <span className="text-[#b68a3f]">•</span> Mission Queue
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border mc-card px-3 py-2">
+        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em]">
+          <span style={{ color: "var(--mc-accent-amber)" }}>•</span> Mission Queue
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search tasks"
-            className="h-8 rounded-md border border-[#e2dfd6] bg-[#fbfbf8] px-2.5 text-xs text-[#44413b] placeholder:text-[#9f9b91]"
-          />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search tasks" className="mc-input h-8 rounded-md px-2.5 text-xs" />
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as "all" | TaskStatus)} className="mc-input h-8 rounded-md px-2 text-xs">
+            <option value="all">All Status</option>
+            {COLUMNS.map((c) => <option key={c.status} value={c.status}>{c.title}</option>)}
+          </select>
           {(["all", "urgent", "high", "medium", "low"] as const).map((priority) => (
             <button
               key={priority}
               onClick={() => setPriorityFilter(priority)}
-              className={`rounded-full border px-2.5 py-1 text-[11px] ${priorityFilter === priority ? "border-[#c8b07b] bg-[#f5efe0] text-[#7b6842]" : "border-[#e3e0d7] bg-white text-[#8b877d]"}`}
+              className={`mc-chip px-2.5 py-1 text-[11px] ${priorityFilter === priority ? "font-semibold" : ""}`}
+              style={priorityFilter === priority ? { borderColor: "var(--mc-accent-amber)", color: "var(--mc-accent-amber)" } : undefined}
             >
               {priority === "all" ? "All" : priority.toUpperCase()}
             </button>
@@ -74,35 +76,30 @@ export function KanbanBoard({
         {COLUMNS.map((col) => {
           const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
           return (
-            <div key={col.status} className="rounded-lg border border-[#e2e0d7] bg-[#f6f5f1]">
-              <div className="flex items-center justify-between border-b border-[#e2e0d7] px-3 py-2">
-                <h3 className="text-[12px] font-semibold uppercase tracking-[0.12em] text-[#58554d]">
+            <div key={col.status} className="rounded-lg border mc-panel">
+              <div className="flex items-center justify-between border-b px-3 py-2" style={{ borderColor: "var(--mc-border)" }}>
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.1em]">
                   <span className="mr-1.5 text-[10px]" style={{ color: col.accent }}>●</span>
                   {col.title}
                 </h3>
-                <span className="rounded bg-[#ecebe5] px-1.5 py-0.5 text-[11px] text-[#8b877d]">{tasks.length}</span>
+                <span className="mc-chip rounded px-1.5 py-0.5 text-[11px]">{tasks.length}</span>
               </div>
               <div className="min-h-32 space-y-2 p-2">
                 {loading ? (
                   Array.from({ length: 3 }).map((_, idx) => (
-                    <div key={idx} className="rounded-md border border-[#e2e0d7] bg-white p-2">
-                      <div className="h-3 w-3/4 animate-pulse rounded bg-[#edeae0]" />
-                      <div className="mt-2 h-2.5 w-full animate-pulse rounded bg-[#f2efe7]" />
-                      <div className="mt-2 h-2.5 w-2/3 animate-pulse rounded bg-[#f2efe7]" />
+                    <div key={idx} className="rounded-md border mc-card p-2">
+                      <div className="h-3 w-3/4 animate-pulse rounded" style={{ background: "var(--mc-border-soft)" }} />
+                      <div className="mt-2 h-2.5 w-full animate-pulse rounded" style={{ background: "var(--mc-border-soft)" }} />
+                      <div className="mt-2 h-2.5 w-2/3 animate-pulse rounded" style={{ background: "var(--mc-border-soft)" }} />
                     </div>
                   ))
                 ) : tasks.length === 0 ? (
-                  <div className="rounded-md border border-dashed border-[#d9d5c9] bg-[#faf9f6] p-3 text-center text-xs text-[#9c988e]">
+                  <div className="rounded-md border border-dashed p-3 text-center text-xs mc-subtle" style={{ borderColor: "var(--mc-border)" }}>
                     No tasks in {col.title.toLowerCase()}.
                   </div>
                 ) : (
                   tasks.map((t) => (
-                    <TaskCard
-                      key={t._id}
-                      task={t}
-                      assignee={t.assigneeIds[0] ? byAgent.get(t.assigneeIds[0]) : undefined}
-                      onClick={onSelectTask ? () => onSelectTask(t) : undefined}
-                    />
+                    <TaskCard key={t._id} task={t} assignee={t.assigneeIds[0] ? byAgent.get(t.assigneeIds[0]) : undefined} onClick={onSelectTask ? () => onSelectTask(t) : undefined} />
                   ))
                 )}
               </div>
