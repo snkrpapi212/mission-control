@@ -22,6 +22,8 @@ export function CreateTaskModal({
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [createdBy, setCreatedBy] = useState(agents[0]?.agentId ?? "main");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const toggleAgent = (agentId: string) => {
     setSelectedAgentIds((prev) =>
@@ -47,9 +49,12 @@ export function CreateTaskModal({
     e.preventDefault();
 
     if (!title.trim()) {
-      alert("Title is required");
+      setError("Title is required");
       return;
     }
+
+    setSubmitting(true);
+    setError(null);
 
     try {
       await createTask({
@@ -61,8 +66,10 @@ export function CreateTaskModal({
         tags,
       });
       onClose();
-    } catch (error) {
-      alert(`Failed to create task: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Failed to create task");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -105,7 +112,10 @@ export function CreateTaskModal({
                 <input
                   type="text"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="Enter task title"
                   className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-muted)] focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all"
                   required
@@ -235,20 +245,27 @@ export function CreateTaskModal({
               </div>
             </div>
 
-            <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:flex-row sm:justify-end sm:gap-3 sm:px-5 sm:py-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel)] transition-colors sm:w-auto"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="w-full rounded-lg bg-[var(--mc-accent-green)] px-4 py-2 text-[14px] font-medium text-white hover:bg-[var(--mc-accent-green)]/90 transition-colors sm:w-auto"
-              >
-                Create Task
-              </button>
+            <div className="sticky bottom-0 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:px-5 sm:py-4">
+              {error && (
+                <p className="mb-2 text-[12px] font-medium text-[var(--mc-red)]">{error}</p>
+              )}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={submitting}
+                  className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel)] transition-colors disabled:opacity-60 sm:w-auto"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded-lg bg-[var(--mc-accent-green)] px-4 py-2 text-[14px] font-medium text-white hover:bg-[var(--mc-accent-green)]/90 transition-colors disabled:opacity-70 sm:w-auto"
+                >
+                  {submitting ? "Creating…" : "Create Task"}
+                </button>
+              </div>
             </div>
           </form>
         </motion.div>

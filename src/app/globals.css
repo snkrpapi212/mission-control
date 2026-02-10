@@ -17,8 +17,8 @@
 
   /* text */
   --mc-text: #1f1f1d;
-  --mc-text-muted: #8c897f;
-  --mc-text-soft: #a19d92;
+  --mc-text-muted: #6e6a60;
+  --mc-text-soft: #5f5b51;
 
   /* semantic accents */
   --mc-green: #31a26a;
@@ -70,8 +70,8 @@
   --mc-line: #31312f;
   --mc-line-strong: #3b3b38;
   --mc-text: #f2f2ef;
-  --mc-text-muted: #b3b0a5;
-  --mc-text-soft: #928e83;
+  --mc-text-muted: #c5c2b8;
+  --mc-text-soft: #b1ada1;
   --mc-green: #53bf87;
   --mc-green-soft: #1d2a22;
   --mc-amber: #d8a95d;
@@ -125,6 +125,13 @@ textarea:focus-visible {
   outline: 2px solid var(--mc-accent-green);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Prevent iOS auto-zoom on form fields */
+input,
+select,
+textarea {
+  font-size: 16px;
 }
 
 /* Mobile-first responsive */

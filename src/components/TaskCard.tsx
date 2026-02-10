@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
@@ -36,6 +36,16 @@ export function TaskCard({
   isDragging?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setCanHover(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
 
   return (
     <motion.button
@@ -46,10 +56,7 @@ export function TaskCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      whileHover={{
-        y: -4,
-        boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)",
-      }}
+      whileHover={canHover ? { y: -4, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.15)" } : undefined}
       transition={{ duration: 0.15 }}
       className={`mc-card mc-focus relative w-full overflow-hidden p-4 text-left before:absolute before:inset-y-0 before:left-0 before:w-[3px] ${railClass(
         task.priority
@@ -73,17 +80,11 @@ export function TaskCard({
       </h4>
 
       {/* Description preview */}
-      <motion.div
-        animate={{ height: isHovered ? "auto" : "2.6em" }}
-        transition={{ duration: 0.2 }}
-        className="mt-2 overflow-hidden"
-      >
-        <p className={`text-[12px] leading-relaxed text-[var(--mc-text-muted)] ${
-          !isHovered ? "line-clamp-2" : ""
-        }`}>
+      <div className="mt-2 overflow-hidden">
+        <p className="line-clamp-2 text-[12px] leading-relaxed text-[var(--mc-text-muted)]">
           {task.description || "No description"}
         </p>
-      </motion.div>
+      </div>
 
       {/* Tags */}
       <div className="mt-3 flex flex-wrap gap-1.5">
