@@ -1,5 +1,8 @@
 name: Mission Control CI
 
+env:
+  NODE_ENV: development
+
 on:
   push:
     branches: [main, dev]
@@ -15,7 +18,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --include=dev
       - run: npm run lint
 
   test:
@@ -27,7 +30,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --include=dev
       - run: npm test
 
   typecheck:
@@ -39,7 +42,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --include=dev
       - run: npx tsc --noEmit
 
   build:
@@ -51,7 +54,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --include=dev
       - run: npm run build
 
   convex-typecheck:
@@ -63,5 +66,5 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --include=dev
       - run: npx convex typecheck
