@@ -129,19 +129,19 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
               <div className="prose prose-sm max-w-none text-[14px] text-[var(--mc-text)]">
                 <ReactMarkdown
                   components={{
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     p: ({ _node, ...props }: any) => (
                       <p className="my-0 text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     strong: ({ _node, ...props }: any) => (
                       <strong className="font-bold text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     em: ({ _node, ...props }: any) => (
                       <em className="italic text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     code: ({ _node, inline, ...props }: any) =>
                       inline ? (
                         <code
@@ -154,18 +154,18 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
                           {...props}
                         />
                       ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     a: ({ _node, ...props }: any) => (
                       <a
                         className="text-[var(--mc-accent-green)] hover:underline"
                         {...props}
                       />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     ul: ({ _node, ...props }: any) => (
                       <ul className="list-disc list-inside my-2" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     li: ({ _node, ...props }: any) => (
                       <li className="my-0.5" {...props} />
                     ),

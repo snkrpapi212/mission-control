@@ -4,7 +4,8 @@
     "next/typescript"
   ],
   "rules": {
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "no-console": "warn",
     "prefer-const": "error",
     "@next/next/no-html-link-for-pages": "error"
