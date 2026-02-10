@@ -88,14 +88,14 @@ export function KanbanBoard({
         count={totalVisible}
       />
 
-      <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-[var(--sp-4)] py-[var(--sp-3)]">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search tasks"
-          className="mc-focus h-9 w-[260px] rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
+          className="mc-focus h-9 w-[260px] rounded-[12px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-[var(--sp-3)] text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
         />
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-[var(--sp-2)]">
           <Chip className="border-[var(--mc-amber)] bg-[var(--mc-amber-soft)] text-[var(--mc-amber)]">
             All
           </Chip>
@@ -105,7 +105,7 @@ export function KanbanBoard({
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-2 2xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-[var(--sp-3)] p-[var(--sp-3)] md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
@@ -114,11 +114,11 @@ export function KanbanBoard({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)]"
+                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col max-h-[calc(100vh-var(--h-topbar)-var(--h-section)-var(--sp-8))]"
               >
-                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
+                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-[var(--sp-4)] py-[var(--sp-3)] shrink-0">
                   <h3 className="text-[14px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text)]">
-                    <span className={`mr-2 ${col.dotClass}`}>●</span>
+                    <span className={`mr-[var(--sp-2)] ${col.dotClass}`}>●</span>
                     {col.title}
                   </h3>
                   <Chip>{tasks.length}</Chip>
@@ -129,7 +129,7 @@ export function KanbanBoard({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`space-y-3 p-3 min-h-[200px] transition-colors ${
+                      className={`space-y-[var(--sp-3)] p-[var(--sp-3)] min-h-[200px] transition-colors overflow-y-auto ${
                         snapshot.isDraggingOver
                           ? "bg-[var(--mc-amber-soft)]"
                           : ""
@@ -139,16 +139,16 @@ export function KanbanBoard({
                         Array.from({ length: 2 }).map((_, idx) => (
                           <div
                             key={idx}
-                            className="mc-card h-32 animate-pulse p-4"
+                            className="mc-card h-32 animate-pulse p-[var(--sp-4)]"
                           />
                         ))
                       ) : tasks.length === 0 ? (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
+                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-[var(--sp-4)] text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
                         >
-                          <div className="text-[24px] mb-2">📭</div>
+                          <div className="text-[24px] mb-[var(--sp-2)]">📭</div>
                           No tasks in {col.title}
                         </motion.div>
                       ) : (
