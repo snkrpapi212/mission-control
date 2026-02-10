@@ -4,4 +4,5 @@ export * from "@/components/DashboardShell";
 export * from "@/components/FilterBar";
 export * from "@/components/KanbanBoard";
 export * from "@/components/LoadingSkeleton";
+export * from "@/components/MissionControlPrimitives";
 export * from "@/components/TaskCard";
