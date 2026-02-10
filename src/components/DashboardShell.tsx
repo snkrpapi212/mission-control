@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
@@ -13,6 +13,8 @@ import {
   useAgentsLive,
   useTasksByStatusLive,
 } from "@/hooks/useConvexData";
+import { useOptimisticUI } from "@/hooks/useOptimisticUI";
+import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
   const agentsRaw = useAgentsLive();
@@ -28,6 +30,7 @@ export function DashboardShell() {
   const [mobileTab, setMobileTab] = useState<"board" | "feed">("board");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const { moveTask } = useOptimisticUI();
 
   useEffect(() => {
     const saved = (localStorage.getItem("mc-theme") as "light" | "dark" | null) || "light";
@@ -64,6 +67,18 @@ export function DashboardShell() {
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     return `${Math.floor(diff / 3600)}h ago`;
   })();
+
+  const handleTaskMove = useCallback(
+    (taskId: string, newStatus: TaskStatus) => {
+      const task = flattenedTasks.find((t) => t._id === taskId);
+      if (task) {
+        moveTask(task, newStatus, {
+          successMessage: `Moved to ${newStatus} ✓`,
+        });
+      }
+    },
+    [flattenedTasks, moveTask]
+  );
 
   return (
     <div className="min-h-screen" style={{ background: "var(--mc-bg)", color: "var(--mc-text)" }}>
@@ -119,7 +134,13 @@ export function DashboardShell() {
                 <div className="mb-3 flex items-center justify-between text-xs mc-subtle">
                   <span>Updated {timeAgoString}</span>
                 </div>
-                <KanbanBoard tasksByStatus={tasksByStatus} agents={agents} loading={loading} onSelectTask={(t) => setSelectedTask(t)} />
+                <KanbanBoard
+                  tasksByStatus={tasksByStatus}
+                  agents={agents}
+                  loading={loading}
+                  onSelectTask={(t) => setSelectedTask(t)}
+                  onTaskMove={handleTaskMove}
+                />
               </div>
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
