@@ -1,27 +1,42 @@
 "use client";
 
-import { useMemo } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useMemo, useRef } from "react";
+import { useConvexConnectionState, useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc, Id } from "../../convex/_generated/dataModel";
 import type { TaskStatus } from "@/types";
 
+function useStickyQuery<T>(value: T | undefined, fallback: T): T {
+  const cache = useRef<T>(fallback);
+  if (value !== undefined) {
+    cache.current = value;
+  }
+  return value ?? cache.current;
+}
+
+export function useConnectionStateLive() {
+  return useConvexConnectionState();
+}
+
 export function useAgentsLive() {
-  return useQuery(api.agents.getAll, {});
+  const query = useQuery(api.agents.getAll, {});
+  return useStickyQuery(query, [] as Doc<"agents">[]);
 }
 
 export function useTasksLive() {
-  return useQuery(api.tasks.getAll, {});
+  const query = useQuery(api.tasks.getAll, {});
+  return useStickyQuery(query, [] as Doc<"tasks">[]);
 }
 
 export function useActivitiesLive(limit = 20) {
-  return useQuery(api.activities.getRecent, { limit });
+  const query = useQuery(api.activities.getRecent, { limit });
+  return useStickyQuery(query, [] as Doc<"activities">[]);
 }
 
 export function useTasksByStatusLive(): Record<TaskStatus, Doc<"tasks">[]> {
-  const tasksQuery = useTasksLive();
+  const tasks = useTasksLive();
+
   return useMemo(() => {
-    const tasks = tasksQuery || [];
     const map: Record<TaskStatus, Doc<"tasks">[]> = {
       inbox: [],
       assigned: [],
@@ -30,17 +45,18 @@ export function useTasksByStatusLive(): Record<TaskStatus, Doc<"tasks">[]> {
       done: [],
       blocked: [],
     };
-    for (const t of tasks) {
-      const s = t.status as TaskStatus;
-      if (!map[s]) continue;
-      map[s].push(t);
+
+    for (const task of tasks) {
+      const status = task.status as TaskStatus;
+      if (status in map) map[status].push(task);
     }
-    // Sort newest first for a nicer UI
-    for (const k of Object.keys(map) as TaskStatus[]) {
-      map[k].sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+
+    for (const key of Object.keys(map) as TaskStatus[]) {
+      map[key].sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
     }
+
     return map;
-  }, [tasksQuery]);
+  }, [tasks]);
 }
 
 export function useMessagesByTask(taskId: Id<"tasks"> | null) {
@@ -55,7 +71,6 @@ export function useTaskMutations() {
   const updateTask = useMutation(api.tasks.update);
   const createMessage = useMutation(api.messages.create);
   const createDocument = useMutation(api.documents.create);
-
   return { updateTask, createMessage, createDocument };
 }
 

@@ -2,29 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-/* nicer default text rendering */
 :root {
   color-scheme: light;
+
+  /* surfaces */
+  --mc-bg: #f6f6f4;
+  --mc-panel: #fbfbf9;
+  --mc-panel-soft: #f4f4f1;
+  --mc-card: #ffffff;
+
+  /* lines */
+  --mc-line: #e6e5e1;
+  --mc-line-strong: #dedcd7;
+
+  /* text */
+  --mc-text: #1f1f1d;
+  --mc-text-muted: #8c897f;
+  --mc-text-soft: #a19d92;
+
+  /* semantic accents */
+  --mc-green: #31a26a;
+  --mc-green-soft: #edf7ef;
+  --mc-amber: #c79746;
+  --mc-amber-soft: #f7f1e3;
+  --mc-red: #a64b45;
+  --mc-red-soft: #f9eceb;
+
+  --mc-chip-bg: #efeeea;
+  --mc-chip-text: #9b988f;
+
+  /* radii */
+  --r-card: 18px;
+  --r-tile: 12px;
+  --r-pill: 999px;
+
+  /* shadow */
+  --sh-card: 0 1px 2px rgba(10, 10, 10, 0.04);
+  --sh-card-hover: 0 2px 6px rgba(10, 10, 10, 0.06);
+
+  /* layout */
+  --h-topbar: 72px;
+  --h-section: 52px;
+  --w-left: clamp(300px, 15vw, 520px);
+  --w-right: clamp(420px, 23vw, 800px);
+
+  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--mc-green) 45%, transparent);
+  --tr-fast: 140ms ease-out;
 }
 
-body {
-  @apply text-gray-900;
+[data-theme="dark"] {
+  color-scheme: dark;
+  --mc-bg: #151515;
+  --mc-panel: #1c1c1b;
+  --mc-panel-soft: #20201f;
+  --mc-card: #252522;
+  --mc-line: #31312f;
+  --mc-line-strong: #3b3b38;
+  --mc-text: #f2f2ef;
+  --mc-text-muted: #b3b0a5;
+  --mc-text-soft: #928e83;
+  --mc-green: #53bf87;
+  --mc-green-soft: #1d2a22;
+  --mc-amber: #d8a95d;
+  --mc-amber-soft: #2a241a;
+  --mc-red: #c56f69;
+  --mc-red-soft: #2d1f1f;
+  --mc-chip-bg: #2c2c29;
+  --mc-chip-text: #afab9f;
 }
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
-html {
+html,
+body {
+  margin: 0;
+  padding: 0;
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background: var(--mc-bg);
+  color: var(--mc-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.mc-chip {
+  border-radius: var(--r-pill);
+  border: 1px solid var(--mc-line);
+  background: var(--mc-chip-bg);
+  color: var(--mc-chip-text);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+}
+
+.mc-card {
+  border: 1px solid var(--mc-line);
+  border-radius: var(--r-card);
+  background: var(--mc-card);
+  box-shadow: var(--sh-card);
+  transition: box-shadow var(--tr-fast), border-color var(--tr-fast), background-color var(--tr-fast);
+}
+
+.mc-card:hover {
+  box-shadow: var(--sh-card-hover);
+}
+
+.mc-focus:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
