@@ -29,6 +29,9 @@ export function DashboardShell() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<TaskStatus | "all">("all");
+  const [filterPriority, setFilterPriority] = useState<string>("all");
+  const [filterAgent, setFilterAgent] = useState<string>("all");
 
   // Mock notifications - in production, fetch from Convex
   const mockNotifications = useMemo(() => [
@@ -148,6 +151,13 @@ export function DashboardShell() {
               <div className="flex-1">
                 <KanbanBoard
                   tasksByStatus={tasksByStatus}
+                  agents={agents}
+                  statusFilter={filterStatus}
+                  priorityFilter={filterPriority}
+                  agentFilter={filterAgent}
+                  onStatusFilterChange={setFilterStatus}
+                  onPriorityFilterChange={setFilterPriority}
+                  onAgentFilterChange={setFilterAgent}
                   onSelectTask={(t) => setSelectedTask(t)}
                   onTaskMove={handleTaskMove}
                 />
