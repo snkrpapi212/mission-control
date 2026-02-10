@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { timeAgo } from "@/lib/time";
 import { Chip } from "@/components/MissionControlPrimitives";
+import { User, Check } from "lucide-react";
 
 function railClass(priority: Doc<"tasks">["priority"]) {
   if (priority === "urgent") return "before:bg-[var(--mc-red)]";
@@ -60,24 +61,24 @@ export function TaskCard({
     >
       {/* Priority badge */}
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-soft)]">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-soft)]">
           {priorityLabel(task.priority)}
         </span>
-        <span className="text-[13px] text-[var(--mc-text-soft)]">{timeAgo(task.updatedAt)}</span>
+        <span className="text-[11px] text-[var(--mc-text-soft)]">{timeAgo(task.updatedAt)}</span>
       </div>
 
       {/* Title */}
-      <h4 className="line-clamp-2 text-[16px] font-semibold leading-[1.3] text-[var(--mc-text)]">
+      <h4 className="line-clamp-2 text-[15px] font-semibold leading-snug text-[var(--mc-text)]">
         {task.title}
       </h4>
 
-      {/* Description preview with enhanced styling */}
+      {/* Description preview */}
       <motion.div
-        animate={{ height: isHovered ? "auto" : "2.8em" }}
+        animate={{ height: isHovered ? "auto" : "2.6em" }}
         transition={{ duration: 0.2 }}
         className="mt-2 overflow-hidden"
       >
-        <p className={`text-[13px] leading-[1.45] text-[var(--mc-text-muted)] ${
+        <p className={`text-[12px] leading-relaxed text-[var(--mc-text-muted)] ${
           !isHovered ? "line-clamp-2" : ""
         }`}>
           {task.description || "No description"}
@@ -85,42 +86,44 @@ export function TaskCard({
       </motion.div>
 
       {/* Tags */}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {(task.tags ?? []).slice(0, 4).map((tag) => (
           <motion.div
             key={tag}
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
           >
-            <Chip className="bg-[var(--mc-line)] text-[var(--mc-text-soft)]">{tag}</Chip>
+            <Chip className="bg-[var(--mc-line)] text-[var(--mc-text-soft)] text-[10px] px-1.5 py-0.5">{tag}</Chip>
           </motion.div>
         ))}
       </div>
 
       {/* Assignee row */}
-      <div className="mt-4 flex items-center justify-between gap-2 rounded-[8px] bg-[var(--mc-panel-soft)] px-3 py-2">
+      <div className="mt-3 flex items-center justify-between gap-2 rounded-lg bg-[var(--mc-panel-soft)] px-2.5 py-2">
         <div className="flex items-center gap-2">
           {assignee ? (
             <>
-              <span className="text-[18px]">{assignee.emoji}</span>
+              <div className="h-6 w-6 rounded-md bg-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text-muted)]">
+                <User size={14} />
+              </div>
               <div className="min-w-0">
-                <p className="truncate text-[13px] font-semibold text-[var(--mc-text)]">
+                <p className="truncate text-[12px] font-medium text-[var(--mc-text)]">
                   {assignee.name}
                 </p>
-                <p className="text-[11px] text-[var(--mc-text-soft)]">{assignee.role}</p>
+                <p className="text-[10px] text-[var(--mc-text-soft)]">{assignee.role}</p>
               </div>
             </>
           ) : (
-            <span className="text-[13px] text-[var(--mc-text-soft)]">👤 Unassigned</span>
+            <span className="text-[12px] text-[var(--mc-text-soft)]">Unassigned</span>
           )}
         </div>
         {assignee && (
           <motion.div
             animate={{ scale: isHovered ? 1.1 : 1 }}
-            className="text-[14px]"
+            className="h-5 w-5 rounded-full bg-[var(--mc-accent-green-soft)] flex items-center justify-center"
           >
-            ✓
+            <Check size={12} className="text-[var(--mc-accent-green)]" />
           </motion.div>
         )}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
@@ -203,54 +204,101 @@ export function DashboardShell() {
             style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}
             role="main"
           >
-            <div className="mb-3 flex items-center justify-between xl:hidden">
-              <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "agents" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("agents")}>Agents</button>
-                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
-              </div>
-              <div className="text-xs mc-subtle">Updated {timeAgoString}</div>
-            </div>
 
-            {mobileTab === "board" ? (
-              <div>
-                <div className="mb-3 flex items-center justify-between text-xs mc-subtle">
-                  <span>Updated {timeAgoString}</span>
-                </div>
-                <SmartFilters agents={agents} onFiltersChange={setFilters} />
-                <KanbanBoard
-                  tasksByStatus={filteredTasksByStatus}
-                  agents={agents}
-                  loading={loading}
-                  onSelectTask={(t) => setSelectedTask(t)}
-                  onTaskMove={handleTaskMove}
-                />
-              </div>
-            ) : null}
+            {/* Mobile Sub-nav - shows Board/Feed options when in board view */}
+            <AnimatePresence mode="wait">
+              {mobileTab === "board" ? (
+                <motion.div 
+                  key="board-view"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <SmartFilters agents={agents} onFiltersChange={setFilters} />
+                    <div className="text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
+                  </div>
+                  <KanbanBoard
+                    tasksByStatus={filteredTasksByStatus}
+                    agents={agents}
+                    loading={loading}
+                    onSelectTask={(t) => setSelectedTask(t)}
+                    onTaskMove={handleTaskMove}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
             {mobileTab === "agents" ? (
-              <div className="xl:hidden space-y-2">
+              <div className="xl:hidden space-y-3">
+                {/* Mobile Agents Header */}
+                <div className="flex items-center justify-between px-1">
+                  <h2 className="text-[15px] font-semibold text-[var(--mc-text)]">Active Agents</h2>
+                  <span className="text-[12px] text-[var(--mc-text-soft)]">{agents.length} total</span>
+                </div>
+                
                 {agents.map((agent) => {
                   const taskTitle = agent.currentTaskId ? currentTaskById.get(agent.currentTaskId) : undefined;
                   const online = Date.now() - agent.lastHeartbeat < 2 * 60 * 1000;
+                  const lastSeen = (() => {
+                    const diff = Date.now() - agent.lastHeartbeat;
+                    const min = Math.floor(diff / 60000);
+                    if (min < 60) return `${min}m ago`;
+                    const hr = Math.floor(min / 60);
+                    if (hr < 24) return `${hr}h ago`;
+                    return `${Math.floor(hr / 24)}d ago`;
+                  })();
+                  
+                  const statusLabel = agent.status === "working" ? "Working" : agent.status === "blocked" ? "Blocked" : "Idle";
+                  const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-amber)]";
+                  
                   return (
-                    <button
+                    <motion.button
                       key={agent._id}
                       onClick={() => {
                         const t = flattenedTasks.find((x) => x._id === agent.currentTaskId);
                         if (t) setSelectedTask(t);
                       }}
-                      className="w-full rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-3 text-left"
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[16px]">{agent.emoji}</span>
-                          <span className="text-[14px] font-semibold text-[var(--mc-text)]">{agent.name}</span>
+                      <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div className="relative shrink-0">
+                          <div className="h-10 w-10 rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] flex items-center justify-center text-[var(--mc-text)]">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="8" r="4"/>
+                              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                            </svg>
+                          </div>
+                          <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--mc-card)] ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
                         </div>
-                        <span className={`inline-block h-2.5 w-2.5 rounded-full ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
+                        
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[15px] font-semibold text-[var(--mc-text)] truncate">{agent.name}</span>
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--mc-line)] text-[var(--mc-text-soft)]">
+                              {agent.level === "lead" ? "LEAD" : agent.level === "intern" ? "INT" : "SPC"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`inline-block h-2 w-2 rounded-full ${statusColor}`} />
+                            <span className="text-[13px] text-[var(--mc-text)]">{statusLabel}</span>
+                            <span className="text-[var(--mc-text-soft)]">·</span>
+                            <span className={`text-[13px] ${online ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}`}>
+                              {online ? "Online" : lastSeen}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="mt-1 text-[12px] text-[var(--mc-text-soft)]">{agent.status.toUpperCase()} • {online ? "ONLINE" : "OFFLINE"}</p>
-                      <p className="mt-1 truncate text-[12px] text-[var(--mc-text-muted)]">{taskTitle || "No active task"}</p>
-                    </button>
+                      
+                      {/* Current Task */}
+                      <div className="mt-3 pt-3 border-t border-[var(--mc-line)]">
+                        <p className="text-[12px] text-[var(--mc-text-muted)] uppercase tracking-wide">Current Task</p>
+                        <p className="text-[13px] text-[var(--mc-text)] truncate mt-0.5">{taskTitle || "No active task"}</p>
+                      </div>
+                    </motion.button>
                   );
                 })}
               </div>
