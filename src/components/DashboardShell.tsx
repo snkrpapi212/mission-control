@@ -15,6 +15,8 @@ import {
   useTasksByStatusLive,
 } from "@/hooks/useConvexData";
 import { useOptimisticUI } from "@/hooks/useOptimisticUI";
+import { SmartFilters, type FilterState } from "@/components/SmartFilters";
+import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
@@ -31,6 +33,19 @@ export function DashboardShell() {
   const [mobileTab, setMobileTab] = useState<"board" | "feed">("board");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [filters, setFilters] = useState<FilterState>({
+    statuses: [],
+    agentIds: [],
+    priorities: [],
+  });
+  const [customizationPrefs, setCustomizationPrefs] = useState<CustomizationPrefs>({
+    density: "normal",
+    showAgentsSidebar: true,
+    showActivityFeed: true,
+    showNotifications: true,
+    columnOrder: ["inbox", "assigned", "in_progress", "review", "done", "blocked"],
+    theme: "light",
+  });
   const { moveTask } = useOptimisticUI();
 
   useEffect(() => {
@@ -81,6 +96,34 @@ export function DashboardShell() {
     [flattenedTasks, moveTask]
   );
 
+  // Apply filters to tasks
+  const filteredTasksByStatus = useMemo(() => {
+    const filtered = { ...tasksByStatus };
+
+    Object.keys(filtered).forEach((status) => {
+      filtered[status as TaskStatus] = filtered[status as TaskStatus].filter((task) => {
+        // Filter by status
+        if (filters.statuses.length > 0 && !filters.statuses.includes(task.status as TaskStatus)) {
+          return false;
+        }
+
+        // Filter by agent
+        if (filters.agentIds.length > 0 && !filters.agentIds.some((id) => task.assigneeIds.includes(id))) {
+          return false;
+        }
+
+        // Filter by priority
+        if (filters.priorities.length > 0 && !filters.priorities.includes(task.priority)) {
+          return false;
+        }
+
+        return true;
+      });
+    });
+
+    return filtered;
+  }, [tasksByStatus, filters]);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--mc-bg)", color: "var(--mc-text)" }}>
       <header className="sticky top-0 z-30 border-b mc-panel" style={{ backdropFilter: "blur(6px)" }}>
@@ -109,6 +152,10 @@ export function DashboardShell() {
             <button className="mc-input hidden sm:inline-flex rounded-md px-3 py-1.5 text-xs">🗂 Docs</button>
             <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">🔔<span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span></button>
             <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs">{theme === "light" ? "🌙" : "☀️"}</button>
+            <DashboardCustomization
+              prefs={customizationPrefs}
+              onPrefsChange={setCustomizationPrefs}
+            />
             <div className="hidden md:block">
               <ConnectionStatus />
             </div>
@@ -119,7 +166,9 @@ export function DashboardShell() {
 
       <div className="mx-auto max-w-[1800px]">
         <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
-          <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
+          {customizationPrefs.showAgentsSidebar && (
+            <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
+          )}
 
           <main className="border-x px-3 py-3 md:px-4 md:py-4" style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}>
             <div className="mb-3 flex items-center justify-between xl:hidden">
@@ -135,8 +184,9 @@ export function DashboardShell() {
                 <div className="mb-3 flex items-center justify-between text-xs mc-subtle">
                   <span>Updated {timeAgoString}</span>
                 </div>
+                <SmartFilters agents={agents} onFiltersChange={setFilters} />
                 <KanbanBoard
-                  tasksByStatus={tasksByStatus}
+                  tasksByStatus={filteredTasksByStatus}
                   agents={agents}
                   loading={loading}
                   onSelectTask={(t) => setSelectedTask(t)}
@@ -147,7 +197,11 @@ export function DashboardShell() {
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
           </main>
 
-          <div className="hidden xl:block"><ActivityFeed activities={activities} loading={loading} /></div>
+          {customizationPrefs.showActivityFeed && (
+            <div className="hidden xl:block">
+              <ActivityFeed activities={activities} loading={loading} />
+            </div>
+          )}
         </div>
       </div>
 
