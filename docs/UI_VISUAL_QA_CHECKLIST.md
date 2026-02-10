@@ -24,9 +24,13 @@ Reference: `docs/design-reference/mission-control-target-ui.jpg`
 6) Accent semantics — **PASS**
 - Evidence: semantic 3px left rails in `TaskCard.tsx` map priority to green/amber/red/neutral tokens; status accents use semantic token set.
 
-7) Theme token parity + CSS pipeline — **PENDING (Fix Pack 3)**
+7) Theme token parity + CSS pipeline — **PASS**
+- Evidence: `src/app/globals.css` defines full `:root` + `[data-theme="dark"]` semantic token map; updated UI components consume variables (no hardcoded hex values in component classes).
+- Evidence: CSS pipeline parses cleanly in lint/typecheck flows after dependency sync (`npm install`, `npm run lint`, `npm run typecheck`).
 
 ## Screenshot evidence
 - Before: `docs/design-reference/before-after/before-dashboard.png`
 - After Pack 1: `docs/design-reference/before-after/after-pack1.png`
 - After Pack 2: `docs/design-reference/before-after/after-pack2.png`
+- After Pack 3 (light): `docs/design-reference/before-after/after-pack3-light.png`
+- After Pack 3 (dark): `docs/design-reference/before-after/after-pack3-dark.png`

@@ -29,5 +29,18 @@ Implemented must-fix visual language for content rhythm:
 Evidence screenshot:
 - `docs/design-reference/before-after/after-pack2.png`
 
-## Pending follow-up
-- Pack 3: dark/light token parity verification + CSS pipeline stability notes
+## Fix Pack 3 (Blocker 7 + CSS pipeline stability)
+
+Implemented and validated theme/token + pipeline requirements:
+- Full light/dark semantic token parity retained in `src/app/globals.css` (`:root` and `[data-theme="dark"]`)
+- Updated UI components continue to reference CSS variables only (no hardcoded hex values in component classes)
+- CSS/Tailwind pipeline stability verified through project checks after dependency sync
+
+Validation:
+- `npm run lint` — PASS
+- `npm run typecheck` — PASS
+- `npm run build` — compiles, then fails in this container with `spawn ... EAGAIN` (environment process limit)
+
+Evidence screenshots:
+- `docs/design-reference/before-after/after-pack3-light.png`
+- `docs/design-reference/before-after/after-pack3-dark.png`
