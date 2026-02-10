@@ -6,6 +6,19 @@
   "rules": {
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "no-console": "warn",
-    "prefer-const": "error"
-  }
+    "prefer-const": "error",
+    "@next/next/no-html-link-for-pages": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "imports": [
+            { "name": "next/document", "message": "Use App Router instead. Import Html, Head, Main, NextScript from next/document is only for Pages Router." }
+          ]
+        }]
+      }
+    }
+  ]
 }
