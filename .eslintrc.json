@@ -14,7 +14,7 @@
       "files": ["**/*.ts", "**/*.tsx"],
       "rules": {
         "no-restricted-imports": ["error", {
-          "imports": [
+          "paths": [
             { "name": "next/document", "message": "Use App Router instead. Import Html, Head, Main, NextScript from next/document is only for Pages Router." }
           ]
         }]
