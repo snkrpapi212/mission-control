@@ -81,12 +81,12 @@ export function CreateTaskModal({
           animate={{ opacity: 1 }}
         />
         <motion.div 
-          className="absolute left-1/2 top-1/2 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden"
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          className="absolute inset-x-2 bottom-2 top-auto max-h-[92dvh] rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:max-h-[88dvh] sm:-translate-x-1/2 sm:-translate-y-1/2"
+          initial={{ opacity: 0, scale: 0.98, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
         >
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="flex max-h-[inherit] flex-col">
             <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-5 py-4 bg-[var(--mc-panel-soft)]">
               <h2 className="text-[16px] font-semibold text-[var(--mc-text)]">Create New Task</h2>
               <button
@@ -99,7 +99,7 @@ export function CreateTaskModal({
               </button>
             </div>
 
-            <div className="max-h-[60vh] space-y-4 overflow-y-auto px-5 py-5">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
               <label className="block">
                 <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Title *</div>
                 <input
@@ -235,17 +235,17 @@ export function CreateTaskModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 border-t border-[var(--mc-line)] px-5 py-4 bg-[var(--mc-panel-soft)]">
+            <div className="flex flex-col-reverse gap-2 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 sm:flex-row sm:justify-end sm:gap-3 sm:px-5 sm:py-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel)] transition-colors"
+                className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel)] transition-colors sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-[var(--mc-accent-green)] px-4 py-2 text-[14px] font-medium text-white hover:bg-[var(--mc-accent-green)]/90 transition-colors"
+                className="w-full rounded-lg bg-[var(--mc-accent-green)] px-4 py-2 text-[14px] font-medium text-white hover:bg-[var(--mc-accent-green)]/90 transition-colors sm:w-auto"
               >
                 Create Task
               </button>
