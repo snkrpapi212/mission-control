@@ -47,10 +47,10 @@ describe("DashboardShell", () => {
   it("renders key dashboard sections (static render)", () => {
     const html = renderToStaticMarkup(<DashboardShell />);
 
-    expect(html).toContain("Mission Control");
+    expect(html).toContain("MISSION CONTROL");
     expect(html).toContain("Agents");
-    expect(html).toContain("Kanban");
-    expect(html).toContain("Activity");
+    expect(html).toContain("Mission Queue");
+    expect(html).toContain("Live Feed");
   });
 
   it("renders at least one task title", () => {

@@ -1,36 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { renderToStaticMarkup } from "react-dom/server";
 import { KanbanBoard } from "../KanbanBoard";
-import type { Doc } from "../../../convex/_generated/dataModel";
-
-// Mock DragDropContext and related components
-vi.mock("@hello-pangea/dnd", () => ({
-  DragDropContext: ({ children }: any) => <div data-testid="drag-drop-context">{children}</div>,
-  Droppable: ({ children, droppableId }: any) => (
-    <div data-testid={`droppable-${droppableId}`}>
-      {children(
-        {
-          innerRef: () => {},
-          droppableProps: {},
-        },
-        { isDraggingOver: false }
-      )}
-    </div>
-  ),
-  Draggable: ({ children, draggableId }: any) => (
-    <div data-testid={`draggable-${draggableId}`}>
-      {children(
-        {
-          innerRef: () => {},
-          draggableProps: {},
-          dragHandleProps: {},
-        },
-        { isDragging: false }
-      )}
-    </div>
-  ),
-}));
 
 vi.mock("@/context/DarkModeContext", () => ({
   useDarkMode: () => ({
@@ -39,109 +9,94 @@ vi.mock("@/context/DarkModeContext", () => ({
   }),
 }));
 
-describe("KanbanBoard - Drag and Drop", () => {
-  const mockTasks: Record<string, any[]> = {
-    inbox: [
-      {
-        _id: "task-1",
-        title: "Task 1",
-        description: "Test task",
-        status: "inbox",
-        priority: "medium",
-        tags: ["test"],
-        assignedTo: "agent-1",
-        updatedAt: Date.now(),
-      },
-    ],
-    assigned: [],
-    in_progress: [],
-    review: [],
-    done: [],
-    blocked: [],
-  };
+type TestTask = {
+  _id: string;
+  _creationTime: number;
+  title: string;
+  description: string;
+  status: "inbox" | "assigned" | "in_progress" | "review" | "done" | "blocked";
+  priority: "low" | "medium" | "high" | "urgent";
+  assigneeIds: string[];
+  subscriberIds: string[];
+  createdBy: string;
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
+};
 
-  it("renders all kanban columns", () => {
-    render(
-      <KanbanBoard
-        tasksByStatus={mockTasks}
-        onSelectTask={vi.fn()}
-        onTaskMove={vi.fn()}
-      />
+const now = Date.now();
+
+const baseTask: TestTask = {
+  _id: "task-1",
+  _creationTime: now,
+  title: "Task 1",
+  description: "Test task",
+  status: "inbox",
+  priority: "medium",
+  assigneeIds: ["agent-1"],
+  subscriberIds: [],
+  createdBy: "agent-1",
+  tags: ["test"],
+  createdAt: now,
+  updatedAt: now,
+};
+
+const emptyAgents = [
+  {
+    _id: "agent-1",
+    _creationTime: now,
+    agentId: "agent-1",
+    name: "Agent One",
+    role: "Worker",
+    level: "member",
+    status: "working",
+    sessionKey: "agent:1",
+    lastHeartbeat: now,
+    emoji: "🤖",
+  },
+] as unknown as Parameters<typeof KanbanBoard>[0]["agents"];
+
+const buildTasks = (overrides?: Partial<TestTask>) => ({
+  inbox: [{ ...baseTask, ...overrides }],
+  assigned: [],
+  in_progress: [],
+  review: [],
+  done: [],
+  blocked: [],
+}) as unknown as Parameters<typeof KanbanBoard>[0]["tasksByStatus"];
+
+describe("KanbanBoard", () => {
+  it("renders mission queue and column titles", () => {
+    const html = renderToStaticMarkup(
+      <KanbanBoard tasksByStatus={buildTasks()} agents={emptyAgents} onSelectTask={vi.fn()} />
     );
 
-    expect(screen.getByText("Kanban Board")).toBeTruthy();
-    expect(screen.getByTestId("droppable-inbox")).toBeTruthy();
-    expect(screen.getByTestId("droppable-assigned")).toBeTruthy();
-    expect(screen.getByTestId("droppable-in_progress")).toBeTruthy();
+    expect(html).toContain("Mission Queue");
+    expect(html).toContain("Inbox");
+    expect(html).toContain("Assigned");
+    expect(html).toContain("In Progress");
+    expect(html).toContain("Review");
+    expect(html).toContain("Done");
   });
 
-  it("displays task count per column", () => {
-    render(
-      <KanbanBoard
-        tasksByStatus={mockTasks}
-        onSelectTask={vi.fn()}
-        onTaskMove={vi.fn()}
-      />
+  it("renders tasks and empty states", () => {
+    const html = renderToStaticMarkup(
+      <KanbanBoard tasksByStatus={buildTasks()} agents={emptyAgents} onSelectTask={vi.fn()} />
     );
 
-    // Task 1 should be in inbox
-    expect(screen.getByText("1")).toBeTruthy(); // Count showing 1 task in inbox
+    expect(html).toContain("Task 1");
+    expect(html).toContain("No tasks");
   });
 
-  it("calls onTaskMove when drag ends", async () => {
-    const mockOnTaskMove = vi.fn();
-    const { rerender } = render(
+  it("renders assigned tasks in assigned column content", () => {
+    const html = renderToStaticMarkup(
       <KanbanBoard
-        tasksByStatus={mockTasks}
+        tasksByStatus={buildTasks({ _id: "task-2", title: "Task 2", status: "assigned" })}
+        agents={emptyAgents}
         onSelectTask={vi.fn()}
-        onTaskMove={mockOnTaskMove}
       />
     );
 
-    // Note: Due to dnd-beautiful mock, we can't fully test the drag behavior
-    // In a real integration test, you'd use react-beautiful-dnd's test utilities
-    expect(mockOnTaskMove).not.toHaveBeenCalled();
-  });
-
-  it("displays task cards in correct columns", () => {
-    const tasksWithMultiple = {
-      ...mockTasks,
-      assigned: [
-        {
-          _id: "task-2",
-          title: "Task 2",
-          description: "Another task",
-          status: "assigned",
-          priority: "high",
-          tags: [],
-          assignedTo: "agent-2",
-          updatedAt: Date.now(),
-        },
-      ],
-    };
-
-    render(
-      <KanbanBoard
-        tasksByStatus={tasksWithMultiple}
-        onSelectTask={vi.fn()}
-        onTaskMove={vi.fn()}
-      />
-    );
-
-    expect(screen.getByText("Task 1")).toBeTruthy();
-    expect(screen.getByText("Task 2")).toBeTruthy();
-  });
-
-  it("shows empty state when no tasks in column", () => {
-    render(
-      <KanbanBoard
-        tasksByStatus={mockTasks}
-        onSelectTask={vi.fn()}
-        onTaskMove={vi.fn()}
-      />
-    );
-
-    const noTasksElements = screen.getAllByText("No tasks");
-    expect(noTasksElements.length).toBeGreaterThan(0);
+    expect(html).toContain("Task 2");
   });
 });

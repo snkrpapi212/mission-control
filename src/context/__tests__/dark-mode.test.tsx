@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DarkModeProvider, useDarkMode } from "../DarkModeContext";
 
-// Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
 
@@ -25,19 +24,35 @@ Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
 });
 
+Object.defineProperty(window, "matchMedia", {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
 function TestComponent() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   return (
     <div>
-      <div data-testid="dark-mode-status">
-        {isDarkMode ? "Dark" : "Light"}
-      </div>
+      <div data-testid="dark-mode-status">{isDarkMode ? "Dark" : "Light"}</div>
       <button onClick={toggleDarkMode}>Toggle</button>
     </div>
   );
 }
 
 describe("DarkModeContext", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     localStorageMock.clear();
     document.documentElement.classList.remove("dark");
@@ -62,11 +77,10 @@ describe("DarkModeContext", () => {
 
     const toggleButton = screen.getByRole("button", { name: /toggle/i });
     const status = screen.getByTestId("dark-mode-status");
-
-    // Initial state (light or based on system preference)
     const initialText = status.textContent;
 
     await userEvent.click(toggleButton);
+
     await waitFor(() => {
       expect(status.textContent).not.toBe(initialText);
     });
@@ -79,9 +93,7 @@ describe("DarkModeContext", () => {
       </DarkModeProvider>
     );
 
-    const toggleButton = screen.getByRole("button", { name: /toggle/i });
-
-    await userEvent.click(toggleButton);
+    await userEvent.click(screen.getByRole("button", { name: /toggle/i }));
 
     await waitFor(() => {
       expect(localStorageMock.getItem("darkMode")).toBeTruthy();
@@ -97,7 +109,6 @@ describe("DarkModeContext", () => {
       </DarkModeProvider>
     );
 
-    const status = screen.getByTestId("dark-mode-status");
-    expect(status.textContent).toBe("Dark");
+    expect(screen.getByTestId("dark-mode-status").textContent).toBe("Dark");
   });
 });

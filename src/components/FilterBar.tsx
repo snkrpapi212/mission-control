@@ -16,9 +16,9 @@ export function FilterBar({
   priorityFilter: string;
   agentFilter: string;
   agents: Agent[];
-  onStatusChange: (status: TaskStatus | "all") => void;
-  onPriorityChange: (priority: string) => void;
-  onAgentChange: (agentId: string) => void;
+  onStatusChange: (_status: TaskStatus | "all") => void;
+  onPriorityChange: (_priority: string) => void;
+  onAgentChange: (_agentId: string) => void;
 }) {
   return (
     <div className="mb-4 flex flex-wrap gap-3 items-center rounded-lg bg-white border border-gray-200 p-3">

@@ -42,10 +42,6 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
 
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
 
-  if (!mounted) {
-    return children;
-  }
-
   return (
     <DarkModeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
       {children}

@@ -21,7 +21,7 @@ interface TopNavProps {
   unreadNotificationCount: number;
   onNotificationClick?: () => void;
   allTasks: Doc<"tasks">[];
-  onSearch?: (query: string) => void;
+  onSearch?: (_query: string) => void;
   currentUser?: { name: string; avatar?: string };
   onLogout?: () => void;
   onMenuClick?: () => void;
@@ -62,7 +62,8 @@ export function TopNav({
         (task.description?.toLowerCase().includes(query) ?? false)
     );
     setSearchResults(results.slice(0, 5));
-  }, [searchQuery, allTasks]);
+    onSearch?.(searchQuery);
+  }, [searchQuery, allTasks, onSearch]);
 
   const handleSearchClick = useCallback(() => {
     setSearchOpen(true);
