@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface SmartFiltersProps {
   agents: Doc<"agents">[];
-  onFiltersChange: (filters: FilterState) => void;
+  onFiltersChange: (_filters: FilterState) => void;
 }
 
 export interface FilterState {

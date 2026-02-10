@@ -105,7 +105,7 @@ const isYesterday = (date: Date, now: Date) => {
   );
 };
 
-export function TaskActivity({ task }: TaskActivityProps) {
+export function TaskActivity({ task: _task }: TaskActivityProps) {
   const groupedActivity = groupByDay(MOCK_ACTIVITY);
 
   return (

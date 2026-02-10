@@ -40,7 +40,7 @@ const MOCK_MESSAGES: Message[] = [
   },
 ];
 
-export function TaskMessages({ task, agents }: TaskMessagesProps) {
+export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
   const [newMessage, setNewMessage] = useState("");
   const [mentionSearch, setMentionSearch] = useState("");
   const [showMentions, setShowMentions] = useState(false);

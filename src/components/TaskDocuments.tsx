@@ -34,8 +34,7 @@ const MOCK_DOCUMENTS: Document[] = [
   },
 ];
 
-// eslint-disable-next-line no-unused-vars
-export function TaskDocuments({ task }: TaskDocumentsProps) {
+export function TaskDocuments({ task: _task }: TaskDocumentsProps) {
   return (
     <div className="p-6 space-y-4">
       {/* Documents List */}

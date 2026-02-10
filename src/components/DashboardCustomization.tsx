@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface CustomizationPrefs {
@@ -14,7 +14,7 @@ export interface CustomizationPrefs {
 
 interface DashboardCustomizationProps {
   prefs: CustomizationPrefs;
-  onPrefsChange: (prefs: CustomizationPrefs) => void;
+  onPrefsChange: (_prefs: CustomizationPrefs) => void;
 }
 
 const DENSITY_LEVELS: Array<{
