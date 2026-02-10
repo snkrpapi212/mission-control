@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const path = require('path');
 const nextConfig = {
-  output: 'standalone',
   outputFileTracingRoot: path.join(__dirname),
   typescript: {
     tsconfigPath: './tsconfig.json',

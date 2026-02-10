@@ -1,8 +1,5 @@
 name: Mission Control CI
 
-env:
-  NODE_ENV: development
-
 on:
   push:
     branches: [main, dev]
