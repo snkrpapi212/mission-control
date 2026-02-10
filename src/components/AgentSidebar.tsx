@@ -68,7 +68,7 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className="grid h-12 w-12 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[20px]">
+                          <div className="grid h-10 w-10 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[16px]">
                             {agent.emoji || "🤖"}
                           </div>
                           {/* Pulse animation on active status */}
@@ -84,12 +84,12 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="truncate text-[24px] font-semibold leading-none text-[var(--mc-text)]">
+                            <p className="truncate text-[15px] font-semibold leading-tight text-[var(--mc-text)]">
                               {agent.name}
                             </p>
                             <Chip>{roleBadge(agent.level)}</Chip>
                           </div>
-                          <p className="truncate text-[20px] text-[var(--mc-text-muted)]">
+                          <p className="truncate text-[13px] text-[var(--mc-text-muted)]">
                             {agent.role}
                           </p>
                         </div>
