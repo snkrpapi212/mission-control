@@ -81,7 +81,7 @@ export function CreateTaskModal({
           animate={{ opacity: 1 }}
         />
         <motion.div 
-          className="absolute inset-x-2 bottom-2 top-auto max-h-[92dvh] rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:max-h-[88dvh] sm:-translate-x-1/2 sm:-translate-y-1/2"
+          className="absolute inset-x-2 bottom-2 top-auto max-h-[94dvh] rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden lg:inset-x-auto lg:left-1/2 lg:top-1/2 lg:bottom-auto lg:w-full lg:max-w-lg lg:max-h-[88dvh] lg:-translate-x-1/2 lg:-translate-y-1/2"
           initial={{ opacity: 0, scale: 0.98, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
@@ -235,7 +235,7 @@ export function CreateTaskModal({
               </div>
             </div>
 
-            <div className="flex flex-col-reverse gap-2 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 sm:flex-row sm:justify-end sm:gap-3 sm:px-5 sm:py-4">
+            <div className="sticky bottom-0 flex flex-col-reverse gap-2 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:flex-row sm:justify-end sm:gap-3 sm:px-5 sm:py-4">
               <button
                 type="button"
                 onClick={onClose}
