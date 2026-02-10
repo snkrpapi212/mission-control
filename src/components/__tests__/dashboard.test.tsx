@@ -2,6 +2,25 @@ import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { DashboardShell } from "@/components/DashboardShell";
 
+vi.mock("@/components/Toast", () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+  }),
+  ToastContainer: () => null,
+}));
+
+vi.mock("@/hooks/useOptimisticUI", () => ({
+  useOptimisticUI: () => ({
+    moveTask: vi.fn(),
+    updateTaskField: vi.fn(),
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+    showInfo: vi.fn(),
+  }),
+}));
+
 vi.mock("@/hooks/useConvexData", () => {
   return {
     useAgentsLive: () => [
@@ -40,6 +59,11 @@ vi.mock("@/hooks/useConvexData", () => {
       blocked: [],
     }),
     useActivitiesLive: () => [],
+    useTaskMutations: () => ({
+      updateTask: vi.fn(),
+      createMessage: vi.fn(),
+      createDocument: vi.fn(),
+    }),
   };
 });
 
