@@ -129,7 +129,14 @@ export const getAll = query({
 });
 
 export const clearAll = mutation({
-  handler: async (ctx) => {
+  args: {
+    adminKey: v.string(),
+    confirm: v.literal("DELETE_ALL_TASKS"),
+  },
+  handler: async (ctx, args) => {
+    if (args.adminKey !== process.env.MC_ADMIN_KEY) {
+      throw new Error("Unauthorized");
+    }
     const allTasks = await ctx.db.query("tasks").collect();
     for (const task of allTasks) {
       await ctx.db.delete(task._id);

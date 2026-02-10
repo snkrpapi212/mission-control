@@ -37,7 +37,14 @@ export const getRecent = query({
 });
 
 export const clearAll = mutation({
-  handler: async (ctx) => {
+  args: {
+    adminKey: v.string(),
+    confirm: v.literal("DELETE_ALL_ACTIVITIES"),
+  },
+  handler: async (ctx, args) => {
+    if (args.adminKey !== process.env.MC_ADMIN_KEY) {
+      throw new Error("Unauthorized");
+    }
     const allActivities = await ctx.db.query("activities").collect();
     for (const activity of allActivities) {
       await ctx.db.delete(activity._id);

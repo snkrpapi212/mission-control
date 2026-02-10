@@ -87,9 +87,11 @@ export const getByTask = query({
     taskId: v.id("tasks"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const messages = await ctx.db
       .query("messages")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
       .collect();
+
+    return messages.sort((a, b) => a.createdAt - b.createdAt);
   },
 });
