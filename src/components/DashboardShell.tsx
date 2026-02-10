@@ -150,11 +150,11 @@ export function DashboardShell() {
           <div className="hidden md:flex items-center gap-6">
             <div className="hidden lg:flex items-center gap-10 text-center">
               <div>
-                <div className="text-[30px] leading-none font-semibold">{activeAgentCount}</div>
+                <div className="text-[24px] leading-none font-semibold">{activeAgentCount}</div>
                 <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Agents Active</div>
               </div>
               <div>
-                <div className="text-[30px] leading-none font-semibold">{taskCount}</div>
+                <div className="text-[24px] leading-none font-semibold">{taskCount}</div>
                 <div className="mc-subtle mt-1 text-[10px] uppercase tracking-[0.2em]">Tasks In Queue</div>
               </div>
             </div>

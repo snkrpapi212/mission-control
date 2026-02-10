@@ -57,10 +57,10 @@ export function ActivityFeed({
                 <div className="flex gap-3">
                   <span className="mt-1 text-[18px] text-[var(--mc-amber)]">{ICON_BY_TYPE[activity.type] || "•"}</span>
                   <div className="min-w-0">
-                    <p className="text-[28px] leading-[1.2] text-[var(--mc-text)]">
+                    <p className="text-[14px] leading-[1.4] text-[var(--mc-text)]">
                       <span className="font-semibold">{activity.agentId}</span> {activity.message}
                     </p>
-                    <p className="mt-1 text-[18px] text-[var(--mc-text-soft)]">{timeAgo(activity.createdAt)}</p>
+                    <p className="mt-1 text-[12px] text-[var(--mc-text-soft)]">{timeAgo(activity.createdAt)}</p>
                   </div>
                 </div>
               </li>
