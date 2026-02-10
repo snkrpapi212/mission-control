@@ -210,10 +210,11 @@ export function DashboardShell() {
                   key="board-view"
                                               className="mb-3"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="hidden md:flex items-center justify-between">
                     <SmartFilters agents={agents} onFiltersChange={setFilters} />
                     <div className="text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
                   </div>
+                  <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)] md:hidden">Updated {timeAgoString}</div>
                   <KanbanBoard
                     tasksByStatus={filteredTasksByStatus}
                     agents={agents}
