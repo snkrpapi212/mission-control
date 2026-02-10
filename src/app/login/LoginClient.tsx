@@ -32,7 +32,7 @@ export default function LoginClient() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f6f6f4] px-4">
+    <main className="flex h-[100dvh] w-full items-center justify-center overflow-hidden bg-[#f6f6f4] px-4">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-xl border border-[#e6e5e1] bg-white p-6"
