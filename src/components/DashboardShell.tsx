@@ -32,7 +32,7 @@ export function DashboardShell() {
 
   const [selectedTask, setSelectedTask] = useState<import("../../convex/_generated/dataModel").Doc<"tasks"> | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [mobileTab, setMobileTab] = useState<"board" | "feed" | "filters" | "more">("board");
+  const [mobileTab, setMobileTab] = useState<"board" | "agents" | "feed" | "filters" | "more">("board");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [filters, setFilters] = useState<FilterState>({
@@ -206,6 +206,7 @@ export function DashboardShell() {
             <div className="mb-3 flex items-center justify-between xl:hidden">
               <div className="inline-flex rounded-lg border p-0.5 text-xs" style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)" }}>
                 <button className={`rounded-md px-3 py-1.5 ${mobileTab === "board" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("board")}>Board</button>
+                <button className={`rounded-md px-3 py-1.5 ${mobileTab === "agents" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("agents")}>Agents</button>
                 <button className={`rounded-md px-3 py-1.5 ${mobileTab === "feed" ? "font-semibold" : "mc-muted"}`} onClick={() => setMobileTab("feed")}>Feed</button>
               </div>
               <div className="text-xs mc-subtle">Updated {timeAgoString}</div>
@@ -224,6 +225,34 @@ export function DashboardShell() {
                   onSelectTask={(t) => setSelectedTask(t)}
                   onTaskMove={handleTaskMove}
                 />
+              </div>
+            ) : null}
+            {mobileTab === "agents" ? (
+              <div className="xl:hidden space-y-2">
+                {agents.map((agent) => {
+                  const taskTitle = agent.currentTaskId ? currentTaskById.get(agent.currentTaskId) : undefined;
+                  const online = Date.now() - agent.lastHeartbeat < 2 * 60 * 1000;
+                  return (
+                    <button
+                      key={agent._id}
+                      onClick={() => {
+                        const t = flattenedTasks.find((x) => x._id === agent.currentTaskId);
+                        if (t) setSelectedTask(t);
+                      }}
+                      className="w-full rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-3 text-left"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[16px]">{agent.emoji}</span>
+                          <span className="text-[14px] font-semibold text-[var(--mc-text)]">{agent.name}</span>
+                        </div>
+                        <span className={`inline-block h-2.5 w-2.5 rounded-full ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
+                      </div>
+                      <p className="mt-1 text-[12px] text-[var(--mc-text-soft)]">{agent.status.toUpperCase()} • {online ? "ONLINE" : "OFFLINE"}</p>
+                      <p className="mt-1 truncate text-[12px] text-[var(--mc-text-muted)]">{taskTitle || "No active task"}</p>
+                    </button>
+                  );
+                })}
               </div>
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}

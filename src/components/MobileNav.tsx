@@ -4,8 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileNavProps {
-  activeTab: "board" | "feed" | "filters" | "more";
-  onTabChange: (_tab: "board" | "feed" | "filters" | "more") => void;
+  activeTab: "board" | "agents" | "feed" | "filters" | "more";
+  onTabChange: (_tab: "board" | "agents" | "feed" | "filters" | "more") => void;
   onSettingsClick: () => void;
 }
 
@@ -18,8 +18,8 @@ export function MobileNav({
 
   const tabs = [
     { id: "board", label: "Board", icon: "📋" },
+    { id: "agents", label: "Agents", icon: "🤖" },
     { id: "feed", label: "Feed", icon: "📭" },
-    { id: "filters", label: "Filters", icon: "🔍" },
     { id: "more", label: "More", icon: "⋯" },
   ] as const;
 
@@ -89,6 +89,16 @@ export function MobileNav({
                   aria-current={activeTab === "board" ? "page" : undefined}
                 >
                   📋 Task Board
+                </button>
+                <button
+                  onClick={() => {
+                    onTabChange("agents");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-3 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[13px] font-semibold text-[var(--mc-text)]"
+                  aria-current={activeTab === "agents" ? "page" : undefined}
+                >
+                  🤖 Agents
                 </button>
                 <button
                   onClick={() => {
