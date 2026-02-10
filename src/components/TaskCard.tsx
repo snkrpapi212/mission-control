@@ -67,17 +67,17 @@ export function TaskCard({
       </div>
 
       {/* Title */}
-      <h4 className="line-clamp-2 text-[30px] font-semibold leading-[1.18] text-[var(--mc-text)]">
+      <h4 className="line-clamp-2 text-[16px] font-semibold leading-[1.3] text-[var(--mc-text)]">
         {task.title}
       </h4>
 
       {/* Description preview with enhanced styling */}
       <motion.div
-        animate={{ height: isHovered ? "auto" : "2.6em" }}
+        animate={{ height: isHovered ? "auto" : "2.8em" }}
         transition={{ duration: 0.2 }}
         className="mt-2 overflow-hidden"
       >
-        <p className={`text-[22px] leading-[1.35] text-[var(--mc-text-muted)] ${
+        <p className={`text-[13px] leading-[1.45] text-[var(--mc-text-muted)] ${
           !isHovered ? "line-clamp-2" : ""
         }`}>
           {task.description || "No description"}
