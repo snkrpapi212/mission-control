@@ -42,11 +42,28 @@
   --sh-dropdown: 0 4px 8px rgba(0, 0, 0, 0.08);
   --sh-modal: 0 8px 16px rgba(0, 0, 0, 0.12);
 
-  /* layout */
+  /* layout - standardized spacing system (4/8/12/16/24/32) */
   --h-topbar: 72px;
   --h-section: 52px;
-  --w-left: clamp(300px, 15vw, 520px);
-  --w-right: clamp(420px, 23vw, 800px);
+  
+  /* Panel widths - synced with grid layout */
+  --w-sidebar: 280px;
+  --w-sidebar-min: 260px;
+  --w-sidebar-max: 320px;
+  --w-feed: 360px;
+  --w-feed-min: 320px;
+  --w-feed-max: 420px;
+  
+  /* Spacing scale */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  
+  /* Touch target minimum */
+  --touch-min: 44px;
 
   --focus-ring: 0 0 0 2px color-mix(in srgb, var(--mc-green) 45%, transparent);
   --tr-fast: 140ms ease-out;
