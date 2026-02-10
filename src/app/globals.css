@@ -32,13 +32,15 @@
   --mc-chip-text: #9b988f;
 
   /* radii */
-  --r-card: 18px;
-  --r-tile: 12px;
+  --r-card: 12px;
+  --r-tile: 8px;
   --r-pill: 999px;
 
-  /* shadow */
-  --sh-card: 0 1px 2px rgba(10, 10, 10, 0.04);
-  --sh-card-hover: 0 2px 6px rgba(10, 10, 10, 0.06);
+  /* shadow - phase 3 polish: minimal, subtle */
+  --sh-card: 0 1px 1px rgba(0, 0, 0, 0.04);
+  --sh-card-hover: 0 2px 4px rgba(0, 0, 0, 0.06);
+  --sh-dropdown: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --sh-modal: 0 8px 16px rgba(0, 0, 0, 0.12);
 
   /* layout */
   --h-topbar: 72px;
@@ -88,6 +90,48 @@ body {
   color: var(--mc-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Accessibility: Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--mc-accent-green);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Mobile-first responsive */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  /* Ensure touch targets are 44px minimum */
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 .mc-chip {
