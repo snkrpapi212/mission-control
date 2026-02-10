@@ -17,8 +17,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - run: npm ci --include=dev
       - run: npm run lint
 
@@ -30,8 +28,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - run: npm ci --include=dev
       - run: npm test
 
@@ -43,8 +39,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - run: npm ci --include=dev
       - run: npx tsc --noEmit
 
@@ -54,14 +48,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full git history for proper build
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
-      - name: Clean build artifacts
-        run: rm -rf .next node_modules
+      - name: Clean all caches and build artifacts
+        run: |
+          rm -rf .next node_modules
+          rm -rf ~/.npm
       - name: Fresh install
         run: npm ci --include=dev
       - name: Build
@@ -75,7 +69,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
       - run: npm ci --include=dev
       - run: npx convex typecheck
