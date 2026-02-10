@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+// Explicitly mark as static for proper prerendering
+export const dynamic = 'force-static';
+
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white p-4">
