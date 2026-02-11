@@ -22,16 +22,18 @@ const ACTIONS = [
     title: "Create task",
     icon: "➕",
     shortcut: "⌘+Shift+N",
+    enabled: true,
   },
   {
     id: "mark-done",
     title: "Mark complete",
     icon: "✓",
     shortcut: "⌘+Enter",
+    enabled: false,
   },
-  { id: "archive", title: "Archive", icon: "📦", shortcut: "⌘+⌫" },
-  { id: "share", title: "Share", icon: "🔗", shortcut: "⌘+Shift+S" },
-];
+  { id: "archive", title: "Archive", icon: "📦", shortcut: "⌘+⌫", enabled: false },
+  { id: "share", title: "Share", icon: "🔗", shortcut: "⌘+Shift+S", enabled: false },
+] as const;
 
 export function CommandPalette({
   tasks,
@@ -79,14 +81,8 @@ export function CommandPalette({
       case "create-task":
         handleCreateTask();
         break;
-      case "mark-done":
-        // TODO: implement mark done for current/selected task
-        break;
-      case "archive":
-        // TODO: implement archive
-        break;
-      case "share":
-        // TODO: implement share
+      default:
+        // Intentionally disabled until handlers exist (avoid dead-end CTAs)
         break;
     }
   };
@@ -242,22 +238,33 @@ export function CommandPalette({
                   <>
                     <Command.Separator className="bg-[var(--mc-line)]" />
                     <Command.Group heading="Actions" className="overflow-hidden px-2 py-1.5">
-                      {ACTIONS.map((action) => (
-                        <Command.Item
-                          key={action.id}
-                          value={action.id}
-                          onSelect={() => handleAction(action.id)}
-                          className="px-2 py-2 text-[14px] cursor-pointer rounded hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center justify-between"
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="text-[16px]">{action.icon}</span>
-                            <span className="text-[var(--mc-text)]">{action.title}</span>
-                          </span>
-                          <span className="text-[12px] text-[var(--mc-text-soft)]">
-                            {action.shortcut}
-                          </span>
-                        </Command.Item>
-                      ))}
+                      {ACTIONS.map((action) => {
+                        const base = "px-2 py-2 text-[14px] rounded transition-colors flex items-center justify-between";
+                        const enabledClass = action.enabled
+                          ? "cursor-pointer hover:bg-[var(--mc-panel-soft)]"
+                          : "cursor-not-allowed opacity-60";
+
+                        return (
+                          <Command.Item
+                            key={action.id}
+                            value={action.id}
+                            onSelect={() => action.enabled && handleAction(action.id)}
+                            className={`${base} ${enabledClass}`}
+                            aria-disabled={!action.enabled}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span className="text-[16px]">{action.icon}</span>
+                              <span className="text-[var(--mc-text)]">
+                                {action.title}
+                                {!action.enabled && " (Coming soon)"}
+                              </span>
+                            </span>
+                            <span className="text-[12px] text-[var(--mc-text-soft)]">
+                              {action.shortcut}
+                            </span>
+                          </Command.Item>
+                        );
+                      })}
                     </Command.Group>
                   </>
                 )}
