@@ -88,7 +88,7 @@ export function CreateTaskModal({
           animate={{ opacity: 1 }}
         />
         <motion.div 
-          className="absolute inset-x-2 bottom-2 top-auto max-h-[94dvh] rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl overflow-hidden lg:inset-x-auto lg:left-1/2 lg:top-1/2 lg:bottom-auto lg:w-full lg:max-w-lg lg:max-h-[88dvh] lg:-translate-x-1/2 lg:-translate-y-1/2"
+          className="absolute inset-x-2 bottom-2 top-auto max-h-[94dvh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[min(720px,calc(100vw-2rem))] md:max-h-[88dvh] md:-translate-x-1/2 md:-translate-y-1/2"
           initial={{ opacity: 0, scale: 0.98, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 28 }}
