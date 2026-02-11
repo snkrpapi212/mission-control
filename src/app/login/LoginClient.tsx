@@ -69,9 +69,14 @@ export default function LoginClient() {
         noValidate
         className="w-full max-w-sm rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] p-6 shadow-[var(--sh-card)]"
       >
-        <p className="mb-3 inline-flex items-center rounded-full border border-[var(--mc-line)] bg-[var(--mc-panel)] px-2.5 py-1 text-xs font-medium text-[var(--mc-text-soft)]">
-          🔒 Secure internal workspace
-        </p>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--mc-text)] text-xs font-bold text-white">
+            MC
+          </div>
+          <p className="inline-flex items-center rounded-full border border-[var(--mc-line)] bg-[var(--mc-panel)] px-2.5 py-1 text-xs font-medium text-[var(--mc-text-soft)]">
+            🔒 Secure internal workspace
+          </p>
+        </div>
 
         <h1 className="mb-2 text-xl font-semibold text-[var(--mc-text)]">Mission Control Login</h1>
         <p className="mb-1 text-sm text-[var(--mc-text-muted)]">Enter password to continue.</p>

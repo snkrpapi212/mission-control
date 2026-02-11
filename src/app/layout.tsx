@@ -5,6 +5,9 @@ import { ConvexClientProvider } from "./ConvexClientProvider";
 export const metadata: Metadata = {
   title: "Mission Control",
   description: "Multi-agent AI squad management dashboard",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
