@@ -11,6 +11,7 @@ function getSafeNext(nextParam: string | null): string {
 export default function LoginClient() {
   const searchParams = useSearchParams();
   const next = getSafeNext(searchParams.get("next"));
+  const reason = searchParams.get("reason");
   const nextLabel = useMemo(() => (next === "/dashboard" ? "dashboard" : next), [next]);
 
   const [password, setPassword] = useState("");
@@ -37,8 +38,18 @@ export default function LoginClient() {
       });
 
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error || "Login failed");
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          code?: string;
+          attemptsRemaining?: number;
+        };
+
+        if (data.code === "INVALID_PASSWORD" && typeof data.attemptsRemaining === "number") {
+          setError(`Invalid password. ${data.attemptsRemaining} attempt(s) remaining.`);
+        } else {
+          setError(data.error || "Login failed");
+        }
+
         setLoading(false);
         return;
       }
@@ -64,7 +75,21 @@ export default function LoginClient() {
 
         <h1 className="mb-2 text-xl font-semibold text-[var(--mc-text)]">Mission Control Login</h1>
         <p className="mb-1 text-sm text-[var(--mc-text-muted)]">Enter password to continue.</p>
-        <p className="mb-4 text-xs text-[var(--mc-text-soft)]">Signing in to continue to: {nextLabel}</p>
+        <p className="mb-2 text-xs text-[var(--mc-text-soft)]">Signing in to continue to: {nextLabel}</p>
+
+        {reason === "session_expired" && (
+          <p className="mb-2 rounded-md border border-[var(--mc-amber)]/40 bg-[var(--mc-amber-soft)] px-2.5 py-2 text-xs text-[var(--mc-text)]">
+            Your session expired. Please sign in again.
+          </p>
+        )}
+
+        {reason === "auth_required" && (
+          <p className="mb-2 rounded-md border border-[var(--mc-line)] bg-[var(--mc-panel)] px-2.5 py-2 text-xs text-[var(--mc-text)]">
+            Sign in required to open {nextLabel}.
+          </p>
+        )}
+
+        <p className="mb-4 text-[11px] text-[var(--mc-text-soft)]">After 5 failed attempts, sign-in is temporarily locked.</p>
 
         <label htmlFor="password" className="mb-3 block">
           <span className="mb-1 block text-xs text-[var(--mc-text-soft)]">Password</span>

@@ -6,8 +6,8 @@ const SESSION_COOKIE = "mc_session";
 export function middleware(req: NextRequest) {
   const authEnabled = process.env.MC_AUTH_ENABLED === "true";
   if (!authEnabled) return NextResponse.next();
-  const { pathname, search } = req.nextUrl;
 
+  const { pathname, search } = req.nextUrl;
   if (!pathname.startsWith("/dashboard")) {
     return NextResponse.next();
   }
@@ -25,6 +25,7 @@ export function middleware(req: NextRequest) {
   if (session !== expectedToken) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("next", `${pathname}${search}`);
+    loginUrl.searchParams.set("reason", session ? "session_expired" : "auth_required");
     return NextResponse.redirect(loginUrl);
   }
 
