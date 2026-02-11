@@ -75,24 +75,26 @@ export function CreateTaskModal({
 
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         className="fixed inset-0 z-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <motion.div 
+        <motion.div
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         />
-        <motion.div 
-          className="absolute inset-x-2 bottom-2 top-auto max-h-[94dvh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl md:inset-x-auto md:bottom-auto md:left-1/2 md:top-1/2 md:w-[min(720px,calc(100vw-2rem))] md:max-h-[88dvh] md:-translate-x-1/2 md:-translate-y-1/2"
-          initial={{ opacity: 0, scale: 0.98, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 28 }}
-        >
+
+        <div className="absolute inset-0 flex items-end justify-center p-2 md:items-center md:p-6">
+          <motion.div
+            className="w-full max-w-[900px] max-h-[92dvh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl"
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          >
           <form onSubmit={handleSubmit} className="flex max-h-[inherit] flex-col">
             <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-5 py-4 bg-[var(--mc-panel-soft)]">
               <h2 className="text-[16px] font-semibold text-[var(--mc-text)]">Create New Task</h2>
@@ -268,7 +270,8 @@ export function CreateTaskModal({
               </div>
             </div>
           </form>
-        </motion.div>
+          </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
