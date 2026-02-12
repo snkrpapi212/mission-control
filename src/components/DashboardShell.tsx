@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { AgentSidebar } from "@/components/AgentSidebar";
+import { AgentSidebar, AgentAvatar, RoleBadge } from "@/components/AgentSidebar";
 import { AgentDetailModal } from "@/components/AgentDetailModal";
 import { ActivityFeed } from "@/components/ActivityFeed";
 import { KanbanBoard } from "@/components/KanbanBoard";
@@ -200,79 +200,66 @@ export function DashboardShell() {
               </div>
             ) : null}
             {mobileTab === "agents" ? (
-              <div className="xl:hidden space-y-3">
+              <div className="xl:hidden space-y-4">
                 {/* Mobile Agents Header */}
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="text-[15px] font-semibold text-[var(--mc-text)]">Active Agents</h2>
-                  <span className="text-[12px] text-[var(--mc-text-soft)]">{agents.length} total</span>
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Active Agents</h2>
+                  <span className="text-xs font-medium text-zinc-500">{agents.length} active</span>
                 </div>
                 
-                {agents.map((agent) => {
-                  const taskTitle = agent.currentTaskId ? currentTaskById.get(agent.currentTaskId) : undefined;
-                  const online = Date.now() - agent.lastHeartbeat < 2 * 60 * 1000;
-                  const isActive = agent.status === "working" && online;
-                  
-                  const initials = agent.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
-                  const colors = ["from-blue-500 to-indigo-600", "from-purple-500 to-pink-600", "from-emerald-500 to-teal-600", "from-orange-500 to-red-600", "from-pink-500 to-rose-600", "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600"];
-                  let hash = 0;
-                  for (let i = 0; i < agent.name.length; i++) hash = agent.name.charCodeAt(i) + ((hash << 5) - hash);
-                  const gradient = colors[Math.abs(hash) % colors.length];
-
-                  const statusLabel = agent.status === "working" ? "Working" : agent.status === "blocked" ? "Blocked" : "Idle";
-                  const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-text-muted)]";
-                  
-                  return (
-                    <motion.button
-                      key={agent._id}
-                      onClick={() => setSelectedAgent(agent)}
-                      className={`w-full rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-5 py-5 text-left active:scale-[0.98] transition-all shadow-sm ${isActive ? "border-l-[4px] border-l-[var(--mc-green)]" : ""}`}
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Avatar */}
-                        <div className="relative shrink-0">
-                          <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-[14px] font-black shadow-md ring-2 ring-white dark:ring-[var(--mc-panel)]`}>
-                            {initials}
-                            <span className="absolute -top-1.5 -right-1.5 text-[14px]">{agent.emoji}</span>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {agents.map((agent) => {
+                    const taskTitle = agent.currentTaskId ? currentTaskById.get(agent.currentTaskId) : undefined;
+                    const online = Date.now() - agent.lastHeartbeat < 2 * 60 * 1000;
+                    const isActive = agent.status === "working" && online;
+                    
+                    return (
+                      <motion.button
+                        key={agent._id}
+                        onClick={() => setSelectedAgent(agent)}
+                        className={`w-full rounded-xl bg-white dark:bg-zinc-900 p-4 text-left shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10 active:scale-[0.98] transition-all`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <AgentAvatar 
+                            name={agent.name} 
+                            lastHeartbeat={agent.lastHeartbeat}
+                            emoji={agent.emoji}
+                          />
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate tracking-tight">{agent.name}</span>
+                              {isActive && (
+                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                              )}
+                            </div>
+                            <div className="mt-0.5">
+                              <RoleBadge role={agent.role} level={agent.level} />
+                            </div>
                           </div>
-                          <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--mc-card)] ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
-                          {isActive && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[var(--mc-green)] animate-ping opacity-75" />}
                         </div>
                         
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-[16px] font-bold text-[var(--mc-text)] truncate tracking-tight">{agent.name}</span>
-                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)] border border-[var(--mc-line)]">
-                              {agent.level === "lead" ? "LEAD" : agent.level === "intern" ? "INT" : "SPC"}
-                            </span>
+                        {/* Current Task - only if it exists */}
+                        {taskTitle && (
+                          <div className="mt-4 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-700/50">
+                            <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">Current Task</p>
+                            <p className="text-[12px] font-medium text-zinc-600 dark:text-zinc-400 line-clamp-1">{taskTitle}</p>
                           </div>
-                          <p className="text-[12px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wide opacity-70">{agent.role}</p>
+                        )}
+
+                        <div className="mt-4 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                           <div className="flex items-center gap-1.5">
+                             <div className={`h-1.5 w-1.5 rounded-full ${agent.status === 'working' ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
+                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{agent.status}</span>
+                           </div>
+                           <span className="text-[10px] font-medium text-zinc-400">
+                             {online ? "Online Now" : "Offline"}
+                           </span>
                         </div>
-                      </div>
-                      
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block h-2 w-2 rounded-full ${statusColor} ${isActive ? "animate-pulse" : ""}`} />
-                          <span className={`text-[12px] font-bold uppercase tracking-wider ${isActive ? "text-[var(--mc-green)]" : "text-[var(--mc-text)]"}`}>{statusLabel}</span>
-                        </div>
-                        <span className={`text-[11px] font-black uppercase tracking-tighter ${online ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}`}>
-                          {online ? "● Live" : "Seen " + (Math.floor((Date.now() - agent.lastHeartbeat) / 60000) < 60 ? Math.floor((Date.now() - agent.lastHeartbeat) / 60000) + "m ago" : Math.floor((Date.now() - agent.lastHeartbeat) / 3600000) + "h ago")}
-                        </span>
-                      </div>
-                      
-                      {/* Current Task */}
-                      {taskTitle && (
-                        <div className="mt-4 p-3 rounded-xl bg-[var(--mc-panel-soft)] border border-[var(--mc-line)]/50">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Zap size={10} className={isActive ? "text-[var(--mc-green)]" : "text-[var(--mc-amber)]"} fill="currentColor" />
-                            <p className="text-[10px] font-black text-[var(--mc-text-muted)] uppercase tracking-[0.1em]">Current Mission</p>
-                          </div>
-                          <p className="text-[13px] font-bold text-[var(--mc-text)] truncate">{taskTitle}</p>
-                        </div>
-                      )}
-                    </motion.button>
-                  );
-                })}
+                      </motion.button>
+                    );
+                  })}
+                </div>
               </div>
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}

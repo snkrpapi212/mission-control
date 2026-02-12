@@ -10,7 +10,7 @@ function isOnline(lastHeartbeat: number) {
   return Date.now() - lastHeartbeat < 2 * 60 * 1000;
 }
 
-function AgentAvatar({ name, lastHeartbeat }: { name: string, lastHeartbeat: number }) {
+export function AgentAvatar({ name, lastHeartbeat, emoji }: { name: string, lastHeartbeat: number, emoji?: string }) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -22,19 +22,40 @@ function AgentAvatar({ name, lastHeartbeat }: { name: string, lastHeartbeat: num
 
   return (
     <div className="relative shrink-0">
-      <div className={`flex h-8 w-8 items-center justify-center rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700`}>
-        <span className="text-[11px] font-medium">{initials}</span>
+      <div className={`flex h-9 w-9 items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 ring-1 ring-zinc-950/5 dark:ring-white/10 shadow-sm`}>
+        {emoji ? (
+          <span className="text-lg">{emoji}</span>
+        ) : (
+          <span className="text-[11px] font-bold tracking-tight">{initials}</span>
+        )}
       </div>
       
-      {/* Presence Indicator - Static dot */}
+      {/* Presence Indicator - Static 8px dot (directive says precise 6px/8px) */}
       <span
-        className={`absolute -bottom-0.5 -right-0.5 inline-block h-2 w-2 rounded-full ring-2 ring-white dark:ring-zinc-950 ${
+        className={`absolute -bottom-0.5 -right-0.5 inline-block h-2 w-2 rounded-full ring-2 ring-white dark:ring-zinc-900 ${
           online
             ? "bg-emerald-500"
             : "bg-zinc-300 dark:bg-zinc-700"
         }`}
       />
     </div>
+  );
+}
+
+export function RoleBadge({ role, level }: { role: string, level?: string }) {
+  // Map levels to colors
+  const levelColors: Record<string, string> = {
+    lead: "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/20",
+    intern: "bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:ring-orange-500/20",
+    specialist: "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
+  };
+
+  const colorClass = levelColors[level?.toLowerCase() || ""] || "bg-zinc-50 text-zinc-600 ring-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:ring-zinc-700";
+
+  return (
+    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset ${colorClass}`}>
+      {role}
+    </span>
   );
 }
 
@@ -55,16 +76,16 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
 
   return (
     <>
-      <aside className="hidden xl:flex min-h-[calc(100vh-var(--h-topbar))] flex-col">
-        <div className="px-4 py-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Agents</h2>
+      <aside className="hidden xl:flex min-h-[calc(100vh-var(--h-topbar))] flex-col border-r border-zinc-200 dark:border-zinc-800">
+        <div className="px-4 py-4 border-b border-zinc-200 dark:border-zinc-800">
+          <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Agents</h2>
         </div>
 
-        <ul className="flex-1 overflow-y-auto">
+        <ul className="flex-1 overflow-y-auto p-2 space-y-1">
           {loading
             ? Array.from({ length: 7 }).map((_, idx) => (
-                <li key={`skeleton-${idx}`} className="px-2 py-1">
-                  <div className="h-10 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
+                <li key={`skeleton-${idx}`}>
+                  <div className="h-12 w-full animate-pulse rounded-lg bg-zinc-100 dark:bg-zinc-800/50" />
                 </li>
               ))
             : agents.map((agent) => {
@@ -75,32 +96,33 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                 const online = isOnline(agent.lastHeartbeat);
                 
                 return (
-                  <li key={agent._id} className="px-2 py-0.5">
-                    <button
-                      onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
-                      className={`group w-full rounded px-2 py-1.5 text-left transition-colors ${
+                  <li key={agent._id}>
+                    <div
+                      className={`group w-full rounded-lg px-2 py-2 text-left transition-all duration-200 cursor-pointer ${
                         isExpanded 
-                          ? "bg-white dark:bg-zinc-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10" 
-                          : "hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                          ? "bg-white dark:bg-zinc-800 shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10" 
+                          : "hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"
                       }`}
+                      onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
                     >
                       <div className="flex items-center gap-3">
                         <AgentAvatar 
                           name={agent.name} 
-                          lastHeartbeat={agent.lastHeartbeat} 
+                          lastHeartbeat={agent.lastHeartbeat}
+                          emoji={agent.emoji}
                         />
 
                         <div className="min-w-0 flex-1">
-                          <p className={`truncate text-sm font-medium tracking-tight ${isExpanded ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-600 dark:text-zinc-400"}`}>
+                          <p className={`truncate text-sm font-semibold tracking-tight ${isExpanded ? "text-zinc-900 dark:text-zinc-50" : "text-zinc-700 dark:text-zinc-300"}`}>
                             {agent.name}
                           </p>
-                          <p className="truncate text-[11px] text-zinc-500">
-                            {agent.role}
-                          </p>
+                          <div className="mt-0.5">
+                            <RoleBadge role={agent.role} level={agent.level} />
+                          </div>
                         </div>
 
                         {online && agent.status === "working" && (
-                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                         )}
                       </div>
 
@@ -110,12 +132,12 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="mt-2 space-y-2 overflow-hidden"
+                            className="mt-3 space-y-3 overflow-hidden"
                           >
                             {currentTask && (
-                              <div className="rounded border border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 px-2 py-1.5">
-                                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-400">Current Task</p>
-                                <p className="mt-0.5 text-[12px] leading-tight text-zinc-700 dark:text-zinc-300 line-clamp-2">
+                              <div className="rounded-md border border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 p-2">
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Active Task</p>
+                                <p className="mt-1 text-[12px] leading-snug text-zinc-600 dark:text-zinc-400 font-medium line-clamp-2">
                                   {currentTask}
                                 </p>
                               </div>
@@ -125,14 +147,14 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                                 e.stopPropagation();
                                 setSelectedAgent(agent);
                               }}
-                              className="w-full rounded bg-zinc-900 dark:bg-zinc-50 py-1 text-[11px] font-medium text-white dark:text-zinc-900 hover:opacity-90 transition-opacity"
+                              className="w-full rounded-md bg-zinc-900 dark:bg-zinc-50 py-1.5 text-[11px] font-semibold text-white dark:text-zinc-900 hover:opacity-90 transition-opacity shadow-sm"
                             >
                               View Profile
                             </button>
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </button>
+                    </div>
                   </li>
                 );
               })}
