@@ -230,7 +230,7 @@ export function DashboardShell() {
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate tracking-tight">{agent.name}</span>
                               {isActive && (
-                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                               )}
                             </div>
                             <div className="mt-0.5">
