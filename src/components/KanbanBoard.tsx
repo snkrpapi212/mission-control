@@ -1,19 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { TaskCard } from "@/components/TaskCard";
 import { Chip, PanelHeader } from "@/components/MissionControlPrimitives";
+import { EmptyColumn } from "@/components/EmptyStates";
+import { Search, Layers } from "lucide-react";
 
-const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string }> = [
-  { status: "inbox", title: "Inbox", dotClass: "text-[var(--mc-line-strong)]" },
-  { status: "assigned", title: "Assigned", dotClass: "text-[var(--mc-amber)]" },
-  { status: "in_progress", title: "In Progress", dotClass: "text-[var(--mc-green)]" },
-  { status: "review", title: "Review", dotClass: "text-[var(--mc-amber)]" },
-  { status: "done", title: "Done", dotClass: "text-[var(--mc-green)]" },
-  { status: "blocked", title: "Blocked", dotClass: "text-[var(--mc-red)]" },
+const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string; description: string }> = [
+  { status: "inbox", title: "Inbox", dotClass: "text-[var(--mc-line-strong)]", description: "New tasks" },
+  { status: "assigned", title: "Assigned", dotClass: "text-[var(--mc-amber)]", description: "Ready to start" },
+  { status: "in_progress", title: "In Progress", dotClass: "text-[var(--mc-green)]", description: "Active work" },
+  { status: "review", title: "Review", dotClass: "text-[var(--mc-amber)]", description: "Pending review" },
+  { status: "done", title: "Done", dotClass: "text-[var(--mc-green)]", description: "Completed" },
+  { status: "blocked", title: "Blocked", dotClass: "text-[var(--mc-red)]", description: "Needs attention" },
 ];
 
 export function KanbanBoard({
@@ -85,16 +88,22 @@ export function KanbanBoard({
         dotClass="text-[var(--mc-amber)]"
         title="Mission Queue"
         count={totalVisible}
+        icon={<Layers size={16} />}
       />
 
-      <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search tasks"
-          className="mc-focus h-9 w-[260px] rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
-        />
-        <div className="text-[12px] text-[var(--mc-text-soft)]">{totalVisible} active</div>
+      <div className="flex items-center justify-between border-b border-[var(--mc-line)] bg-[var(--mc-panel)]/60 backdrop-blur-sm px-4 py-3">
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--mc-text-soft)]" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tasks..."
+            className="h-10 w-[260px] rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] pl-9 pr-4 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)] outline-none focus:border-[var(--mc-accent-green)] focus:ring-2 focus:ring-[var(--mc-accent-green)]/20 transition-all"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-[var(--mc-text-soft)]">{totalVisible} tasks</span>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -102,16 +111,25 @@ export function KanbanBoard({
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
-              <div
+              <motion.div
                 key={col.status}
-                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col shadow-sm"
               >
-                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
-                  <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
-                    <span className={`mr-2 ${col.dotClass}`}>●</span>
-                    {col.title}
-                  </h3>
-                  <Chip>{tasks.length}</Chip>
+                <div className="flex items-center justify-between border-b border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50 backdrop-blur-sm px-4 py-3 sticky top-0 z-10"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex h-2.5 w-2.5 rounded-full ${col.dotClass.replace('text-', 'bg-')}`} />
+                    <div>
+                      <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
+                        {col.title}
+                      </h3>
+                      <p className="text-[10px] text-[var(--mc-text-muted)]">{col.description}</p>
+                    </div>
+                  </div>
+                  <Chip className="bg-[var(--mc-panel-soft)] border-[var(--mc-line)]">{tasks.length}</Chip>
                 </div>
 
                 <Droppable droppableId={col.status} type="TASK">
@@ -119,9 +137,9 @@ export function KanbanBoard({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex flex-col gap-3 p-3 min-h-[200px] ${
+                      className={`flex flex-col gap-3 p-3 min-h-[200px] flex-1 rounded-b-xl transition-colors ${
                         snapshot.isDraggingOver
-                          ? "bg-[var(--mc-amber-soft)]"
+                          ? "bg-[var(--mc-amber-soft)]/50"
                           : ""
                       }`}
                     >
@@ -129,16 +147,11 @@ export function KanbanBoard({
                         Array.from({ length: 2 }).map((_, idx) => (
                           <div
                             key={idx}
-                            className="mc-card h-32 animate-pulse p-4"
+                            className="h-32 rounded-xl bg-[var(--mc-panel-soft)] animate-pulse"
                           />
                         ))
                       ) : tasks.length === 0 ? (
-                        <div
-                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
-                        >
-                          <div className="text-[24px] mb-2">📭</div>
-                          No tasks in {col.title}
-                        </div>
+                        <EmptyColumn title={col.title} />
                       ) : (
                         tasks.map((task, index) => (
                           <Draggable
@@ -172,7 +185,7 @@ export function KanbanBoard({
                     </div>
                   )}
                 </Droppable>
-              </div>
+              </motion.div>
             );
           })}
         </div>
