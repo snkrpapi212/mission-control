@@ -203,8 +203,8 @@ export function DashboardShell() {
               <div className="xl:hidden space-y-4">
                 {/* Mobile Agents Header */}
                 <div className="flex items-center justify-between px-1 mb-2">
-                  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Active Agents</h2>
-                  <span className="text-xs font-medium text-zinc-500">{agents.length} active</span>
+                  <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Active Agents</h2>
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{agents.length} active</span>
                 </div>
                 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -228,7 +228,7 @@ export function DashboardShell() {
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate tracking-tight">{agent.name}</span>
+                              <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 truncate tracking-tight">{agent.name}</span>
                               {isActive && (
                                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                               )}
@@ -249,10 +249,10 @@ export function DashboardShell() {
 
                         <div className="mt-4 flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-3">
                            <div className="flex items-center gap-1.5">
-                             <div className={`h-1.5 w-1.5 rounded-full ${agent.status === 'working' ? 'bg-emerald-500' : 'bg-zinc-300'}`} />
-                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{agent.status}</span>
+                             <div className={`h-1.5 w-1.5 rounded-full ${agent.status === 'working' ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{agent.status}</span>
                            </div>
-                           <span className="text-[10px] font-medium text-zinc-400">
+                           <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
                              {online ? "Online Now" : "Offline"}
                            </span>
                         </div>

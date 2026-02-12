@@ -63,7 +63,7 @@ export function ActivityFeed({
     <>
     <section className={`flex flex-col min-h-[calc(100vh-var(--h-topbar))]`}>
       <div className="px-6 py-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Activity</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Activity</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -75,14 +75,14 @@ export function ActivityFeed({
           </div>
         ) : activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <p className="text-[12px] text-zinc-400">No activity yet</p>
+            <p className="text-[12px] text-zinc-400 dark:text-zinc-500">No activity yet</p>
           </div>
         ) : (
           <div className="pb-12">
             {groupedActivities.map(([dateStr, items]) => (
               <div key={dateStr}>
                 <div className="px-6 py-2">
-                  <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                     {formatGroupDate(dateStr)}
                   </span>
                 </div>
@@ -103,16 +103,16 @@ export function ActivityFeed({
                         >
                           <div className="flex gap-3">
                             <div 
-                              className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-zinc-600 transition-colors"
+                              className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors"
                             >
                               <Icon size={12} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11px] font-medium text-zinc-500 truncate">
+                                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 truncate">
                                   {activity.agentId}
                                 </span>
-                                <span className="text-[10px] text-zinc-400 tabular-nums whitespace-nowrap font-medium">
+                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums whitespace-nowrap font-medium">
                                   {timeAgo(activity.createdAt)}
                                 </span>
                               </div>

@@ -78,7 +78,7 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
     <>
       <aside className="hidden xl:flex min-h-[calc(100vh-var(--h-topbar))] flex-col border-r border-zinc-200 dark:border-zinc-800">
         <div className="px-4 py-4 border-b border-zinc-200 dark:border-zinc-800">
-          <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Agents</h2>
+          <h2 className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Agents</h2>
         </div>
 
         <ul className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -100,8 +100,8 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                     <div
                       className={`group w-full rounded-lg px-2 py-2 text-left transition-all duration-200 cursor-pointer ${
                         isExpanded 
-                          ? "bg-white dark:bg-zinc-800 shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10" 
-                          : "hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50"
+                          ? "bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-zinc-950/5 dark:ring-white/10" 
+                          : "hover:bg-zinc-100/50 dark:hover:bg-zinc-900/50"
                       }`}
                       onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
                     >

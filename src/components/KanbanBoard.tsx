@@ -104,9 +104,9 @@ export function KanbanBoard({
                 className="flex flex-col min-w-0"
               >
                 <div className={`flex items-center justify-between px-1 ${tasks.length === 0 ? "mb-1.5" : "mb-3"}`}>
-                  <h3 className="text-[12px] font-semibold tracking-tight text-zinc-500 uppercase flex items-center gap-2">
+                  <h3 className="text-[12px] font-semibold tracking-tight text-zinc-500 dark:text-zinc-400 uppercase flex items-center gap-2">
                     {col.title}
-                    <span className="text-[10px] text-zinc-400 font-normal">({tasks.length})</span>
+                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">({tasks.length})</span>
                   </h3>
                 </div>
 

@@ -50,11 +50,11 @@ export function TaskCard({
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <PriorityDot priority={task.priority} />
-          <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+          <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
             {task.priority}
           </span>
         </div>
-        <div className="text-[10px] text-zinc-400 tabular-nums font-medium">
+        <div className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums font-medium">
           {timeAgo(task.updatedAt)}
         </div>
       </div>
@@ -68,7 +68,7 @@ export function TaskCard({
       {(task.tags ?? []).length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-1">
           {(task.tags ?? []).slice(0, 2).map((tag) => (
-            <span key={tag} className="text-[10px] text-zinc-500 bg-zinc-50 dark:bg-zinc-800 px-1.5 py-0.5 rounded ring-1 ring-black/5 dark:ring-white/5">
+            <span key={tag} className="text-[10px] text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 px-1.5 py-0.5 rounded ring-1 ring-black/5 dark:ring-white/10">
               {tag}
             </span>
           ))}
@@ -80,7 +80,7 @@ export function TaskCard({
         <div className="flex items-center gap-2">
           {assignee ? (
             <div className="flex items-center gap-1.5 min-w-0">
-              <div className="h-5 w-5 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-medium text-zinc-500">
+              <div className="h-5 w-5 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-medium text-zinc-500 dark:text-zinc-400">
                 {assignee.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               <span className="truncate text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
@@ -88,7 +88,7 @@ export function TaskCard({
               </span>
             </div>
           ) : (
-            <span className="text-[10px] text-zinc-400 italic">Unassigned</span>
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 italic">Unassigned</span>
           )}
         </div>
       </div>
