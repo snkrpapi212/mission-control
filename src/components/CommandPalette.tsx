@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface CommandPaletteProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   // eslint-disable-next-line no-unused-vars
   tasks: Doc<"tasks">[];
   agents: Doc<"agents">[];
@@ -36,13 +38,17 @@ const ACTIONS = [
 ] as const;
 
 export function CommandPalette({
+  isOpen,
+  onOpenChange,
   tasks,
   agents,
   onSelectTask,
   onSelectAgent,
   onCreateTask,
 }: CommandPaletteProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [search, setSearch] = useState("");
 
   // Cmd+K / Ctrl+K to open
@@ -50,13 +56,13 @@ export function CommandPalette({
     const down = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        setOpen(!open);
       }
     };
 
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [open, setOpen]);
 
   const handleSelectTask = (task: Doc<"tasks">) => {
     onSelectTask?.(task);

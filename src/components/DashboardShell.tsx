@@ -20,7 +20,7 @@ import { useOptimisticUI } from "@/hooks/useOptimisticUI";
 import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import { MobileNav } from "@/components/MobileNav";
-import { Bell, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
+import { Header } from "@/components/Header";
 import type { TaskStatus } from "@/types";
 
 export function DashboardShell() {
@@ -54,6 +54,7 @@ export function DashboardShell() {
     columnOrder: ["inbox", "assigned", "in_progress", "review", "done", "blocked"],
     theme,
   });
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { moveTask } = useOptimisticUI();
 
   const applyTheme = (next: "light" | "dark") => {
@@ -155,71 +156,20 @@ export function DashboardShell() {
         Skip to main content
       </a>
 
-      <header 
-        className="sticky top-0 z-30 border-b border-[var(--mc-line)] bg-[color:color-mix(in_srgb,var(--mc-panel)_92%,white_8%)]" 
-        style={{ backdropFilter: "blur(10px)" }}
-        role="banner"
-      >
-        <div className="mx-auto flex h-[72px] max-w-[1800px] items-center justify-between px-4 lg:px-6">
-          <div className="flex items-center gap-3">
-            <div className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] text-[var(--mc-amber)]">
-              <Sparkles size={14} />
-            </div>
-            <h1 className="text-[16px] font-semibold tracking-[0.01em]">Mission Control</h1>
-            <span className="mc-chip px-2 py-0.5 text-[11px]">Live ops</span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-6">
-            <div className="hidden lg:flex items-center gap-10 text-center">
-              <div>
-                <div className="text-[24px] leading-none font-semibold">{activeAgentCount}</div>
-                <div className="mc-subtle mt-1 text-[10px] tracking-[0.04em]">Agents active</div>
-              </div>
-              <div>
-                <div className="text-[24px] leading-none font-semibold">{taskCount}</div>
-                <div className="mc-subtle mt-1 text-[10px] tracking-[0.04em]">Tasks in queue</div>
-              </div>
-            </div>
-            <div className="relative">
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--mc-text-soft)]" />
-              <input placeholder="Search tasks, agents..." className="mc-input h-9 w-[260px] rounded-md pl-9 pr-3 text-xs" />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="mc-input hidden sm:inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs">Docs</button>
-            <button className="mc-input relative inline-flex h-9 w-9 items-center justify-center rounded-md text-xs" aria-label="Notifications">
-              <Bell size={14} />
-              <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] text-white" style={{ background: "var(--mc-accent-red)" }}>3</span>
-            </button>
-            <button onClick={toggleTheme} className="mc-input inline-flex h-9 w-9 items-center justify-center rounded-md text-xs" aria-label="Toggle theme">
-              {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
-            </button>
-            <DashboardCustomization
-              prefs={customizationPrefs}
-              onPrefsChange={(next) => {
-                setCustomizationPrefs(next);
-                if (next.theme !== theme) applyTheme(next.theme);
-              }}
-            />
-            <div className="hidden md:block">
-              <ConnectionStatus />
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="hidden sm:inline-flex items-center rounded-md border px-3 py-1.5 text-xs font-medium"
-              style={{ borderColor: "var(--mc-border)", background: "var(--mc-card)", color: "var(--mc-text)" }}
-            >
-              Logout
-            </button>
-            <button type="button" onClick={() => setShowCreateModal(true)} className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-semibold" style={{ borderColor: "var(--mc-border)", background: "var(--mc-text)", color: "var(--mc-bg)" }}>
-              <Plus size={13} />
-              New Task
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header
+        activeAgentCount={activeAgentCount}
+        taskCount={taskCount}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onLogout={handleLogout}
+        onNewTask={() => setShowCreateModal(true)}
+        onSearchClick={() => setIsCommandPaletteOpen(true)}
+        customizationPrefs={customizationPrefs}
+        onPrefsChange={(next) => {
+          setCustomizationPrefs(next);
+          if (next.theme !== theme) applyTheme(next.theme);
+        }}
+      />
 
       <div className="mx-auto max-w-[1800px]">
         <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
@@ -356,6 +306,8 @@ export function DashboardShell() {
       {showCreateModal ? <CreateTaskModal agents={agents} onClose={() => setShowCreateModal(false)} /> : null}
       
       <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onOpenChange={setIsCommandPaletteOpen}
         tasks={flattenedTasks}
         agents={agents}
         onSelectTask={(t) => setSelectedTask(t)}
