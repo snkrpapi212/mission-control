@@ -196,14 +196,13 @@ export function DashboardShell() {
 
           <main 
             id="main-content"
-            className="flex-1 min-w-0 px-4 py-4 md:px-8 md:py-6 bg-white dark:bg-zinc-950" 
+            className="flex-1 min-w-0 px-4 py-4 md:px-6 md:py-4 bg-white dark:bg-zinc-950" 
             role="main"
           >
 
             {/* Mobile Sub-nav - shows Board/Feed options when in board view */}
             {mobileTab === "board" ? (
-              <div key="board-view" className="mb-3">
-                <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
+              <div key="board-view" className="space-y-4">
                 <SmartFilters agents={agents} onFiltersChange={setFilters} />
                 <KanbanBoard
                   tasksByStatus={filteredTasksByStatus}

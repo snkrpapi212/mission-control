@@ -81,16 +81,16 @@ export function KanbanBoard({
 
   return (
     <section className="min-w-0">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Mission Queue</h2>
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Mission Queue</h2>
         <div className="flex items-center gap-3">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter tasks..."
-            className="h-8 w-[200px] rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-[12px] outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+            className="h-7 w-[180px] rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 text-[11px] outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 shadow-sm transition-all"
           />
-          <div className="text-xs text-zinc-400 font-medium">{totalVisible} tasks</div>
+          <div className="text-[11px] text-zinc-400 font-medium">{totalVisible} tasks</div>
         </div>
       </div>
 

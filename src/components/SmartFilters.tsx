@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Check, ChevronDown } from "lucide-react";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
 
@@ -125,49 +126,49 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
     filters.priorities.length > 0;
 
   return (
-    <div className="border-b border-[var(--mc-line)] bg-[var(--mc-panel)] px-4 py-3 sticky top-[calc(var(--h-topbar)+var(--h-panelheader))] z-20">
+    <div className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 sticky top-[calc(var(--h-topbar)+var(--h-panelheader))] z-20">
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap">
         {/* Status Filter */}
         <div className="relative">
           <button
             onClick={() =>
               setOpenDropdown(openDropdown === "status" ? null : "status")
             }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
+            className={`h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-1.5 shadow-sm ${
+              openDropdown === "status" || filters.statuses.length > 0 ? "bg-zinc-100 dark:bg-zinc-800" : ""
+            }`}
           >
             Status
             {filters.statuses.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
+              <span className="bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded px-1 text-[10px] font-bold">
                 {filters.statuses.length}
               </span>
             )}
-            <span>▼</span>
+            <ChevronDown size={12} className={`text-zinc-400 transition-transform ${openDropdown === "status" ? "rotate-180" : ""}`} />
           </button>
 
           {/* Status Dropdown */}
           <AnimatePresence>
             {openDropdown === "status" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[200px]"
+                exit={{ opacity: 0, y: 4 }}
+                className="absolute top-full left-0 mt-1 border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 shadow-lg z-30 min-w-[180px] overflow-hidden"
               >
-                <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="p-1 space-y-0.5 max-h-[300px] overflow-y-auto">
                   {STATUSES.map((status) => (
-                    <label
+                    <div
                       key={status}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
+                      onClick={() => handleStatusToggle(status)}
+                      className="flex items-center justify-between px-2 py-1.5 cursor-pointer text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-sm transition-colors"
                     >
-                      <input
-                        type="checkbox"
-                        checked={filters.statuses.includes(status)}
-                        onChange={() => handleStatusToggle(status)}
-                        className="w-4 h-4 rounded cursor-pointer"
-                      />
                       <span className="capitalize">{status.replace("_", " ")}</span>
-                    </label>
+                      {filters.statuses.includes(status) && (
+                        <Check size={14} className="text-zinc-900 dark:text-zinc-50" />
+                      )}
+                    </div>
                   ))}
                 </div>
               </motion.div>
@@ -181,41 +182,43 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
             onClick={() =>
               setOpenDropdown(openDropdown === "agent" ? null : "agent")
             }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
+            className={`h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-1.5 shadow-sm ${
+              openDropdown === "agent" || filters.agentIds.length > 0 ? "bg-zinc-100 dark:bg-zinc-800" : ""
+            }`}
           >
             Agent
             {filters.agentIds.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
+              <span className="bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded px-1 text-[10px] font-bold">
                 {filters.agentIds.length}
               </span>
             )}
-            <span>▼</span>
+            <ChevronDown size={12} className={`text-zinc-400 transition-transform ${openDropdown === "agent" ? "rotate-180" : ""}`} />
           </button>
 
           {/* Agent Dropdown */}
           <AnimatePresence>
             {openDropdown === "agent" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[200px]"
+                exit={{ opacity: 0, y: 4 }}
+                className="absolute top-full left-0 mt-1 border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 shadow-lg z-30 min-w-[200px] overflow-hidden"
               >
-                <div className="p-3 space-y-2 max-h-[300px] overflow-y-auto">
+                <div className="p-1 space-y-0.5 max-h-[300px] overflow-y-auto">
                   {agents.map((agent) => (
-                    <label
+                    <div
                       key={agent._id}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
+                      onClick={() => handleAgentToggle(agent.agentId)}
+                      className="flex items-center justify-between px-2 py-1.5 cursor-pointer text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-sm transition-colors"
                     >
-                      <input
-                        type="checkbox"
-                        checked={filters.agentIds.includes(agent.agentId)}
-                        onChange={() => handleAgentToggle(agent.agentId)}
-                        className="w-4 h-4 rounded cursor-pointer"
-                      />
-                      <span className="text-[16px]">{agent.emoji}</span>
-                      <span>{agent.name}</span>
-                    </label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px]">{agent.emoji}</span>
+                        <span>{agent.name}</span>
+                      </div>
+                      {filters.agentIds.includes(agent.agentId) && (
+                        <Check size={14} className="text-zinc-900 dark:text-zinc-50" />
+                      )}
+                    </div>
                   ))}
                 </div>
               </motion.div>
@@ -229,40 +232,40 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
             onClick={() =>
               setOpenDropdown(openDropdown === "priority" ? null : "priority")
             }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
+            className={`h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-1.5 shadow-sm ${
+              openDropdown === "priority" || filters.priorities.length > 0 ? "bg-zinc-100 dark:bg-zinc-800" : ""
+            }`}
           >
             Priority
             {filters.priorities.length > 0 && (
-              <span className="bg-[var(--mc-accent-green)] text-white rounded-full px-1.5 text-[11px] font-bold">
+              <span className="bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded px-1 text-[10px] font-bold">
                 {filters.priorities.length}
               </span>
             )}
-            <span>▼</span>
+            <ChevronDown size={12} className={`text-zinc-400 transition-transform ${openDropdown === "priority" ? "rotate-180" : ""}`} />
           </button>
 
           {/* Priority Dropdown */}
           <AnimatePresence>
             {openDropdown === "priority" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[150px]"
+                exit={{ opacity: 0, y: 4 }}
+                className="absolute top-full left-0 mt-1 border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 shadow-lg z-30 min-w-[150px] overflow-hidden"
               >
-                <div className="p-3 space-y-2">
+                <div className="p-1 space-y-0.5">
                   {PRIORITIES.map((priority) => (
-                    <label
+                    <div
                       key={priority}
-                      className="flex items-center gap-2 cursor-pointer text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] p-2 rounded transition-colors"
+                      onClick={() => handlePriorityToggle(priority)}
+                      className="flex items-center justify-between px-2 py-1.5 cursor-pointer text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-sm transition-colors"
                     >
-                      <input
-                        type="checkbox"
-                        checked={filters.priorities.includes(priority)}
-                        onChange={() => handlePriorityToggle(priority)}
-                        className="w-4 h-4 rounded cursor-pointer"
-                      />
                       <span className="capitalize">{priority}</span>
-                    </label>
+                      {filters.priorities.includes(priority) && (
+                        <Check size={14} className="text-zinc-900 dark:text-zinc-50" />
+                      )}
+                    </div>
                   ))}
                 </div>
               </motion.div>
@@ -276,33 +279,36 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
             onClick={() =>
               setOpenDropdown(openDropdown === "presets" ? null : "presets")
             }
-            className="px-3 py-2 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] font-semibold text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors flex items-center gap-2"
+            className={`h-7 px-2.5 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center gap-1.5 shadow-sm ${
+              openDropdown === "presets" ? "bg-zinc-100 dark:bg-zinc-800" : ""
+            }`}
           >
-            Presets <span>▼</span>
+            Presets
+            <ChevronDown size={12} className={`text-zinc-400 transition-transform ${openDropdown === "presets" ? "rotate-180" : ""}`} />
           </button>
 
           <AnimatePresence>
             {openDropdown === "presets" && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full right-0 mt-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg z-30 min-w-[180px]"
+                exit={{ opacity: 0, y: 4 }}
+                className="absolute top-full right-0 mt-1 border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900 shadow-lg z-30 min-w-[180px] overflow-hidden"
               >
-                <div className="p-2 space-y-1 max-h-[300px] overflow-y-auto">
+                <div className="p-1 space-y-0.5 max-h-[300px] overflow-y-auto">
                   {presets.map((preset) => (
                     <button
                       key={preset.id}
                       onClick={() => loadPreset(preset)}
-                      className="w-full text-left px-3 py-2 rounded text-[13px] text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+                      className="w-full text-left px-2 py-1.5 rounded-sm text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                     >
                       {preset.name}
                     </button>
                   ))}
-                  <div className="border-t border-[var(--mc-line)] pt-2 mt-2">
+                  <div className="border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-1">
                     <button
                       onClick={() => setSavePresetOpen(true)}
-                      className="w-full text-left px-3 py-2 rounded text-[13px] text-[var(--mc-accent-green)] hover:bg-[var(--mc-panel-soft)] transition-colors font-semibold"
+                      className="w-full text-left px-2 py-1.5 rounded-sm text-xs text-zinc-900 dark:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors font-medium"
                     >
                       + Save Current as Preset
                     </button>
@@ -317,7 +323,7 @@ export function SmartFilters({ agents, onFiltersChange }: SmartFiltersProps) {
         {hasActiveFilters && (
           <button
             onClick={clearAllFilters}
-            className="px-3 py-2 rounded text-[13px] text-[var(--mc-text-soft)] hover:text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+            className="h-7 px-2 rounded-md text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
           >
             Clear All
           </button>
