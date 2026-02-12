@@ -117,11 +117,11 @@ export function CommandPalette({
 
           {/* Command Palette Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.95, x: "-50%" }}
+            animate={{ opacity: 1, scale: 1, x: "-50%" }}
+            exit={{ opacity: 0, scale: 0.95, x: "-50%" }}
             transition={{ duration: 0.2, type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed left-1/2 top-[20vh] z-50 w-[calc(100vw-2rem)] max-w-2xl -translate-x-1/2"
+            className="fixed left-1/2 top-[20vh] z-50 w-[calc(100vw-2rem)] max-w-2xl"
           >
             <Command
               className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-lg"
