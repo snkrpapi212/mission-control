@@ -19,6 +19,21 @@ import {
 import { useOptimisticUI } from "@/hooks/useOptimisticUI";
 import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
+import { 
+  User, 
+  Settings, 
+  Moon, 
+  Sun, 
+  LogOut, 
+  ChevronRight, 
+  Plus, 
+  Smartphone, 
+  ShieldCheck, 
+  Bell,
+  Info,
+  HelpCircle,
+  ExternalLink
+} from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { Header } from "@/components/Header";
 import type { TaskStatus } from "@/types";
@@ -264,19 +279,150 @@ export function DashboardShell() {
             ) : null}
             {mobileTab === "feed" ? <div className="xl:hidden"><ActivityFeed activities={activities} loading={loading} compact /></div> : null}
             {mobileTab === "more" ? (
-              <div className="xl:hidden p-6 space-y-3">
-                <button
-                  onClick={() => setShowCreateModal(true)}
-                  className="w-full px-4 py-3 rounded bg-[var(--mc-accent-green)] text-white font-semibold text-[13px]"
-                >
-                  + Create Task
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full rounded border border-[var(--mc-line)] px-4 py-3 text-[13px] font-medium text-[var(--mc-text)]"
-                >
-                  Logout
-                </button>
+              <div className="xl:hidden -mx-4 -mt-4 p-4 min-h-[calc(100vh-130px)] bg-zinc-50 dark:bg-zinc-950/50">
+                {/* Profile Section */}
+                <div className="mb-6 flex items-center gap-4 px-2 py-4">
+                  <div className="h-16 w-16 rounded-2xl bg-white dark:bg-zinc-900 flex items-center justify-center text-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 flex items-center justify-center">
+                      <User size={24} className="text-zinc-600 dark:text-zinc-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Admin User</h2>
+                    <p className="text-sm text-zinc-500 font-medium">admin@missioncontrol.ai</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <section>
+                    <h3 className="px-2 mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Account</h3>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+                      <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600">
+                          <User size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Personal Information</div>
+                        </div>
+                        <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left">
+                        <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                          <ShieldCheck size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Security & Privacy</div>
+                        </div>
+                        <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="px-2 mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Application</h3>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+                      <button 
+                        onClick={() => setShowCreateModal(true)}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left border-b border-zinc-100 dark:border-zinc-800"
+                      >
+                        <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600">
+                          <Plus size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Create New Task</div>
+                        </div>
+                        <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                      <DashboardCustomization
+                        prefs={customizationPrefs}
+                        onPrefsChange={(next) => {
+                          setCustomizationPrefs(next);
+                          if (next.theme !== theme) applyTheme(next.theme);
+                        }}
+                        trigger={
+                          <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left border-b border-zinc-100 dark:border-zinc-800">
+                            <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600">
+                              <Settings size={18} />
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Interface Settings</div>
+                            </div>
+                            <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                          </button>
+                        }
+                      />
+                      <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600">
+                          <Bell size={18} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Notifications</div>
+                        </div>
+                        <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                      <div className="flex items-center justify-between px-4 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                            {theme === 'light' ? <Sun size={18} /> : <Moon size={18} />}
+                          </div>
+                          <div className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                            Dark Mode
+                          </div>
+                        </div>
+                        <button 
+                          onClick={toggleTheme}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-all duration-200 focus:outline-none ${theme === 'dark' ? 'bg-zinc-700' : 'bg-zinc-200'}`}
+                        >
+                          <span
+                            className={`${
+                              theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                            } inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 shadow-sm`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h3 className="px-2 mb-2 text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Support</h3>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+                      <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                          <HelpCircle size={18} />
+                        </div>
+                        <div className="flex-1 text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Help Center</div>
+                        <ExternalLink size={14} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                      <button className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors text-left">
+                        <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                          <Info size={18} />
+                        </div>
+                        <div className="flex-1 text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">About Mission Control</div>
+                        <ChevronRight size={16} className="text-zinc-300 dark:text-zinc-600" />
+                      </button>
+                    </div>
+                  </section>
+
+                  <section>
+                    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 overflow-hidden">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors text-left text-red-600"
+                      >
+                        <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600">
+                          <LogOut size={18} />
+                        </div>
+                        <div className="flex-1 text-sm font-semibold tracking-tight">Logout</div>
+                        <ChevronRight size={16} className="opacity-50" />
+                      </button>
+                    </div>
+                  </section>
+
+                  <div className="pt-4 pb-12 text-center">
+                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Mission Control v2.4.0</p>
+                    <p className="text-[10px] text-zinc-300 dark:text-zinc-600 mt-1">Build 2026.02.12.1729</p>
+                  </div>
+                </div>
               </div>
             ) : null}
           </main>
