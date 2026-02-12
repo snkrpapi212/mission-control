@@ -53,32 +53,32 @@ export function TaskCard({
           onClick?.();
         }
       }}
-      className={`mc-card mc-focus relative w-full overflow-hidden p-4 text-left before:absolute before:inset-y-0 before:left-0 before:w-[4px] ${railClass(
+      className={`mc-card mc-focus relative w-full overflow-hidden p-5 text-left before:absolute before:inset-y-0 before:left-0 before:w-[5px] ${railClass(
         task.priority
       )} ${
         isDragging
-          ? "opacity-50 ring-2 ring-[var(--mc-amber)] scale-105 z-50"
-          : "border border-[var(--mc-line)]"
-      } cursor-pointer group`}
+          ? "opacity-50 ring-2 ring-[var(--mc-amber)] scale-[1.02] z-50 shadow-2xl"
+          : "border border-[var(--mc-line)] hover:border-[var(--mc-line-strong)]"
+      } cursor-pointer group transition-all duration-300`}
     >
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="mb-4 flex items-center justify-between gap-2">
         <PriorityBadge priority={task.priority} />
-        <div className="flex items-center gap-1 text-[11px] font-medium text-[var(--mc-text-soft)]">
-          <Clock size={12} className="opacity-70" />
+        <div className="flex items-center gap-1 text-[11px] font-black text-[var(--mc-text-muted)] opacity-60 uppercase tracking-tighter">
+          <Clock size={12} strokeWidth={2.5} />
           {timeAgo(task.updatedAt)}
         </div>
       </div>
 
       {/* Title */}
-      <h4 className="line-clamp-2 text-[15px] font-bold leading-tight text-[var(--mc-text)] group-hover:text-[var(--mc-green)] transition-colors">
+      <h4 className="line-clamp-2 text-[16px] font-bold leading-snug text-[var(--mc-text)] group-hover:text-[var(--mc-green)] transition-colors tracking-tight">
         {task.title}
       </h4>
 
       {/* Description preview */}
       {task.description && (
-        <div className="mt-2.5">
-          <p className="line-clamp-2 text-[12px] leading-relaxed text-[var(--mc-text-muted)]">
+        <div className="mt-3">
+          <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--mc-text-soft)] font-medium">
             {task.description}
           </p>
         </div>
@@ -86,58 +86,46 @@ export function TaskCard({
 
       {/* Tags */}
       {(task.tags ?? []).length > 0 && (
-        <div className="mt-3.5 flex flex-wrap gap-1.5">
+        <div className="mt-4 flex flex-wrap gap-1.5">
           {(task.tags ?? []).slice(0, 3).map((tag) => (
-            <Chip key={tag} className="bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)] text-[10px] font-bold px-2 py-0.5 border-none">
+            <Chip key={tag} className="bg-[var(--mc-panel-soft)] text-[var(--mc-text-muted)] text-[10px] font-black uppercase tracking-wider px-2 py-0.5 border-none shadow-sm">
               {tag}
             </Chip>
           ))}
           {(task.tags ?? []).length > 3 && (
-            <span className="text-[10px] font-bold text-[var(--mc-text-muted)]">
+            <span className="text-[10px] font-black text-[var(--mc-text-muted)] opacity-50">
               +{(task.tags ?? []).length - 3}
             </span>
           )}
         </div>
       )}
 
-      {/* Footer Info (if needed, e.g. indicators for comments/attachments) */}
-      {/* <div className="mt-4 flex items-center gap-3 border-t border-[var(--mc-line)]/50 pt-3">
-        <div className="flex items-center gap-1 text-[11px] text-[var(--mc-text-muted)]">
-          <MessageSquare size={12} />
-          <span>2</span>
-        </div>
-        <div className="flex items-center gap-1 text-[11px] text-[var(--mc-text-muted)]">
-          <Paperclip size={12} />
-          <span>1</span>
-        </div>
-      </div> */}
-
       {/* Assignee row */}
-      <div className={`mt-4 flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 transition-colors ${
-        assignee ? "bg-[var(--mc-panel-soft)]/50" : "border border-dashed border-[var(--mc-line)]"
+      <div className={`mt-5 flex items-center justify-between gap-2 rounded-[14px] px-3 py-3 transition-all duration-300 ${
+        assignee ? "bg-[var(--mc-panel-soft)]/50 group-hover:bg-[var(--mc-panel-soft)]" : "border border-dashed border-[var(--mc-line)] opacity-60"
       }`}>
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
           {assignee ? (
             <>
-              <div className="h-7 w-7 rounded-lg bg-[var(--mc-card)] border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text-muted)] shadow-sm">
-                <User size={14} strokeWidth={2.5} />
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text-muted)] shadow-sm group-hover:scale-110 transition-transform">
+                <User size={16} strokeWidth={2.5} />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-[12px] font-bold text-[var(--mc-text)] leading-tight">
+                <p className="truncate text-[13px] font-bold text-[var(--mc-text)] leading-tight">
                   {assignee.name}
                 </p>
-                <p className="truncate text-[10px] font-medium text-[var(--mc-text-soft)]">{assignee.role}</p>
+                <p className="truncate text-[11px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wide opacity-70">{assignee.role}</p>
               </div>
             </>
           ) : (
-            <span className="text-[11px] font-bold text-[var(--mc-text-soft)]/60 italic px-1">Unassigned</span>
+            <span className="text-[11px] font-black text-[var(--mc-text-soft)] uppercase tracking-widest px-1">Unassigned</span>
           )}
         </div>
         {assignee && (
           <div
-            className="h-5 w-5 rounded-full bg-[var(--mc-green)] flex items-center justify-center shadow-sm"
+            className="h-6 w-6 rounded-full bg-[var(--mc-green)] flex items-center justify-center shadow-md ring-2 ring-white dark:ring-[var(--mc-panel)]"
           >
-            <Check size={12} strokeWidth={3} className="text-white" />
+            <Check size={14} strokeWidth={3.5} className="text-white" />
           </div>
         )}
       </div>

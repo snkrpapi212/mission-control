@@ -98,20 +98,20 @@ export function KanbanBoard({
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 gap-3 p-3 md:grid-cols-2 2xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-4 p-3 md:grid-cols-2 2xl:grid-cols-6 pb-24 md:pb-8">
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
               <div
                 key={col.status}
-                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col"
+                className="rounded-[18px] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col shadow-sm"
               >
-                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
-                  <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
-                    <span className={`mr-2 ${col.dotClass}`}>●</span>
+                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3.5 bg-[var(--mc-panel-soft)]/20">
+                  <h3 className="text-[13px] font-bold tracking-tight text-[var(--mc-text)] flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${col.dotClass.replace('text-', 'bg-')}`} />
                     {col.title}
                   </h3>
-                  <Chip>{tasks.length}</Chip>
+                  <Chip className="bg-[var(--mc-panel-soft)] font-black text-[10px]">{tasks.length}</Chip>
                 </div>
 
                 <Droppable droppableId={col.status} type="TASK">
@@ -119,9 +119,9 @@ export function KanbanBoard({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex flex-col gap-3 p-3 min-h-[200px] ${
+                      className={`flex flex-col gap-4 p-3 min-h-[150px] transition-colors duration-200 ${
                         snapshot.isDraggingOver
-                          ? "bg-[var(--mc-amber-soft)]"
+                          ? "bg-[var(--mc-green-soft)]/30"
                           : ""
                       }`}
                     >

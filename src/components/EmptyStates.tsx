@@ -22,15 +22,15 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-2xl border-2 border-dashed border-[var(--mc-line)] bg-[var(--mc-card)]/30 p-10 text-center flex flex-col items-center justify-center backdrop-blur-[2px]"
+      className="rounded-2xl border-2 border-dashed border-[var(--mc-line)] bg-[var(--mc-card)]/30 p-6 sm:p-10 text-center flex flex-col items-center justify-center backdrop-blur-[2px] min-h-[200px] sm:min-h-[300px]"
     >
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)]/40 shadow-inner">
+      <div className="mb-4 sm:mb-5 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)]/40 shadow-inner">
         {icon}
       </div>
 
-      <h3 className="mb-2 text-[18px] font-bold tracking-tight text-[var(--mc-text)]">{title}</h3>
+      <h3 className="mb-2 text-[16px] sm:text-[18px] font-bold tracking-tight text-[var(--mc-text)]">{title}</h3>
 
-      <p className="mb-6 text-[14px] leading-relaxed text-[var(--mc-text-muted)] max-w-[280px] mx-auto font-medium">{description}</p>
+      <p className="mb-4 sm:mb-6 text-[12px] sm:text-[14px] leading-relaxed text-[var(--mc-text-muted)] max-w-[240px] sm:max-w-[280px] mx-auto font-medium">{description}</p>
 
       {action && (
         <div className="flex flex-col items-center gap-3">

@@ -16,12 +16,12 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ACTIVITY_CONFIG: Record<string, { icon: any, color: string, bg: string }> = {
-  task_created: { icon: PlusCircle, color: "var(--mc-green)", bg: "var(--mc-green-soft)" },
+const ACTIVITY_CONFIG: Record<string, { icon: any, color: string, bg: string, premium?: boolean }> = {
+  task_created: { icon: PlusCircle, color: "var(--mc-green)", bg: "var(--mc-green-soft)", premium: true },
   task_updated: { icon: RefreshCcw, color: "var(--mc-amber)", bg: "var(--mc-amber-soft)" },
   status_changed: { icon: ArrowRightLeft, color: "var(--mc-amber)", bg: "var(--mc-amber-soft)" },
   message_created: { icon: MessageSquare, color: "#3b82f6", bg: "#eff6ff" },
-  document_created: { icon: FileText, color: "#8b5cf6", bg: "#f5f3ff" },
+  document_created: { icon: FileText, color: "#8b5cf6", bg: "#f5f3ff", premium: true },
   heartbeat: { icon: ActivityIcon, color: "var(--mc-text-soft)", bg: "var(--mc-panel-soft)" },
 };
 
@@ -90,52 +90,65 @@ export function ActivityFeed({
             <p className="mt-1 text-[12px] text-[var(--mc-text-muted)] max-w-[180px]">Updates from your team will appear here in real-time.</p>
           </div>
         ) : (
-          <div className="pb-8">
+          <div className="pb-12">
             {groupedActivities.map(([dateStr, items]) => (
               <div key={dateStr}>
-                <div className="sticky top-0 z-10 bg-[var(--mc-panel)]/80 backdrop-blur-md px-4 py-2 border-b border-[var(--mc-line)]/50">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--mc-text-muted)]">
+                <div className="sticky top-0 z-20 bg-[var(--mc-panel)]/90 backdrop-blur-md px-6 py-3 border-b border-[var(--mc-line)]/50">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--mc-text-muted)] flex items-center gap-2">
+                    <span className="h-[1px] w-3 bg-[var(--mc-line-strong)]" />
                     {formatGroupDate(dateStr)}
+                    <span className="h-[1px] flex-1 bg-[var(--mc-line-strong)]" />
                   </span>
                 </div>
-                <ul>
+                <ul className="relative">
+                  {/* Vertical Timeline Line */}
+                  <div className="absolute left-[36px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[var(--mc-line)] via-[var(--mc-line)] to-transparent opacity-50" />
+                  
                   {items.map((activity) => {
                     const config = ACTIVITY_CONFIG[activity.type] || ACTIVITY_CONFIG.heartbeat;
                     const Icon = config.icon;
 
                     return (
-                      <li key={activity._id} className="relative">
+                      <li key={activity._id} className="relative z-10">
                         <button
                           type="button"
                           onClick={() => setSelectedActivity(activity)}
-                          className="group w-full px-4 py-4 text-left hover:bg-[var(--mc-panel-soft)]/50 transition-all duration-200"
+                          className={`group w-full px-5 py-5 text-left transition-all duration-300 ${
+                            config.premium 
+                              ? "bg-gradient-to-r from-[var(--mc-green-soft)]/20 to-transparent hover:from-[var(--mc-green-soft)]/40" 
+                              : "hover:bg-[var(--mc-panel-soft)]/50"
+                          }`}
                         >
-                          <div className="flex gap-3.5">
+                          <div className="flex gap-4">
                             <div 
-                              className="mt-0.5 flex h-8 min-w-8 items-center justify-center rounded-xl border shadow-sm transition-transform group-hover:scale-110"
+                              className={`mt-0.5 flex h-9 min-w-9 items-center justify-center rounded-[12px] border shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${
+                                config.premium ? "ring-2 ring-[var(--mc-green)]/10" : ""
+                              }`}
                               style={{ 
                                 backgroundColor: config.bg, 
-                                borderColor: `${config.color}20`,
+                                borderColor: config.premium ? "var(--mc-green)" : `${config.color}30`,
                                 color: config.color
                               }}
                             >
-                              <Icon size={16} strokeWidth={2.5} />
+                              <Icon size={18} strokeWidth={config.premium ? 3 : 2.5} />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className="text-[13px] font-bold text-[var(--mc-text)] truncate group-hover:text-[var(--mc-green)] transition-colors">
+                              <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <span className={`text-[14px] font-bold text-[var(--mc-text)] truncate transition-colors ${config.premium ? "text-[var(--mc-green)]" : "group-hover:text-[var(--mc-text-muted)]"}`}>
                                   {activity.agentId}
                                 </span>
-                                <span className="flex items-center gap-1 text-[10px] font-bold text-[var(--mc-text-muted)] tabular-nums whitespace-nowrap">
+                                <span className="flex items-center gap-1 text-[10px] font-black text-[var(--mc-text-muted)] tabular-nums whitespace-nowrap opacity-60 uppercase tracking-tighter">
                                   <Clock size={10} />
                                   {timeAgo(activity.createdAt)}
                                 </span>
                               </div>
-                              <p className="text-[13px] leading-[1.5] text-[var(--mc-text-soft)] line-clamp-2 font-medium">
+                              <p className={`text-[13px] leading-[1.6] font-medium transition-colors ${
+                                config.premium ? "text-[var(--mc-text)] font-bold" : "text-[var(--mc-text-soft)]"
+                              } line-clamp-3`}>
                                 {activity.message}
                               </p>
-                              <div className="mt-2 flex items-center gap-1 text-[11px] font-bold text-[var(--mc-green)] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
-                                Details <ChevronRight size={12} />
+                              <div className="mt-3 flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-[var(--mc-green)] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                                View Details <ChevronRight size={12} strokeWidth={3} />
                               </div>
                             </div>
                           </div>

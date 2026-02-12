@@ -209,60 +209,66 @@ export function DashboardShell() {
                 {agents.map((agent) => {
                   const taskTitle = agent.currentTaskId ? currentTaskById.get(agent.currentTaskId) : undefined;
                   const online = Date.now() - agent.lastHeartbeat < 2 * 60 * 1000;
-                  const lastSeen = (() => {
-                    const diff = Date.now() - agent.lastHeartbeat;
-                    const min = Math.floor(diff / 60000);
-                    if (min < 60) return `${min}m ago`;
-                    const hr = Math.floor(min / 60);
-                    if (hr < 24) return `${hr}h ago`;
-                    return `${Math.floor(hr / 24)}d ago`;
-                  })();
+                  const isActive = agent.status === "working" && online;
                   
+                  const initials = agent.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+                  const colors = ["from-blue-500 to-indigo-600", "from-purple-500 to-pink-600", "from-emerald-500 to-teal-600", "from-orange-500 to-red-600", "from-pink-500 to-rose-600", "from-violet-500 to-purple-600", "from-cyan-500 to-blue-600"];
+                  let hash = 0;
+                  for (let i = 0; i < agent.name.length; i++) hash = agent.name.charCodeAt(i) + ((hash << 5) - hash);
+                  const gradient = colors[Math.abs(hash) % colors.length];
+
                   const statusLabel = agent.status === "working" ? "Working" : agent.status === "blocked" ? "Blocked" : "Idle";
-                  const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-amber)]";
+                  const statusColor = agent.status === "working" ? "bg-[var(--mc-green)]" : agent.status === "blocked" ? "bg-[var(--mc-red)]" : "bg-[var(--mc-text-muted)]";
                   
                   return (
                     <motion.button
                       key={agent._id}
                       onClick={() => setSelectedAgent(agent)}
-                      className="w-full rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-3.5 text-left active:bg-[var(--mc-panel-soft)] transition-colors"
+                      className={`w-full rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-5 py-5 text-left active:scale-[0.98] transition-all shadow-sm ${isActive ? "border-l-[4px] border-l-[var(--mc-green)]" : ""}`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-4">
                         {/* Avatar */}
                         <div className="relative shrink-0">
-                          <div className="h-10 w-10 rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] flex items-center justify-center text-[var(--mc-text)]">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="8" r="4"/>
-                              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-                            </svg>
+                          <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white text-[14px] font-black shadow-md ring-2 ring-white dark:ring-[var(--mc-panel)]`}>
+                            {initials}
+                            <span className="absolute -top-1.5 -right-1.5 text-[14px]">{agent.emoji}</span>
                           </div>
-                          <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[var(--mc-card)] ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
+                          <span className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-[var(--mc-card)] ${online ? "bg-[var(--mc-green)]" : "bg-[var(--mc-text-soft)]"}`} />
+                          {isActive && <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[var(--mc-green)] animate-ping opacity-75" />}
                         </div>
                         
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[15px] font-semibold text-[var(--mc-text)] truncate">{agent.name}</span>
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--mc-line)] text-[var(--mc-text-soft)]">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-[16px] font-bold text-[var(--mc-text)] truncate tracking-tight">{agent.name}</span>
+                            <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)] border border-[var(--mc-line)]">
                               {agent.level === "lead" ? "LEAD" : agent.level === "intern" ? "INT" : "SPC"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`inline-block h-2 w-2 rounded-full ${statusColor}`} />
-                            <span className="text-[13px] text-[var(--mc-text)]">{statusLabel}</span>
-                            <span className="text-[var(--mc-text-soft)]">·</span>
-                            <span className={`text-[13px] ${online ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}`}>
-                              {online ? "Online" : lastSeen}
-                            </span>
-                          </div>
+                          <p className="text-[12px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wide opacity-70">{agent.role}</p>
                         </div>
                       </div>
                       
-                      {/* Current Task */}
-                      <div className="mt-3 pt-3 border-t border-[var(--mc-line)]">
-                        <p className="text-[12px] text-[var(--mc-text-muted)] uppercase tracking-wide">Current Task</p>
-                        <p className="text-[13px] text-[var(--mc-text)] truncate mt-0.5">{taskTitle || "No active task"}</p>
+                      <div className="mt-4 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block h-2 w-2 rounded-full ${statusColor} ${isActive ? "animate-pulse" : ""}`} />
+                          <span className={`text-[12px] font-bold uppercase tracking-wider ${isActive ? "text-[var(--mc-green)]" : "text-[var(--mc-text)]"}`}>{statusLabel}</span>
+                        </div>
+                        <span className={`text-[11px] font-black uppercase tracking-tighter ${online ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}`}>
+                          {online ? "● Live" : "Seen " + (Math.floor((Date.now() - agent.lastHeartbeat) / 60000) < 60 ? Math.floor((Date.now() - agent.lastHeartbeat) / 60000) + "m ago" : Math.floor((Date.now() - agent.lastHeartbeat) / 3600000) + "h ago")}
+                        </span>
                       </div>
+                      
+                      {/* Current Task */}
+                      {taskTitle && (
+                        <div className="mt-4 p-3 rounded-xl bg-[var(--mc-panel-soft)] border border-[var(--mc-line)]/50">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Zap size={10} className={isActive ? "text-[var(--mc-green)]" : "text-[var(--mc-amber)]"} fill="currentColor" />
+                            <p className="text-[10px] font-black text-[var(--mc-text-muted)] uppercase tracking-[0.1em]">Current Mission</p>
+                          </div>
+                          <p className="text-[13px] font-bold text-[var(--mc-text)] truncate">{taskTitle}</p>
+                        </div>
+                      )}
                     </motion.button>
                   );
                 })}
