@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { AgentSidebar } from "@/components/AgentSidebar";
 import { AgentDetailModal } from "@/components/AgentDetailModal";
 import { ActivityFeed } from "@/components/ActivityFeed";
@@ -235,24 +235,19 @@ export function DashboardShell() {
           >
 
             {/* Mobile Sub-nav - shows Board/Feed options when in board view */}
-            <AnimatePresence mode="wait">
-              {mobileTab === "board" ? (
-                <motion.div 
-                  key="board-view"
-                                              className="mb-3"
-                >
-                  <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
-                  <SmartFilters agents={agents} onFiltersChange={setFilters} />
-                  <KanbanBoard
-                    tasksByStatus={filteredTasksByStatus}
-                    agents={agents}
-                    loading={loading}
-                    onSelectTask={(t) => setSelectedTask(t)}
-                    onTaskMove={handleTaskMove}
-                  />
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
+            {mobileTab === "board" ? (
+              <div key="board-view" className="mb-3">
+                <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
+                <SmartFilters agents={agents} onFiltersChange={setFilters} />
+                <KanbanBoard
+                  tasksByStatus={filteredTasksByStatus}
+                  agents={agents}
+                  loading={loading}
+                  onSelectTask={(t) => setSelectedTask(t)}
+                  onTaskMove={handleTaskMove}
+                />
+              </div>
+            ) : null}
             {mobileTab === "agents" ? (
               <div className="xl:hidden space-y-3">
                 {/* Mobile Agents Header */}

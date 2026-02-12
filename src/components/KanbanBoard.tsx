@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -103,9 +102,9 @@ export function KanbanBoard({
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
-              <motion.div
+              <div
                 key={col.status}
-                      className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)]"
+                className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col"
               >
                 <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
                   <h3 className="text-[13px] font-semibold tracking-[0.02em] text-[var(--mc-text)]">
@@ -120,7 +119,7 @@ export function KanbanBoard({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`space-y-3 p-3 min-h-[200px] transition-colors ${
+                      className={`flex flex-col gap-3 p-3 min-h-[200px] ${
                         snapshot.isDraggingOver
                           ? "bg-[var(--mc-amber-soft)]"
                           : ""
@@ -134,12 +133,12 @@ export function KanbanBoard({
                           />
                         ))
                       ) : tasks.length === 0 ? (
-                        <motion.div
-                                                      className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
+                        <div
+                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
                         >
                           <div className="text-[24px] mb-2">📭</div>
                           No tasks in {col.title}
-                        </motion.div>
+                        </div>
                       ) : (
                         tasks.map((task, index) => (
                           <Draggable
@@ -152,6 +151,7 @@ export function KanbanBoard({
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
+                                className="outline-none"
                               >
                                 <TaskCard
                                   task={task}
@@ -172,7 +172,7 @@ export function KanbanBoard({
                     </div>
                   )}
                 </Droppable>
-              </motion.div>
+              </div>
             );
           })}
         </div>

@@ -35,16 +35,23 @@ export function TaskCard({
 }) {
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       className={`mc-card mc-focus relative w-full overflow-hidden p-4 text-left before:absolute before:inset-y-0 before:left-0 before:w-[3px] ${railClass(
         task.priority
       )} ${
         isDragging
           ? "opacity-50 ring-2 ring-[var(--mc-amber)]"
           : "border border-[var(--mc-line)]"
-      } transition-all`}
+      } cursor-pointer`}
     >
       {/* Priority badge */}
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -104,6 +111,6 @@ export function TaskCard({
           </div>
         )}
       </div>
-    </button>
+    </div>
   );
 }
