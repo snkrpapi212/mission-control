@@ -1,27 +1,34 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { User, ChevronDown, ChevronRight, Activity, Zap, Shield, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import type { Doc } from "../../convex/_generated/dataModel";
 import { PanelHeader, Chip } from "@/components/MissionControlPrimitives";
 import { AgentDetailModal } from "@/components/AgentDetailModal";
 
-function roleBadge(level: Doc<"agents">["level"]) {
-  if (level === "lead") return "LEAD";
-  if (level === "intern") return "INT";
-  return "SPC";
+function RoleBadge({ level }: { level: Doc<"agents">["level"] }) {
+  const config = {
+    lead: { label: "LEAD", icon: Shield, class: "text-[var(--mc-amber)] bg-[var(--mc-amber-soft)] border-[var(--mc-amber)]/20" },
+    intern: { label: "INT", icon: HelpCircle, class: "text-[var(--mc-text-soft)] bg-[var(--mc-panel-soft)] border-[var(--mc-line)]" },
+    specialist: { label: "SPC", icon: Zap, class: "text-[var(--mc-green)] bg-[var(--mc-green-soft)] border-[var(--mc-green)]/20" },
+  };
+
+  const { label, icon: Icon, class: className } = config[level] || config.specialist;
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border ${className}`}>
+      <Icon size={10} strokeWidth={3} />
+      {label}
+    </span>
+  );
 }
 
-function workStatusClass(status: Doc<"agents">["status"]) {
-  if (status === "working") return "bg-[var(--mc-green)]";
-  if (status === "blocked") return "bg-[var(--mc-red)]";
-  return "bg-[var(--mc-amber)]";
-}
-
-function workStatusLabel(status: Doc<"agents">["status"]) {
-  if (status === "working") return "Working";
-  if (status === "blocked") return "Blocked";
-  return "Idle";
+function workStatusConfig(status: Doc<"agents">["status"]) {
+  if (status === "working") return { label: "Working", color: "var(--mc-green)", bg: "var(--mc-green-soft)" };
+  if (status === "blocked") return { label: "Blocked", color: "var(--mc-red)", bg: "var(--mc-red-soft)" };
+  return { label: "Idle", color: "var(--mc-amber)", bg: "var(--mc-amber-soft)" };
 }
 
 function isOnline(lastHeartbeat: number) {
@@ -76,99 +83,121 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
                   ? taskTitles.get(agent.currentTaskId)
                   : undefined;
                 const isExpanded = expandedAgentId === agent._id;
+                const status = workStatusConfig(agent.status);
 
                 return (
                   <li
                     key={agent._id}
-                    className="border-b border-[var(--mc-line)]"
+                    className="border-b border-[var(--mc-line)] last:border-b-0"
                   >
                     <button
                       onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
-                      className="w-full px-4 py-3 text-left hover:bg-[var(--mc-panel-soft)] transition-colors"
-                          >
+                      className={`group w-full px-4 py-4 text-left transition-all duration-200 ${
+                        isExpanded ? "bg-[var(--mc-panel-soft)]" : "hover:bg-[var(--mc-panel-soft)]/50"
+                      }`}
+                    >
                       <div className="flex items-center gap-3">
                         <div className="relative">
-                          <div className="grid h-10 w-10 place-items-center rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[var(--mc-text)]">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="12" cy="8" r="4"/>
-                              <path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-                            </svg>
+                          <div className={`grid h-10 w-10 place-items-center rounded-xl border transition-all duration-200 ${
+                            isExpanded 
+                              ? "border-[var(--mc-green)] bg-[var(--mc-green-soft)] text-[var(--mc-green)]" 
+                              : "border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)] group-hover:border-[var(--mc-line-strong)]"
+                          }`}>
+                            <User size={20} strokeWidth={isExpanded ? 2.5 : 2} />
                           </div>
-                          {/* Presence + work pulse */}
+                          
+                          {/* Presence Indicator */}
                           <span
-                            className={`absolute -bottom-0.5 -right-0.5 inline-block h-3 w-3 rounded-full border-2 border-[var(--mc-panel)] ${
+                            className={`absolute -bottom-0.5 -right-0.5 inline-block h-3.5 w-3.5 rounded-full border-2 border-[var(--mc-panel)] ${
                               isOnline(agent.lastHeartbeat)
                                 ? "bg-[var(--mc-green)]"
                                 : "bg-[var(--mc-text-soft)]"
                             }`}
-                            aria-label={isOnline(agent.lastHeartbeat) ? "Online" : "Offline"}
                           />
+                          
+                          {/* Working Pulse Effect */}
                           {agent.status === "working" && isOnline(agent.lastHeartbeat) && (
-                            <div
-                              className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[var(--mc-green)]"
-                              aria-hidden="true"
-                            />
+                            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[var(--mc-green)] animate-ping opacity-75" />
                           )}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-[15px] font-semibold leading-tight text-[var(--mc-text)]">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="truncate text-[14px] font-bold tracking-tight text-[var(--mc-text)]">
                               {agent.name}
                             </p>
-                            <Chip>{roleBadge(agent.level)}</Chip>
+                            <RoleBadge level={agent.level} />
                           </div>
-                          <p className="truncate text-[13px] text-[var(--mc-text-muted)]">
+                          <p className="truncate text-[12px] font-medium text-[var(--mc-text-muted)]">
                             {agent.role}
                           </p>
                         </div>
 
-                        <div className="text-[var(--mc-text-muted)]">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m6 9 6 6 6-6"/>
-                          </svg>
+                        <div className={`transition-transform duration-200 ${isExpanded ? "rotate-180 text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}`}>
+                          <ChevronDown size={16} />
                         </div>
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-[13px] font-medium">
-                          <span
-                            className={`inline-block h-2 w-2 rounded-full ${workStatusClass(
-                              agent.status
-                            )}`}
-                          />
-                          <span className="text-[var(--mc-text)]">{workStatusLabel(agent.status)}</span>
-                          <span className="text-[var(--mc-text-soft)]">·</span>
-                          <span className={isOnline(agent.lastHeartbeat) ? "text-[var(--mc-green)]" : "text-[var(--mc-text-soft)]"}>
-                            {isOnline(agent.lastHeartbeat) ? "Online" : lastSeenLabel(agent.lastHeartbeat)}
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span 
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-bold border"
+                            style={{ 
+                              color: status.color, 
+                              backgroundColor: status.bg, 
+                              borderColor: `${status.color}33` 
+                            }}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: status.color }} />
+                            {status.label}
+                          </span>
+                          
+                          <span className="text-[11px] font-medium text-[var(--mc-text-soft)]">
+                            {isOnline(agent.lastHeartbeat) ? (
+                              <span className="flex items-center gap-1 text-[var(--mc-green)]">
+                                <Activity size={10} /> Online
+                              </span>
+                            ) : lastSeenLabel(agent.lastHeartbeat)}
                           </span>
                         </div>
                       </div>
                       
-                      <div className="mt-2">
-                        <p className="truncate text-[12px] text-[var(--mc-text-muted)]">
-                          {currentTask ? `Working on: ${currentTask}` : "No active task"}
-                        </p>
-                      </div>
+                      {currentTask && (
+                        <div className="mt-2.5 flex items-start gap-1.5 rounded-lg bg-[var(--mc-card)]/50 border border-[var(--mc-line)]/50 p-2 group-hover:border-[var(--mc-line)] transition-colors">
+                          <div className="mt-0.5 text-[var(--mc-green)]">
+                            <Zap size={10} fill="currentColor" />
+                          </div>
+                          <p className="text-[11px] leading-relaxed font-medium text-[var(--mc-text-soft)] line-clamp-1">
+                            {currentTask}
+                          </p>
+                        </div>
+                      )}
                     </button>
 
                     {/* Expanded detail section */}
-                    {isExpanded && (
-                        <div className="overflow-hidden border-t border-[var(--mc-line)]">
-                          <div className="px-4 py-3 space-y-3 bg-[var(--mc-panel-soft)]">
-                            {/* Detail modal trigger */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div 
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden bg-[var(--mc-panel-soft)]/30"
+                        >
+                          <div className="px-4 pb-4 pt-1 space-y-3">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedAgent(agent);
                               }}
-                              className="w-full rounded-[var(--r-tile)] border border-[var(--mc-line)] px-3 py-2 text-[13px] font-medium text-[var(--mc-text)] bg-[var(--mc-card)] hover:bg-[var(--mc-panel)] transition-colors"
+                              className="w-full rounded-xl border border-[var(--mc-line)] px-3 py-2 text-[12px] font-bold text-[var(--mc-text)] bg-[var(--mc-card)] hover:bg-[var(--mc-panel)] hover:border-[var(--mc-line-strong)] hover:shadow-sm transition-all"
                             >
                               View Full Profile
                             </button>
                           </div>
-                        </div>
+                        </motion.div>
                       )}
+                    </AnimatePresence>
                   </li>
                 );
               })}

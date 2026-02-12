@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Users, ClipboardList, Activity, Search, Plus, UserPlus, SlidersHorizontal } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface EmptyStateProps {
-  icon: string;
+  icon: ReactNode;
   title: string;
   description: string;
   action?: {
@@ -17,35 +19,35 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-8 text-center"
+      className="rounded-2xl border-2 border-dashed border-[var(--mc-line)] bg-[var(--mc-card)]/30 p-10 text-center flex flex-col items-center justify-center backdrop-blur-[2px]"
     >
-      <motion.div
-        className="mb-4 text-[48px]"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      >
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--mc-panel-soft)] text-[var(--mc-text-soft)]/40 shadow-inner">
         {icon}
-      </motion.div>
+      </div>
 
-      <h3 className="mb-2 text-[18px] font-semibold text-[var(--mc-text)]">{title}</h3>
+      <h3 className="mb-2 text-[18px] font-bold tracking-tight text-[var(--mc-text)]">{title}</h3>
 
-      <p className="mb-4 text-[14px] text-[var(--mc-text-soft)]">{description}</p>
+      <p className="mb-6 text-[14px] leading-relaxed text-[var(--mc-text-muted)] max-w-[280px] mx-auto font-medium">{description}</p>
 
       {action && (
-        <div className="space-y-2">
+        <div className="flex flex-col items-center gap-3">
           <motion.button
             onClick={action.onClick}
             disabled={action.disabled}
-            whileHover={action.disabled ? undefined : { scale: 1.05 }}
-            whileTap={action.disabled ? undefined : { scale: 0.95 }}
-            className="rounded-[8px] bg-[var(--mc-button-bg)] px-4 py-2 text-[13px] font-semibold text-[var(--mc-text)] transition-colors hover:bg-[var(--mc-button-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+            whileHover={action.disabled ? undefined : { scale: 1.02, y: -1 }}
+            whileTap={action.disabled ? undefined : { scale: 0.98 }}
+            className="group flex items-center gap-2 rounded-xl bg-[var(--mc-text)] px-6 py-2.5 text-[13px] font-bold text-white transition-all hover:bg-[var(--mc-green)] disabled:cursor-not-allowed disabled:opacity-20 disabled:hover:bg-[var(--mc-text)]"
           >
             {action.label}
           </motion.button>
-          {action.note && <p className="text-xs text-[var(--mc-text-soft)]">{action.note}</p>}
+          {action.note && (
+            <div className="rounded-lg bg-[var(--mc-panel-soft)] px-3 py-1 border border-[var(--mc-line)]">
+              <p className="text-[11px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wider">{action.note}</p>
+            </div>
+          )}
         </div>
       )}
     </motion.div>
@@ -55,13 +57,13 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 export function EmptyAgentList() {
   return (
     <EmptyState
-      icon="👥"
+      icon={<Users size={32} strokeWidth={1.5} />}
       title="No agents yet"
-      description="Invite team members to get started. They'll appear here once they're online."
+      description="Assemble your squad to get started. They'll appear here once they're online."
       action={{
         label: "Invite Team Members",
         disabled: true,
-        note: "Invite flow coming soon.",
+        note: "Invite flow coming soon",
       }}
     />
   );
@@ -70,13 +72,13 @@ export function EmptyAgentList() {
 export function EmptyTaskBoard() {
   return (
     <EmptyState
-      icon="📋"
-      title="No tasks in Inbox"
-      description="Your queue is clear! Create your first task to get started."
+      icon={<ClipboardList size={32} strokeWidth={1.5} />}
+      title="Board is empty"
+      description="Your queue is clear! High-performance teams start with a single task."
       action={{
-        label: "+ Create Task",
+        label: "Create First Task",
         disabled: true,
-        note: "Task creation shortcut is being wired.",
+        note: "Shortcut coming soon",
       }}
     />
   );
@@ -85,9 +87,9 @@ export function EmptyTaskBoard() {
 export function EmptyActivityFeed() {
   return (
     <EmptyState
-      icon="📭"
+      icon={<Activity size={32} strokeWidth={1.5} />}
       title="No activity yet"
-      description="Updates from your team will appear here in real-time."
+      description="The live feed is waiting for your team's first move. Updates appear in real-time."
     />
   );
 }
@@ -95,14 +97,15 @@ export function EmptyActivityFeed() {
 export function EmptySearchResults() {
   return (
     <EmptyState
-      icon="🔍"
-      title="No tasks match"
-      description="Try adjusting your filters or search terms."
+      icon={<Search size={32} strokeWidth={1.5} />}
+      title="No results found"
+      description="We couldn't find any tasks matching your current filter criteria."
       action={{
-        label: "Clear Filters",
+        label: "Reset All Filters",
         disabled: true,
-        note: "Filter reset action coming soon.",
+        note: "Action coming soon",
       }}
     />
   );
 }
+
