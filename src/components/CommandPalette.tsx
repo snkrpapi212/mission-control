@@ -121,7 +121,7 @@ export function CommandPalette({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.2, type: "spring", stiffness: 400, damping: 30 }}
-            className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2"
+            className="fixed inset-x-0 top-[20vh] z-50 mx-auto w-[calc(100vw-2rem)] max-w-2xl sm:w-full"
           >
             <Command
               className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-lg"

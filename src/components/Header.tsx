@@ -94,10 +94,11 @@ export function Header({
             className="group relative flex w-full max-w-md items-center gap-3 rounded-full border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 transition-all hover:border-[var(--mc-text-soft)]/30 hover:shadow-sm"
           >
             <Search size={14} className="text-[var(--mc-text-soft)] transition-colors group-hover:text-[var(--mc-text)]" />
-            <span className="flex-1 text-left text-xs text-[var(--mc-text-soft)] group-hover:text-[var(--mc-text-muted)]">
-              Search agents, tasks, or commands...
+            <span className="flex-1 truncate text-left text-xs text-[var(--mc-text-soft)] group-hover:text-[var(--mc-text-muted)]">
+              <span className="hidden sm:inline">Search agents, tasks, or commands...</span>
+              <span className="sm:hidden">Search...</span>
             </span>
-            <div className="flex items-center gap-1 rounded border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-1.5 py-0.5">
+            <div className="hidden sm:flex items-center gap-1 rounded border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-1.5 py-0.5">
               <span className="text-[10px] font-medium text-[var(--mc-text-soft)]">⌘</span>
               <span className="text-[10px] font-medium text-[var(--mc-text-soft)]">K</span>
             </div>
