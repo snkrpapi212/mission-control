@@ -17,7 +17,7 @@ import {
   useTasksByStatusLive,
 } from "@/hooks/useConvexData";
 import { useOptimisticUI } from "@/hooks/useOptimisticUI";
-import type { FilterState } from "@/components/SmartFilters";
+import { SmartFilters, type FilterState } from "@/components/SmartFilters";
 import { DashboardCustomization, type CustomizationPrefs } from "@/components/DashboardCustomization";
 import { MobileNav } from "@/components/MobileNav";
 import { Bell, Moon, Plus, Search, Sparkles, Sun } from "lucide-react";
@@ -41,7 +41,7 @@ export function DashboardShell() {
     return (document.documentElement.getAttribute("data-theme") as "light" | "dark") || "light";
   });
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [filters] = useState<FilterState>({
+  const [filters, setFilters] = useState<FilterState>({
     statuses: [],
     agentIds: [],
     priorities: [],
@@ -242,6 +242,7 @@ export function DashboardShell() {
                                               className="mb-3"
                 >
                   <div className="mb-2 px-1 text-[11px] text-[var(--mc-text-soft)]">Updated {timeAgoString}</div>
+                  <SmartFilters agents={agents} onFiltersChange={setFilters} />
                   <KanbanBoard
                     tasksByStatus={filteredTasksByStatus}
                     agents={agents}

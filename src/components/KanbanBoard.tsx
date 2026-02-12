@@ -115,7 +115,7 @@ export function KanbanBoard({
                   <Chip>{tasks.length}</Chip>
                 </div>
 
-                <Droppable droppableId={col.status} type={`tasks-${col.status}`}>
+                <Droppable droppableId={col.status} type="TASK">
                   {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}

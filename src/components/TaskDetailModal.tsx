@@ -7,6 +7,8 @@ import { TaskMessages } from "@/components/TaskMessages";
 import { TaskDocuments } from "@/components/TaskDocuments";
 import { TaskActivity } from "@/components/TaskActivity";
 import { MessageSquare, FileText, Activity, X, User, Calendar, Flag, CircleDot } from "lucide-react";
+import { useOptimisticUI } from "@/hooks/useOptimisticUI";
+import type { TaskStatus } from "@/types";
 
 interface TaskDetailModalProps {
   task: Doc<"tasks"> | null;
@@ -24,8 +26,15 @@ const TABS: Array<{ id: TabType; label: string; icon: React.ReactNode }> = [
 
 export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("messages");
+  const { moveTask } = useOptimisticUI();
 
   if (!task) return null;
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!task) return;
+    const newStatus = e.target.value as TaskStatus;
+    moveTask(task, newStatus);
+  };
 
   const assignee = agents.find((a) =>
     task.assigneeIds.includes(a.agentId)
@@ -134,7 +143,8 @@ export function TaskDetailModal({ task, agents, onClose }: TaskDetailModalProps)
                   Status
                 </p>
                 <select
-                  defaultValue={task.status}
+                  value={task.status}
+                  onChange={handleStatusChange}
                   className="px-2.5 py-1.5 rounded-md border border-[var(--mc-line)] bg-[var(--mc-card)] text-[13px] text-[var(--mc-text)] focus:outline-none focus:ring-2 focus:ring-[var(--mc-accent-green)]"
                 >
                   <option value="inbox">Inbox</option>
