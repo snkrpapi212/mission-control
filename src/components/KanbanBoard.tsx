@@ -80,38 +80,34 @@ export function KanbanBoard({
   };
 
   return (
-    <section className="min-w-0 bg-[var(--mc-panel-soft)]">
-      <PanelHeader
-        dotClass="text-[var(--mc-amber)]"
-        title="Mission Queue"
-        count={totalVisible}
-      />
-
-      <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search tasks"
-          className="mc-focus h-9 w-[260px] rounded-[10px] border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 text-[13px] text-[var(--mc-text)] placeholder:text-[var(--mc-text-soft)]"
-        />
-        <div className="text-[12px] text-[var(--mc-text-soft)]">{totalVisible} active</div>
+    <section className="min-w-0">
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Mission Queue</h2>
+        <div className="flex items-center gap-3">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter tasks..."
+            className="h-8 w-[200px] rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 text-[12px] outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600"
+          />
+          <div className="text-xs text-zinc-400 font-medium">{totalVisible} tasks</div>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 gap-4 p-3 md:grid-cols-2 2xl:grid-cols-6 pb-24 md:pb-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-6 pb-24 md:pb-8">
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
               <div
                 key={col.status}
-                className="rounded-[18px] border border-[var(--mc-line)] bg-[var(--mc-panel)] flex flex-col shadow-sm"
+                className="flex flex-col min-w-0"
               >
-                <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3.5 bg-[var(--mc-panel-soft)]/20">
-                  <h3 className="text-[13px] font-bold tracking-tight text-[var(--mc-text)] flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${col.dotClass.replace('text-', 'bg-')}`} />
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <h3 className="text-[12px] font-semibold tracking-tight text-zinc-500 uppercase flex items-center gap-2">
                     {col.title}
+                    <span className="text-[10px] text-zinc-400 font-normal">({tasks.length})</span>
                   </h3>
-                  <Chip className="bg-[var(--mc-panel-soft)] font-black text-[10px]">{tasks.length}</Chip>
                 </div>
 
                 <Droppable droppableId={col.status} type="TASK">
@@ -119,9 +115,9 @@ export function KanbanBoard({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex flex-col gap-4 p-3 min-h-[150px] transition-colors duration-200 ${
+                      className={`flex flex-col gap-3 min-h-[200px] transition-colors duration-200 rounded-lg ${
                         snapshot.isDraggingOver
-                          ? "bg-[var(--mc-green-soft)]/30"
+                          ? "bg-zinc-50 dark:bg-zinc-900/50"
                           : ""
                       }`}
                     >
@@ -129,16 +125,9 @@ export function KanbanBoard({
                         Array.from({ length: 2 }).map((_, idx) => (
                           <div
                             key={idx}
-                            className="mc-card h-32 animate-pulse p-4"
+                            className="h-24 animate-pulse rounded border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                           />
                         ))
-                      ) : tasks.length === 0 ? (
-                        <div
-                          className="rounded-[14px] border border-dashed border-[var(--mc-line-strong)] bg-[var(--mc-card)] p-4 text-center text-[13px] uppercase tracking-[0.12em] text-[var(--mc-text-soft)]"
-                        >
-                          <div className="text-[24px] mb-2">📭</div>
-                          No tasks in {col.title}
-                        </div>
                       ) : (
                         tasks.map((task, index) => (
                           <Draggable

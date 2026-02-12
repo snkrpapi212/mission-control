@@ -171,16 +171,17 @@ export function DashboardShell() {
         }}
       />
 
-      <div className="mx-auto max-w-[1800px]">
-        <div className="grid grid-cols-1 xl:grid-cols-[280px_minmax(0,1fr)_360px]">
+      <div className="mx-auto max-w-[2000px]">
+        <div className="flex flex-col xl:flex-row">
           {customizationPrefs.showAgentsSidebar && (
-            <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
+            <div className="w-full xl:w-[280px] xl:shrink-0 bg-zinc-50/50 dark:bg-zinc-900/50">
+              <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
+            </div>
           )}
 
           <main 
             id="main-content"
-            className="border-x px-3 py-3 md:px-4 md:py-4" 
-            style={{ borderColor: "var(--mc-border)", background: "var(--mc-panel-2)" }}
+            className="flex-1 min-w-0 px-4 py-4 md:px-8 md:py-6 bg-white dark:bg-zinc-950" 
             role="main"
           >
 
@@ -294,7 +295,7 @@ export function DashboardShell() {
           </main>
 
           {customizationPrefs.showActivityFeed && (
-            <div className="hidden xl:block">
+            <div className="hidden xl:block w-[320px] shrink-0 bg-zinc-50/50 dark:bg-zinc-900/50">
               <ActivityFeed activities={activities} loading={loading} />
             </div>
           )}

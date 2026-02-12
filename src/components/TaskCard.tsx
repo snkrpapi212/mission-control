@@ -4,27 +4,14 @@ import { timeAgo } from "@/lib/time";
 import { Chip } from "@/components/MissionControlPrimitives";
 import { User, Check, Clock, Paperclip, MessageSquare } from "lucide-react";
 
-function railClass(priority: Doc<"tasks">["priority"]) {
-  if (priority === "urgent") return "before:bg-[var(--mc-red)]";
-  if (priority === "high") return "before:bg-[var(--mc-amber)]";
-  if (priority === "medium") return "before:bg-[var(--mc-green)]";
-  return "before:bg-[var(--mc-line-strong)]";
-}
-
-function PriorityBadge({ priority }: { priority: Doc<"tasks">["priority"] }) {
+function PriorityDot({ priority }: { priority: Doc<"tasks">["priority"] }) {
   const configs = {
-    urgent: { label: "URGENT", class: "text-[var(--mc-red)] bg-[var(--mc-red-soft)] border-[var(--mc-red)]/20" },
-    high: { label: "HIGH", class: "text-[var(--mc-amber)] bg-[var(--mc-amber-soft)] border-[var(--mc-amber)]/20" },
-    medium: { label: "MEDIUM", class: "text-[var(--mc-green)] bg-[var(--mc-green-soft)] border-[var(--mc-green)]/20" },
-    low: { label: "LOW", class: "text-[var(--mc-text-soft)] bg-[var(--mc-panel-soft)] border-[var(--mc-line)]" },
+    urgent: "bg-red-500",
+    high: "bg-amber-500",
+    medium: "bg-emerald-500",
+    low: "bg-zinc-300 dark:bg-zinc-600",
   };
-  const { label, class: className } = configs[priority] || configs.low;
-
-  return (
-    <span className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-wider border ${className}`}>
-      {label}
-    </span>
-  );
+  return <span className={`h-1.5 w-1.5 rounded-full ${configs[priority] || configs.low}`} />;
 }
 
 export function TaskCard({
@@ -42,7 +29,7 @@ export function TaskCard({
   return (
     <motion.div
       layoutId={task._id}
-      whileHover={{ y: -2, boxShadow: "var(--sh-card-hover)" }}
+      whileHover={{ y: -1, boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       role="button"
       tabIndex={0}
@@ -53,81 +40,57 @@ export function TaskCard({
           onClick?.();
         }
       }}
-      className={`mc-card mc-focus relative w-full overflow-hidden p-5 text-left before:absolute before:inset-y-0 before:left-0 before:w-[5px] ${railClass(
-        task.priority
-      )} ${
+      className={`relative w-full overflow-hidden p-4 text-left rounded-lg bg-white dark:bg-zinc-900 ring-1 ring-black/5 dark:ring-white/10 shadow-sm ${
         isDragging
-          ? "opacity-50 ring-2 ring-[var(--mc-amber)] scale-[1.02] z-50 shadow-2xl"
-          : "border border-[var(--mc-line)] hover:border-[var(--mc-line-strong)]"
-      } cursor-pointer group transition-all duration-300`}
+          ? "opacity-50 ring-2 ring-violet-500 scale-[1.02] z-50 shadow-xl"
+          : "hover:ring-black/10 dark:hover:ring-white/20"
+      } cursor-pointer group transition-all duration-200`}
     >
       {/* Header */}
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <PriorityBadge priority={task.priority} />
-        <div className="flex items-center gap-1 text-[11px] font-black text-[var(--mc-text-muted)] opacity-60 uppercase tracking-tighter">
-          <Clock size={12} strokeWidth={2.5} />
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <PriorityDot priority={task.priority} />
+          <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wider">
+            {task.priority}
+          </span>
+        </div>
+        <div className="text-[10px] text-zinc-400 tabular-nums font-medium">
           {timeAgo(task.updatedAt)}
         </div>
       </div>
 
       {/* Title */}
-      <h4 className="line-clamp-2 text-[16px] font-bold leading-snug text-[var(--mc-text)] group-hover:text-[var(--mc-green)] transition-colors tracking-tight">
+      <h4 className="line-clamp-2 text-sm font-semibold leading-tight text-zinc-900 dark:text-zinc-50 tracking-tight">
         {task.title}
       </h4>
 
-      {/* Description preview */}
-      {task.description && (
-        <div className="mt-3">
-          <p className="line-clamp-2 text-[13px] leading-relaxed text-[var(--mc-text-soft)] font-medium">
-            {task.description}
-          </p>
-        </div>
-      )}
-
       {/* Tags */}
       {(task.tags ?? []).length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {(task.tags ?? []).slice(0, 3).map((tag) => (
-            <Chip key={tag} className="bg-[var(--mc-panel-soft)] text-[var(--mc-text-muted)] text-[10px] font-black uppercase tracking-wider px-2 py-0.5 border-none shadow-sm">
+        <div className="mt-2.5 flex flex-wrap gap-1">
+          {(task.tags ?? []).slice(0, 2).map((tag) => (
+            <span key={tag} className="text-[10px] text-zinc-500 bg-zinc-50 dark:bg-zinc-800 px-1.5 py-0.5 rounded ring-1 ring-black/5 dark:ring-white/5">
               {tag}
-            </Chip>
-          ))}
-          {(task.tags ?? []).length > 3 && (
-            <span className="text-[10px] font-black text-[var(--mc-text-muted)] opacity-50">
-              +{(task.tags ?? []).length - 3}
             </span>
-          )}
+          ))}
         </div>
       )}
 
       {/* Assignee row */}
-      <div className={`mt-5 flex items-center justify-between gap-2 rounded-[14px] px-3 py-3 transition-all duration-300 ${
-        assignee ? "bg-[var(--mc-panel-soft)]/50 group-hover:bg-[var(--mc-panel-soft)]" : "border border-dashed border-[var(--mc-line)] opacity-60"
-      }`}>
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           {assignee ? (
-            <>
-              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text-muted)] shadow-sm group-hover:scale-110 transition-transform">
-                <User size={16} strokeWidth={2.5} />
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="h-5 w-5 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[10px] font-medium text-zinc-500">
+                {assignee.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-[13px] font-bold text-[var(--mc-text)] leading-tight">
-                  {assignee.name}
-                </p>
-                <p className="truncate text-[11px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wide opacity-70">{assignee.role}</p>
-              </div>
-            </>
+              <span className="truncate text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
+                {assignee.name}
+              </span>
+            </div>
           ) : (
-            <span className="text-[11px] font-black text-[var(--mc-text-soft)] uppercase tracking-widest px-1">Unassigned</span>
+            <span className="text-[10px] text-zinc-400 italic">Unassigned</span>
           )}
         </div>
-        {assignee && (
-          <div
-            className="h-6 w-6 rounded-full bg-[var(--mc-green)] flex items-center justify-center shadow-md ring-2 ring-white dark:ring-[var(--mc-panel)]"
-          >
-            <Check size={14} strokeWidth={3.5} className="text-white" />
-          </div>
-        )}
       </div>
     </motion.div>
   );
