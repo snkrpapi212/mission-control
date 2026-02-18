@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 
 function getSafeNext(nextParam: string | null): string {
   if (!nextParam || !nextParam.startsWith("/")) return "/dashboard";
@@ -125,6 +126,8 @@ export default function LoginClient() {
             {error}
           </p>
         )}
+
+        <OAuthButtons redirectUrl={next} />
 
         <button
           type="submit"
