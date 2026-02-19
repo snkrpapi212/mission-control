@@ -21,9 +21,13 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
 
   // Initialize from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("darkMode");
+    const saved = localStorage.getItem("mc-theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setIsDarkMode(saved ? JSON.parse(saved) : prefersDark);
+    if (saved) {
+      setIsDarkMode(saved === "dark");
+    } else {
+      setIsDarkMode(prefersDark);
+    }
     setMounted(true);
   }, []);
 
@@ -32,12 +36,9 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
     if (!mounted) return;
 
     const html = document.documentElement;
-    if (isDarkMode) {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
-    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
+    const theme = isDarkMode ? "dark" : "light";
+    html.setAttribute("data-theme", theme);
+    localStorage.setItem("mc-theme", theme);
   }, [isDarkMode, mounted]);
 
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);

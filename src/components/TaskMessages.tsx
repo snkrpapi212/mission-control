@@ -4,46 +4,18 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import type { Doc } from "../../convex/_generated/dataModel";
+import { useMessagesByTask } from "@/hooks/useConvexData";
 
 interface TaskMessagesProps {
-  // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
   task: Doc<"tasks">;
   agents: Doc<"agents">[];
 }
 
-interface Message {
-  id: string;
-  author: string;
-  authorId: string;
-  content: string;
-  timestamp: number;
-  attachments?: string[];
-}
-
-// Mock messages for now - would be fetched from Convex in production
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: "msg1",
-    author: "Jarvis",
-    authorId: "main",
-    content: "Started working on this task. Will have an update tomorrow.",
-    timestamp: Date.now() - 3600000,
-    attachments: [],
-  },
-  {
-    id: "msg2",
-    author: "Friday",
-    authorId: "developer",
-    content: "**Bold update:** I've completed the foundation work. Ready for review when you are.",
-    timestamp: Date.now() - 1800000,
-    attachments: ["design-spec.pdf"],
-  },
-];
-
-export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
+export function TaskMessages({ task, agents }: TaskMessagesProps) {
   const [newMessage, setNewMessage] = useState("");
   const [mentionSearch, setMentionSearch] = useState("");
   const [showMentions, setShowMentions] = useState(false);
+  const messages = useMessagesByTask(task._id) ?? [];
 
   const byAgentId = useMemo(() => {
     const map = new Map<string, Doc<"agents">>();
@@ -103,26 +75,27 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
     <div className="flex flex-col h-full">
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {MOCK_MESSAGES.map((msg, idx) => {
-          const author = byAgentId.get(msg.authorId);
+        {messages.length === 0 ? (
+          <div className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4 text-[13px] text-[var(--mc-text-soft)]">
+            No messages on this task yet.
+          </div>
+        ) : messages.map((msg) => {
+          const author = byAgentId.get(msg.fromAgentId);
           return (
             <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1, duration: 0.2 }}
-              className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] p-4"
+              key={msg._id}
+              className="rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-4"
             >
               {/* Message Header */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {author && <span className="text-[18px]">{author.emoji}</span>}
                   <span className="font-semibold text-[14px] text-[var(--mc-text)]">
-                    {msg.author}
+                    {author?.name || msg.fromAgentId}
                   </span>
                 </div>
                 <span className="text-[12px] text-[var(--mc-text-soft)]">
-                  {new Date(msg.timestamp).toLocaleTimeString()}
+                  {new Date(msg.createdAt).toLocaleTimeString()}
                 </span>
               </div>
 
@@ -130,19 +103,19 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
               <div className="prose prose-sm max-w-none text-[14px] text-[var(--mc-text)]">
                 <ReactMarkdown
                   components={{
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     p: ({ _node, ...props }: any) => (
                       <p className="my-0 text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     strong: ({ _node, ...props }: any) => (
                       <strong className="font-bold text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     em: ({ _node, ...props }: any) => (
                       <em className="italic text-[var(--mc-text)]" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     code: ({ _node, inline, ...props }: any) =>
                       inline ? (
                         <code
@@ -155,18 +128,18 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
                           {...props}
                         />
                       ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     a: ({ _node, ...props }: any) => (
                       <a
                         className="text-[var(--mc-accent-green)] hover:underline"
                         {...props}
                       />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     ul: ({ _node, ...props }: any) => (
                       <ul className="list-disc list-inside my-2" {...props} />
                     ),
-                    // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-explicit-any
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
                     li: ({ _node, ...props }: any) => (
                       <li className="my-0.5" {...props} />
                     ),
@@ -177,16 +150,11 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
               </div>
 
               {/* Attachments */}
-              {msg.attachments && msg.attachments.length > 0 && (
+              {msg.attachmentIds && msg.attachmentIds.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {msg.attachments.map((file) => (
-                    <div
-                      key={file}
-                      className="px-2 py-1 rounded bg-[var(--mc-panel-soft)] text-[12px] text-[var(--mc-text-soft)] flex items-center gap-1"
-                    >
-                      📎 {file}
-                    </div>
-                  ))}
+                  <div className="px-2 py-1 rounded bg-[var(--mc-panel-soft)] text-[12px] text-[var(--mc-text-soft)] flex items-center gap-1">
+                    📎 {msg.attachmentIds.length} attachment{msg.attachmentIds.length > 1 ? "s" : ""}
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -209,10 +177,7 @@ export function TaskMessages({ task: _task, agents }: TaskMessagesProps) {
           {/* @mention Autocomplete */}
           {showMentions && mentionSearch && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-full left-0 right-0 mb-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg max-h-[200px] overflow-y-auto"
+                              className="absolute bottom-full left-0 right-0 mb-2 border border-[var(--mc-line)] rounded bg-[var(--mc-panel)] shadow-lg max-h-[200px] overflow-y-auto"
             >
               {filteredMentions.map((agent) => (
                 <button

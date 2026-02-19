@@ -1,21 +1,125 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
-import { PanelHeader, Chip } from "@/components/MissionControlPrimitives";
 import { AgentDetailModal } from "@/components/AgentDetailModal";
 
-function roleBadge(level: Doc<"agents">["level"]) {
-  if (level === "lead") return "LEAD";
-  if (level === "intern") return "INT";
-  return "SPC";
+const TWO_MINUTES = 2 * 60 * 1000;
+
+function isOnline(lastHeartbeat: number) {
+  return Date.now() - lastHeartbeat < TWO_MINUTES;
 }
 
-function statusClass(status: Doc<"agents">["status"]) {
-  if (status === "working") return "bg-[var(--mc-green)]";
-  if (status === "blocked") return "bg-[var(--mc-red)]";
-  return "bg-[var(--mc-amber)]";
+/** Derive gradient from model name for visual identity */
+function modelGradient(model?: string) {
+  const m = (model || "").toLowerCase();
+  if (m.includes("claude") || m.includes("anthropic")) {
+    return "linear-gradient(135deg, #BC8CFF 0%, #7C3AED 100%)";
+  }
+  if (m.includes("gpt") || m.includes("openai") || m.includes("codex")) {
+    return "linear-gradient(135deg, #79C0FF 0%, #0969DA 100%)";
+  }
+  if (m.includes("gemini") || m.includes("google") || m.includes("glm") || m.includes("zai")) {
+    return "linear-gradient(135deg, #FFA657 0%, #BF7F00 100%)";
+  }
+  if (m.includes("kimi") || m.includes("minimax") || m.includes("deepseek")) {
+    return "linear-gradient(135deg, #56D364 0%, #1A7F37 100%)";
+  }
+  // default — muted blue-gray
+  return "linear-gradient(135deg, #8B949E 0%, #484F58 100%)";
+}
+
+/** The agent avatar circle with status pulse */
+export function AgentAvatar({
+  name,
+  lastHeartbeat,
+  emoji,
+  model,
+  size = "md",
+}: {
+  name: string;
+  lastHeartbeat: number;
+  emoji?: string;
+  model?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const online = isOnline(lastHeartbeat);
+  const gradient = modelGradient(model);
+
+  const sizeMap = {
+    sm: { outer: "h-7 w-7", text: "text-[9px]", dot: "h-1.5 w-1.5" },
+    md: { outer: "h-9 w-9", text: "text-[11px]", dot: "h-2 w-2" },
+    lg: { outer: "h-11 w-11", text: "text-[13px]", dot: "h-2.5 w-2.5" },
+  }[size];
+
+  return (
+    <div className="relative shrink-0">
+      <div
+        className={`flex ${sizeMap.outer} items-center justify-center rounded-full font-bold text-white shadow-sm`}
+        style={{ background: gradient }}
+      >
+        {emoji ? (
+          <span className="leading-none" style={{ fontSize: size === "sm" ? 12 : size === "md" ? 16 : 20 }}>
+            {emoji}
+          </span>
+        ) : (
+          <span className={sizeMap.text}>{initials}</span>
+        )}
+      </div>
+
+      {/* Status dot */}
+      <span
+        className={`absolute -bottom-px -right-px ${sizeMap.dot} rounded-full ring-[2px]`}
+        style={{
+          background: online ? "var(--status-online)" : "var(--status-offline)",
+          ringColor: "var(--mc-panel)",
+          boxShadow: online
+            ? `0 0 0 2px var(--mc-panel), 0 0 0 4px var(--status-online)`
+            : `0 0 0 2px var(--mc-panel)`,
+          ...(online ? { animation: "status-pulse 2.5s ease-in-out infinite" } : {}),
+        }}
+      />
+    </div>
+  );
+}
+
+/** Role badge */
+export function RoleBadge({ role, level }: { role: string; level?: string }) {
+  const lvl = level?.toLowerCase() ?? "";
+  let color = "var(--mc-text-muted)";
+  let bg = "var(--mc-panel-2)";
+  let border = "var(--mc-line)";
+
+  if (lvl === "lead") {
+    color = "var(--mc-purple)";
+    bg = "var(--mc-purple-glow)";
+    border = "var(--mc-purple-border)";
+  } else if (lvl === "specialist") {
+    color = "var(--mc-cyan)";
+    bg = "var(--mc-cyan-glow)";
+    border = "var(--mc-cyan-border)";
+  } else if (lvl === "intern") {
+    color = "var(--mc-amber)";
+    bg = "var(--mc-amber-glow)";
+    border = "var(--mc-amber-border)";
+  }
+
+  return (
+    <span
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider"
+      style={{ color, background: bg, border: `1px solid ${border}` }}
+    >
+      {role}
+    </span>
+  );
 }
 
 interface AgentListProps {
@@ -28,147 +132,224 @@ export function AgentSidebar({ agents, taskTitles, loading }: AgentListProps) {
   const [selectedAgent, setSelectedAgent] = useState<Doc<"agents"> | null>(null);
   const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
 
+  const selectedAgentTaskTitle = useMemo(() => {
+    if (!selectedAgent?.currentTaskId) return undefined;
+    return taskTitles.get(selectedAgent.currentTaskId);
+  }, [selectedAgent, taskTitles]);
+
+  const onlineCount = agents.filter((a) => isOnline(a.lastHeartbeat)).length;
+
   return (
     <>
-      <aside className="hidden xl:flex min-h-[calc(100vh-var(--h-topbar))] flex-col border-r border-[var(--mc-line)] bg-[var(--mc-panel)]">
-        <PanelHeader title="Agents" count={agents.length} />
+      <aside
+        className="hidden xl:flex flex-col"
+        style={{
+          width: "var(--w-left)",
+          minWidth: "var(--w-left)",
+          minHeight: "calc(100vh - var(--h-topbar))",
+          background: "var(--mc-panel)",
+          borderRight: "1px solid var(--mc-line)",
+        }}
+      >
+        {/* Section header */}
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{ borderBottom: "1px solid var(--mc-line)" }}
+        >
+          <span
+            className="text-[10px] font-bold uppercase tracking-[0.15em]"
+            style={{ color: "var(--mc-text-subtle)" }}
+          >
+            Squad
+          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{
+                background: "var(--status-online)",
+                boxShadow: "0 0 0 2px var(--mc-green-glow)",
+                animation: "status-pulse 2.5s ease-in-out infinite",
+              }}
+            />
+            <span
+              className="text-[10px] font-semibold tabular-nums"
+              style={{ color: "var(--mc-green)" }}
+            >
+              {onlineCount} online
+            </span>
+          </div>
+        </div>
 
-        <ul className="overflow-y-auto">
+        {/* Agent list */}
+        <ul className="flex-1 overflow-y-auto py-2">
           {loading
-            ? Array.from({ length: 7 }).map((_, idx) => (
-                <motion.li
-                  key={`skeleton-${idx}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className="border-b border-[var(--mc-line)] p-4"
-                >
-                  <div className="mc-card h-20 animate-pulse" />
-                </motion.li>
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <li key={i} className="px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-9 w-9 shrink-0 rounded-full skeleton-shimmer"
+                    />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-2.5 w-24 rounded skeleton-shimmer" />
+                      <div className="h-2 w-16 rounded skeleton-shimmer" />
+                    </div>
+                  </div>
+                </li>
               ))
             : agents.map((agent) => {
                 const currentTask = agent.currentTaskId
                   ? taskTitles.get(agent.currentTaskId)
                   : undefined;
                 const isExpanded = expandedAgentId === agent._id;
+                const online = isOnline(agent.lastHeartbeat);
 
                 return (
-                  <motion.li
-                    key={agent._id}
-                    layout
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="border-b border-[var(--mc-line)]"
-                  >
-                    <motion.button
-                      onClick={() => setExpandedAgentId(isExpanded ? null : agent._id)}
-                      className="w-full px-4 py-3 text-left hover:bg-[var(--mc-panel-soft)] transition-colors"
-                      whileHover={{ backgroundColor: "var(--mc-panel-soft)" }}
+                  <li key={agent._id}>
+                    <motion.div
+                      className="mx-2 rounded-lg overflow-hidden"
+                      style={{
+                        marginBottom: 2,
+                        border: isExpanded
+                          ? "1px solid var(--mc-cyan-border)"
+                          : "1px solid transparent",
+                        background: isExpanded ? "var(--mc-panel-2)" : "transparent",
+                      }}
+                      animate={{ borderColor: isExpanded ? "var(--mc-cyan-border)" : "transparent" }}
+                      transition={{ duration: 0.15 }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="grid h-10 w-10 place-items-center rounded-[var(--r-tile)] border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] text-[16px]">
-                            {agent.emoji || "🤖"}
-                          </div>
-                          {/* Pulse animation on active status */}
-                          {agent.status === "working" && (
-                            <motion.div
-                              className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-[var(--mc-green)]"
-                              animate={{ scale: [1, 1.3, 1] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                              aria-label="Active status"
-                            />
-                          )}
-                        </div>
+                      <button
+                        type="button"
+                        className="group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-100"
+                        style={{
+                          background: "transparent",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isExpanded)
+                            e.currentTarget.style.background = "var(--mc-panel-2)";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isExpanded) e.currentTarget.style.background = "";
+                        }}
+                        onClick={() =>
+                          setExpandedAgentId(isExpanded ? null : agent._id)
+                        }
+                        aria-expanded={isExpanded}
+                      >
+                        <AgentAvatar
+                          name={agent.name}
+                          lastHeartbeat={agent.lastHeartbeat}
+                          emoji={agent.emoji}
+                          model={agent.model}
+                        />
 
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-[15px] font-semibold leading-tight text-[var(--mc-text)]">
+                          <div className="flex items-center justify-between gap-1">
+                            <p
+                              className="truncate text-[12px] font-semibold leading-tight"
+                              style={{ color: "var(--mc-text)" }}
+                            >
                               {agent.name}
                             </p>
-                            <Chip>{roleBadge(agent.level)}</Chip>
+                            {online && agent.status === "working" && (
+                              <span
+                                className="shrink-0 text-[9px] font-bold uppercase tracking-wider"
+                                style={{ color: "var(--mc-green)" }}
+                              >
+                                ●
+                              </span>
+                            )}
                           </div>
-                          <p className="truncate text-[13px] text-[var(--mc-text-muted)]">
-                            {agent.role}
-                          </p>
+                          <div className="mt-1">
+                            <RoleBadge role={agent.role} level={agent.level} />
+                          </div>
                         </div>
+                      </button>
 
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-[var(--mc-text-muted)]"
-                        >
-                          ▼
-                        </motion.div>
-                      </div>
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.18, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-3 pb-3 space-y-2.5">
+                              {/* Active task */}
+                              {currentTask ? (
+                                <div
+                                  className="rounded-md p-2.5"
+                                  style={{
+                                    background: "var(--mc-panel-3)",
+                                    border: "1px solid var(--mc-line)",
+                                  }}
+                                >
+                                  <p
+                                    className="text-[9px] font-bold uppercase tracking-widest mb-1"
+                                    style={{ color: "var(--mc-text-subtle)" }}
+                                  >
+                                    Active Task
+                                  </p>
+                                  <p
+                                    className="text-[11px] font-medium leading-snug line-clamp-2"
+                                    style={{ color: "var(--mc-text-muted)" }}
+                                  >
+                                    {currentTask}
+                                  </p>
+                                </div>
+                              ) : (
+                                <p
+                                  className="text-[11px] italic"
+                                  style={{ color: "var(--mc-text-subtle)" }}
+                                >
+                                  No active task
+                                </p>
+                              )}
 
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--mc-text-muted)]">
-                          <span
-                            className={`inline-block h-2.5 w-2.5 rounded-full ${statusClass(
-                              agent.status
-                            )}`}
-                          />
-                          {agent.status}
-                        </div>
-                        <p className="truncate text-[13px] text-[var(--mc-text-soft)]">
-                          {currentTask || "No active task"}
-                        </p>
-                      </div>
-                    </motion.button>
+                              {/* Model label */}
+                              {agent.model && (
+                                <p
+                                  className="text-[10px] truncate"
+                                  style={{ color: "var(--mc-text-subtle)" }}
+                                >
+                                  <span style={{ color: "var(--mc-text-muted)" }}>
+                                    Model:{" "}
+                                  </span>
+                                  {agent.model}
+                                </p>
+                              )}
 
-                    {/* Expanded detail section */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden border-t border-[var(--mc-line)]"
-                        >
-                          <div className="px-4 py-3 space-y-3 bg-[var(--mc-panel-soft)]">
-                            {/* Performance sparkline placeholder */}
-                            <div>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mc-text-muted)] mb-1.5">
-                                This week
-                              </p>
-                              <div className="h-8 rounded bg-[var(--mc-line)] flex items-end gap-0.5 p-1">
-                                {[3, 5, 2, 6, 4, 8, 5].map((value, i) => (
-                                  <motion.div
-                                    key={i}
-                                    className="flex-1 bg-[var(--mc-green)] rounded-t"
-                                    initial={{ height: 0 }}
-                                    animate={{ height: `${(value / 8) * 100}%` }}
-                                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                                  />
-                                ))}
-                              </div>
+                              {/* View profile button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAgent(agent);
+                                }}
+                                className="w-full rounded-md py-1.5 text-[11px] font-semibold text-white transition-opacity hover:opacity-90"
+                                style={{
+                                  background:
+                                    "linear-gradient(135deg, var(--mc-cyan) 0%, var(--mc-purple) 120%)",
+                                }}
+                              >
+                                View Profile
+                              </button>
                             </div>
-
-                            {/* Detail modal trigger */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAgent(agent);
-                              }}
-                              className="w-full rounded px-3 py-2 text-[13px] font-semibold text-[var(--mc-text)] bg-[var(--mc-button-bg)] hover:bg-[var(--mc-button-hover)] transition-colors"
-                            >
-                              View Full Profile
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.li>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  </li>
                 );
               })}
         </ul>
       </aside>
 
       {/* Agent detail modal */}
-      <AgentDetailModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
+      <AgentDetailModal
+        agent={selectedAgent}
+        currentTaskTitle={selectedAgentTaskTitle}
+        onClose={() => setSelectedAgent(null)}
+      />
     </>
   );
 }

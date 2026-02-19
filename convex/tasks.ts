@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, requireActorMatch, requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -11,6 +12,8 @@ export const create = mutation({
     tags: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.createdBy);
     const now = Date.now();
     const taskId = await ctx.db.insert("tasks", {
       title: args.title,
@@ -53,6 +56,8 @@ export const update = mutation({
     agentId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.agentId);
     const task = await ctx.db.get(args.id);
     if (!task) {
       throw new Error("Task not found");
@@ -129,7 +134,15 @@ export const getAll = query({
 });
 
 export const clearAll = mutation({
-  handler: async (ctx) => {
+  args: {
+    adminKey: v.string(),
+    confirm: v.literal("DELETE_ALL_TASKS"),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    if (args.adminKey !== process.env.MC_ADMIN_KEY) {
+      throw new Error("Unauthorized");
+    }
     const allTasks = await ctx.db.query("tasks").collect();
     for (const task of allTasks) {
       await ctx.db.delete(task._id);

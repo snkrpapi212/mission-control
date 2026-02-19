@@ -14,7 +14,9 @@ export interface CustomizationPrefs {
 
 interface DashboardCustomizationProps {
   prefs: CustomizationPrefs;
-  onPrefsChange: (_prefs: CustomizationPrefs) => void;
+  // eslint-disable-next-line no-unused-vars
+  onPrefsChange: (prefs: CustomizationPrefs) => void;
+  trigger?: React.ReactNode;
 }
 
 const DENSITY_LEVELS: Array<{
@@ -30,6 +32,7 @@ const DENSITY_LEVELS: Array<{
 export function DashboardCustomization({
   prefs,
   onPrefsChange,
+  trigger,
 }: DashboardCustomizationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,13 +57,19 @@ export function DashboardCustomization({
   return (
     <>
       {/* Settings Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="p-2 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[18px]"
-        title="Customization settings"
-      >
-        ⚙️
-      </button>
+      {trigger ? (
+        <div onClick={() => setIsOpen(true)} className="cursor-pointer w-full">
+          {trigger}
+        </div>
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="p-2 rounded hover:bg-[var(--mc-panel-soft)] transition-colors text-[18px]"
+          title="Customization settings"
+        >
+          ⚙️
+        </button>
+      )}
 
       {/* Customization Panel - Slide-out from right */}
       <AnimatePresence>

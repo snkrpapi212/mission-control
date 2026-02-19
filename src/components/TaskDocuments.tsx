@@ -1,98 +1,158 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
+import { useDocumentsByTask, useTaskMutations } from "@/hooks/useConvexData";
+import { FileText, X, Eye, Plus, FileCode, FileType, ScrollText } from "lucide-react";
 
 interface TaskDocumentsProps {
-  // eslint-disable-next-line no-unused-vars
   task: Doc<"tasks">;
 }
 
-interface Document {
-  id: string;
-  title: string;
-  type: string;
-  size: string;
-  createdAt: number;
-}
+const TYPE_MAP: Record<string, { label: string; icon: React.ReactNode }> = {
+  deliverable: { label: "Deliverable", icon: <FileText size={14} /> },
+  research: { label: "Research", icon: <ScrollText size={14} /> },
+  protocol: { label: "Protocol", icon: <FileCode size={14} /> },
+  analysis: { label: "Analysis", icon: <FileType size={14} /> },
+  draft: { label: "Draft", icon: <FileText size={14} /> },
+};
 
-// Mock documents for now
-const MOCK_DOCUMENTS: Document[] = [
-  {
-    id: "doc1",
-    title: "Design Specification v1",
-    type: "PDF",
-    size: "2.4 MB",
-    createdAt: Date.now() - 86400000,
-  },
-  {
-    id: "doc2",
-    title: "Technical Architecture",
-    type: "Google Docs",
-    size: "—",
-    createdAt: Date.now() - 172800000,
-  },
-];
+export function TaskDocuments({ task }: TaskDocumentsProps) {
+  const docsQuery = useDocumentsByTask(task._id);
+  const docs = docsQuery ?? [];
+  const { createDocument } = useTaskMutations();
 
-export function TaskDocuments({ task: _task }: TaskDocumentsProps) {
+  const [activeDocId, setActiveDocId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const activeDoc = useMemo(
+    () => (docsQuery ?? []).find((d) => d._id === activeDocId) ?? null,
+    [docsQuery, activeDocId]
+  );
+
+  const handleCreateQuickDoc = async () => {
+    if (creating) return;
+    setCreating(true);
+    try {
+      const now = new Date().toLocaleString();
+      const title = `Task Note - ${now}`;
+      const content = `# ${task.title}\n\nQuick note created at ${now}.\n\n- Status: ${task.status}\n- Priority: ${task.priority}`;
+
+      const id = await createDocument({
+        title,
+        content,
+        type: "draft",
+        taskId: task._id,
+        createdBy: task.createdBy,
+      });
+
+      setActiveDocId(id);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-4">
       {/* Documents List */}
-      {MOCK_DOCUMENTS.length > 0 ? (
-        <div className="space-y-3">
-          {MOCK_DOCUMENTS.map((doc, idx) => (
+      {docs.length > 0 ? (
+        <div className="space-y-2">
+          {docs.map((doc) => (
             <motion.div
-              key={doc.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.1, duration: 0.2 }}
-              className="p-4 rounded border border-[var(--mc-line)] bg-[var(--mc-card)] hover:bg-[var(--mc-panel-soft)] transition-colors group"
+              key={doc._id}
+              className="group rounded-[var(--r-card)] border border-[var(--mc-line)] bg-[var(--mc-card)] p-3.5 transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)]"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[18px]">📄</span>
-                    <h3 className="text-[14px] font-semibold text-[var(--mc-text)] truncate">
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <span className="text-[var(--mc-text-muted)]">{TYPE_MAP[doc.type]?.icon || <FileText size={14} />}</span>
+                    <h3 className="truncate text-[14px] font-medium text-[var(--mc-text)]">
                       {doc.title}
                     </h3>
                   </div>
-                  <div className="flex items-center gap-4 text-[12px] text-[var(--mc-text-soft)]">
-                    <span className="px-2 py-0.5 rounded bg-[var(--mc-line)] uppercase tracking-[0.05em] font-semibold">
-                      {doc.type}
+                  <div className="flex items-center gap-3 text-[11px] text-[var(--mc-text-soft)]">
+                    <span className="rounded-md bg-[var(--mc-line)] px-2 py-0.5 font-medium tracking-[0.02em]">
+                      {TYPE_MAP[doc.type]?.label || doc.type}
                     </span>
-                    <span>{doc.size}</span>
-                    <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                    <span>{new Date(doc.updatedAt).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1.5 rounded hover:bg-[var(--mc-line)] text-[16px]">
-                    👁️
-                  </button>
-                  <button className="p-1.5 rounded hover:bg-[var(--mc-red-soft)] text-[16px] hover:text-[var(--mc-red)]">
-                    🗑️
-                  </button>
-                </div>
+
+                <button
+                  onClick={() => setActiveDocId(doc._id)}
+                  className="shrink-0 rounded-md p-2 text-[var(--mc-text-muted)] hover:bg-[var(--mc-line)] hover:text-[var(--mc-text)] transition-colors"
+                  title="View document"
+                  aria-label={`View document ${doc.title}`}
+                >
+                  <Eye size={16} />
+                </button>
               </div>
             </motion.div>
           ))}
         </div>
       ) : (
-        <div className="py-8 text-center text-[14px] text-[var(--mc-text-soft)]">
-          <div className="text-[32px] mb-2">📭</div>
-          <p>No documents yet.</p>
-          <p className="text-[12px] mt-1">Click the button below to add one.</p>
-        </div>
+        <motion.div 
+                  className="py-10 px-6 text-center rounded-[var(--r-card)] border border-dashed border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50"
+        >
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-[var(--r-card)] bg-[var(--mc-line)] text-[var(--mc-text-muted)] mb-3">
+            <FileText size={24} />
+          </div>
+          <h3 className="text-[15px] font-medium text-[var(--mc-text)] mb-1">No documents yet</h3>
+          <p className="text-[13px] text-[var(--mc-text-soft)] leading-relaxed">
+            Attach notes, specs, or research to keep everything organized.
+          </p>
+        </motion.div>
       )}
 
-      {/* Add Document Button */}
       <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full mt-6 py-3 rounded border-2 border-dashed border-[var(--mc-line)] bg-transparent hover:bg-[var(--mc-panel-soft)] transition-colors text-[14px] font-semibold text-[var(--mc-text)] flex items-center justify-center gap-2"
+        onClick={handleCreateQuickDoc}
+        disabled={creating}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-[var(--r-card)] border-2 border-dashed border-[var(--mc-line)] bg-transparent py-3 text-[14px] font-medium text-[var(--mc-text)] transition-colors hover:bg-[var(--mc-panel-soft)] hover:border-[var(--mc-line-strong)] disabled:opacity-60"
       >
-        <span className="text-[18px]">➕</span>
-        Add Document
+        <Plus size={18} />
+        {creating ? "Creating..." : "Add Document"}
       </motion.button>
+
+      {/* Document Viewer Modal */}
+      <AnimatePresence>
+        {activeDoc && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setActiveDocId(null)}
+          >
+            <motion.div
+              className="w-full max-w-2xl max-h-[85vh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between border-b border-[var(--mc-line)] px-5 py-4 bg-[var(--mc-panel-soft)]">
+                <div className="min-w-0 flex-1 pr-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[var(--mc-text-muted)]">{TYPE_MAP[activeDoc.type]?.icon || <FileText size={16} />}</span>
+                    <h3 className="truncate text-[17px] font-semibold text-[var(--mc-text)]">{activeDoc.title}</h3>
+                  </div>
+                  <p className="text-[12px] text-[var(--mc-text-soft)]">
+                    {TYPE_MAP[activeDoc.type]?.label || activeDoc.type} · Updated {new Date(activeDoc.updatedAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveDocId(null)}
+                  className="shrink-0 rounded-[var(--r-card)] p-2 text-[var(--mc-text-muted)] hover:bg-[var(--mc-line)] hover:text-[var(--mc-text)] transition-colors"
+                  aria-label="Close document"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="max-h-[60vh] overflow-y-auto px-5 py-5 bg-[var(--mc-panel)]">
+                <pre className="whitespace-pre-wrap text-[14px] leading-7 text-[var(--mc-text)] font-mono">{activeDoc.content}</pre>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect } from "react";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, Clock } from "lucide-react";
 import { timeAgo } from "@/lib/time";
 import { useDarkMode } from "@/context/DarkModeContext";
 
@@ -67,14 +67,12 @@ export function NotificationDropdown({
   return (
     <div
       ref={containerRef}
-      className={`absolute top-full right-0 mt-2 w-96 rounded-lg border shadow-lg max-h-96 overflow-hidden flex flex-col ${
-        isDarkMode ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-white"
-      }`}
+      className="absolute top-full right-0 mt-2 w-96 rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] shadow-lg max-h-96 overflow-hidden flex flex-col z-50"
     >
-      <div className={`flex items-center justify-between border-b px-4 py-3 ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
+      <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-4 py-3 bg-[var(--mc-panel-soft)]/50">
         <div>
-          <h3 className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Notifications</h3>
-          {unreadCount > 0 && <p className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>{unreadCount} unread</p>}
+          <h3 className="text-sm font-semibold text-[var(--mc-text)]">Notifications</h3>
+          {unreadCount > 0 && <p className="text-xs mt-1 text-[var(--mc-text-soft)]">{unreadCount} unread</p>}
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
@@ -82,9 +80,7 @@ export function NotificationDropdown({
               type="button"
               onClick={onMarkAllAsRead}
               title="Mark all as read"
-              className={`p-1 rounded transition-colors ${
-                isDarkMode ? "hover:bg-gray-700 text-gray-400 hover:text-white" : "hover:bg-gray-100 text-gray-600 hover:text-gray-900"
-              }`}
+              className="p-1 rounded transition-colors hover:bg-[var(--mc-line)] text-[var(--mc-text-soft)] hover:text-[var(--mc-text)]"
             >
               <Check className="w-4 h-4" />
             </button>
@@ -94,9 +90,7 @@ export function NotificationDropdown({
               type="button"
               onClick={onClearAll}
               title="Clear all notifications"
-              className={`p-1 rounded transition-colors ${
-                isDarkMode ? "hover:bg-gray-700 text-gray-400 hover:text-white" : "hover:bg-gray-100 text-gray-600 hover:text-gray-900"
-              }`}
+              className="p-1 rounded transition-colors hover:bg-[var(--mc-line)] text-[var(--mc-text-soft)] hover:text-[var(--mc-text)]"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -104,31 +98,36 @@ export function NotificationDropdown({
         </div>
       </div>
 
-      <ul className={`overflow-y-auto flex-1 divide-y ${isDarkMode ? "divide-gray-700" : "divide-gray-200"}`}>
+      <ul className="overflow-y-auto flex-1 divide-y divide-[var(--mc-line)]">
         {notifications.length === 0 ? (
-          <li className={`px-4 py-6 text-center text-sm ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>No notifications yet</li>
+          <li className="px-4 py-6 text-center text-sm text-[var(--mc-text-soft)]">No notifications yet</li>
         ) : (
           notifications.map((notif) => (
             <li
               key={notif._id}
-              className={`px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer ${
-                notif.isRead ? (isDarkMode ? "bg-gray-800" : "bg-white") : isDarkMode ? "bg-gray-750" : "bg-blue-50"
+              className={`px-4 py-3 transition-colors hover:bg-[var(--mc-panel-soft)]/50 cursor-pointer ${
+                notif.isRead ? "" : "bg-[var(--mc-accent-soft)]/30"
               }`}
               onClick={() => onMarkAsRead?.(notif._id)}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded ${isDarkMode ? typeLabelDarkStyles[notif.type] : typeLabelStyles[notif.type]}`}>
-                      {notif.type.charAt(0).toUpperCase() + notif.type.slice(1)}
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ring-1 ring-inset ${
+                      notif.type === 'info' ? 'bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20' :
+                      notif.type === 'warning' ? 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20' :
+                      notif.type === 'success' ? 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20' :
+                      'bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20'
+                    }`}>
+                      {notif.type}
                     </span>
-                    {!notif.isRead && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+                    {!notif.isRead && <span className="h-2 w-2 rounded-full bg-[var(--mc-accent)]" />}
                   </div>
-                  <h4 className={`text-sm font-medium mt-1 ${isDarkMode ? "text-white" : "text-gray-900"}`}>{notif.title}</h4>
-                  <p className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>{notif.message}</p>
-                  <div className="text-xs mt-2 flex gap-2 text-gray-500">
-                    <span>{timeAgo(notif.createdAt)}</span>
-                    {notif.agentId && <span>· by {notif.agentId}</span>}
+                  <h4 className="text-sm font-semibold mt-1.5 text-[var(--mc-text)] leading-tight">{notif.title}</h4>
+                  <p className="text-[12px] mt-1 text-[var(--mc-text-muted)] leading-relaxed">{notif.message}</p>
+                  <div className="text-[10px] mt-2.5 flex items-center gap-2 text-[var(--mc-text-soft)] font-medium">
+                    <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(notif.createdAt)}</span>
+                    {notif.agentId && <span>· {notif.agentId}</span>}
                   </div>
                 </div>
               </div>

@@ -71,7 +71,7 @@ describe("DashboardShell", () => {
   it("renders key dashboard sections (static render)", () => {
     const html = renderToStaticMarkup(<DashboardShell />);
 
-    expect(html).toContain("MISSION CONTROL");
+    expect(html).toContain("Mission Control");
     expect(html).toContain("Agents");
     expect(html).toContain("Mission Queue");
     expect(html).toContain("Live Feed");

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import type { Doc } from "../../convex/_generated/dataModel";
 
 interface TaskActivityProps {
-  // eslint-disable-next-line no-unused-vars
   task: Doc<"tasks">;
 }
 

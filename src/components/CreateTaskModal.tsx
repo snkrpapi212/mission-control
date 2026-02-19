@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Agent } from "@/types";
 import { useCreateTask } from "@/hooks/useConvexData";
+import { X, User, Plus, Tag } from "lucide-react";
 
 export function CreateTaskModal({
   agents,
@@ -20,6 +22,8 @@ export function CreateTaskModal({
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [createdBy, setCreatedBy] = useState(agents[0]?.agentId ?? "main");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const toggleAgent = (agentId: string) => {
     setSelectedAgentIds((prev) =>
@@ -43,11 +47,14 @@ export function CreateTaskModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim()) {
-      alert("Title is required");
+      setError("Title is required");
       return;
     }
+
+    setSubmitting(true);
+    setError(null);
 
     try {
       await createTask({
@@ -59,166 +66,213 @@ export function CreateTaskModal({
         tags,
       });
       onClose();
-    } catch (error) {
-      alert(`Failed to create task: ${error instanceof Error ? error.message : "Unknown error"}`);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Failed to create task");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-lg shadow-xl border border-gray-200">
-        <form onSubmit={handleSubmit}>
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-base font-bold text-gray-900">Create New Task</h2>
-          </div>
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        />
 
-          <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
-            <label className="block">
-              <div className="text-xs font-semibold text-gray-900 mb-1">Title *</div>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter task title"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                required
-              />
-            </label>
-
-            <label className="block">
-              <div className="text-xs font-semibold text-gray-900 mb-1">Description</div>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Enter task description"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                rows={4}
-              />
-            </label>
-
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block">
-                <div className="text-xs font-semibold text-gray-900 mb-1">Priority</div>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high" | "urgent")}
-                  className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </label>
-
-              <label className="block">
-                <div className="text-xs font-semibold text-gray-900 mb-1">Created by</div>
-                <select
-                  value={createdBy}
-                  onChange={(e) => setCreatedBy(e.target.value)}
-                  className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm"
-                >
-                  {agents.map((a) => (
-                    <option key={a._id} value={a.agentId}>
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        <div className="absolute inset-0 flex items-end justify-center p-2 md:items-center md:p-6">
+          <motion.div
+            className="w-full max-w-[900px] max-h-[92dvh] overflow-hidden rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-panel)] shadow-2xl"
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+          >
+          <form onSubmit={handleSubmit} className="flex max-h-[inherit] flex-col">
+            <div className="flex items-center justify-between border-b border-[var(--mc-line)] px-5 py-4 bg-[var(--mc-panel-soft)]">
+              <h2 className="text-[16px] font-semibold text-[var(--mc-text)]">Create New Task</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg hover:bg-[var(--mc-line)] text-[var(--mc-text-muted)] transition-colors"
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
             </div>
 
-            <div>
-              <div className="text-xs font-semibold text-gray-900 mb-1">Assignees</div>
-              <div className="rounded-md border border-gray-300 p-2 max-h-40 overflow-y-auto">
-                {agents.length === 0 ? (
-                  <div className="text-xs text-gray-400">No agents available</div>
-                ) : (
-                  <div className="space-y-1">
-                    {agents.map((agent) => (
-                      <label
-                        key={agent._id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded px-2 py-1"
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">
+              <label className="block">
+                <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Title *</div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (error) setError(null);
+                  }}
+                  placeholder="Enter task title"
+                  className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-muted)] focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all"
+                  required
+                />
+              </label>
+
+              <label className="block">
+                <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Description</div>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Enter task description"
+                  className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-muted)] focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all resize-none"
+                  rows={4}
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Priority</div>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as "low" | "medium" | "high" | "urgent")}
+                    className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all appearance-none"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                  </select>
+                </label>
+
+                <label className="block">
+                  <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Created by</div>
+                  <select
+                    value={createdBy}
+                    onChange={(e) => setCreatedBy(e.target.value)}
+                    className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all appearance-none"
+                  >
+                    {agents.map((a) => (
+                      <option key={a._id} value={a.agentId}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div>
+                <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Assignees</div>
+                <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] p-2">
+                  {agents.length === 0 ? (
+                    <div className="text-[13px] text-[var(--mc-text-muted)] py-2 px-2">No agents available</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {agents.map((agent) => (
+                        <label
+                          key={agent._id}
+                          className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-[var(--mc-panel-soft)] transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedAgentIds.includes(agent.agentId)}
+                            onChange={() => toggleAgent(agent.agentId)}
+                            className="rounded border-[var(--mc-line)] text-[var(--mc-accent-green)] focus:ring-[var(--mc-accent-green)]"
+                          />
+                          <div className="h-6 w-6 rounded-md bg-[var(--mc-line)] flex items-center justify-center text-[var(--mc-text-muted)]">
+                            <User size={14} />
+                          </div>
+                          <span className="text-[14px] text-[var(--mc-text)]">
+                            {agent.name}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.06em] text-[var(--mc-text-soft)]">Tags</div>
+                <div className="mb-3 flex gap-2">
+                  <div className="relative flex-1">
+                    <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--mc-text-muted)]" />
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addTag();
+                        }
+                      }}
+                      placeholder="Add a tag"
+                      className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] pl-9 pr-3 py-2.5 text-[14px] text-[var(--mc-text)] outline-none placeholder:text-[var(--mc-text-muted)] focus:border-[var(--mc-accent-green)] focus:ring-1 focus:ring-[var(--mc-accent-green)] transition-all"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel-soft)] transition-colors"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-2.5 py-1 text-[12px] text-[var(--mc-text)]"
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedAgentIds.includes(agent.agentId)}
-                          onChange={() => toggleAgent(agent.agentId)}
-                          className="rounded border-gray-300"
-                        />
-                        <span className="text-sm text-gray-900">
-                          {agent.name} ({agent.agentId})
-                        </span>
-                      </label>
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="text-[var(--mc-text-muted)] hover:text-[var(--mc-text)] transition-colors"
+                          aria-label={`Remove tag ${tag}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
                     ))}
                   </div>
                 )}
               </div>
             </div>
 
-            <div>
-              <div className="text-xs font-semibold text-gray-900 mb-1">Tags</div>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                  placeholder="Add a tag"
-                  className="flex-1 rounded-md border border-gray-300 px-3 py-1 text-sm"
-                />
+            <div className="sticky bottom-0 border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+12px)] sm:px-5 sm:py-4">
+              {error && (
+                <p className="mb-2 text-[12px] font-medium text-[var(--mc-red)]">{error}</p>
+              )}
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
                 <button
                   type="button"
-                  onClick={addTag}
-                  className="rounded-md border border-gray-300 px-3 py-1 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+                  onClick={onClose}
+                  disabled={submitting}
+                  className="w-full rounded-lg border border-[var(--mc-line)] bg-[var(--mc-card)] px-4 py-2 text-[14px] font-medium text-[var(--mc-text)] hover:bg-[var(--mc-panel)] transition-colors disabled:opacity-60 sm:w-auto"
                 >
-                  Add
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full rounded-lg bg-[var(--mc-accent-green)] px-4 py-2 text-[14px] font-medium text-white hover:bg-[var(--mc-accent-green)]/90 transition-colors disabled:opacity-70 sm:w-auto"
+                >
+                  {submitting ? "Creating…" : "Create Task"}
                 </button>
               </div>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 bg-gray-100 border border-gray-200 rounded px-2 py-1 text-xs"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
-          </div>
-
-          <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800"
-            >
-              Create Task
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </form>
+          </motion.div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

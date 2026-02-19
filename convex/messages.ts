@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireActorMatch, requireIdentity } from "./auth";
 
 export const create = mutation({
   args: {
@@ -10,6 +11,8 @@ export const create = mutation({
     attachmentIds: v.optional(v.array(v.id("documents"))),
   },
   handler: async (ctx, args) => {
+    await requireIdentity(ctx);
+    await requireActorMatch(ctx, args.fromAgentId);
     const now = Date.now();
 
     // Create message
@@ -87,9 +90,11 @@ export const getByTask = query({
     taskId: v.id("tasks"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const messages = await ctx.db
       .query("messages")
       .withIndex("by_task", (q) => q.eq("taskId", args.taskId))
       .collect();
+
+    return messages.sort((a, b) => a.createdAt - b.createdAt);
   },
 });

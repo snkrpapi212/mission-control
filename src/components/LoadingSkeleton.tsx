@@ -1,93 +1,54 @@
 "use client";
 
-import { useDarkMode } from "@/context/DarkModeContext";
+/** Skeleton using the new design system shimmer class */
 
-export function TaskCardSkeleton() {
-  const { isDarkMode } = useDarkMode();
-
+function Bone({ className = "", style = {} }: { className?: string; style?: React.CSSProperties }) {
   return (
     <div
-      className={`w-full rounded-lg border p-3 space-y-3 animate-pulse ${
-        isDarkMode
-          ? "border-gray-700 bg-gray-750"
-          : "border-gray-200 bg-gray-100"
-      }`}
+      className={`skeleton-shimmer rounded ${className}`}
+      style={style}
+    />
+  );
+}
+
+export function TaskCardSkeleton() {
+  return (
+    <div
+      className="w-full overflow-hidden rounded-md"
+      style={{
+        background: "var(--mc-panel)",
+        border: "1px solid var(--mc-line)",
+        padding: "12px 12px 12px 16px",
+      }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div
-          className={`flex-1 h-5 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
-        <div
-          className={`h-5 w-16 rounded-full ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
+      {/* Priority stripe */}
+      <div
+        className="absolute inset-y-0 left-0 w-[3px] rounded-l-md skeleton-shimmer"
+        style={{ position: "relative", width: "100%", marginBottom: 10 }}
+      />
+      <div className="flex items-center justify-between mb-2.5">
+        <Bone style={{ height: 8, width: 48 }} />
+        <Bone style={{ height: 22, width: 22, borderRadius: "50%" }} />
       </div>
-      <div className="space-y-2">
-        <div
-          className={`h-3 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
-        <div
-          className={`h-3 w-3/4 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex gap-1">
-          <div
-            className={`h-5 w-5 rounded ${
-              isDarkMode ? "bg-gray-700" : "bg-gray-200"
-            }`}
-          />
-          <div
-            className={`h-5 w-5 rounded ${
-              isDarkMode ? "bg-gray-700" : "bg-gray-200"
-            }`}
-          />
-        </div>
-        <div
-          className={`h-3 w-12 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
+      <Bone style={{ height: 12, width: "85%", marginBottom: 6 }} />
+      <Bone style={{ height: 12, width: "60%" }} />
+      <div className="flex items-center gap-1.5 mt-3">
+        <Bone style={{ height: 18, width: 40 }} />
+        <Bone style={{ height: 18, width: 36 }} />
       </div>
     </div>
   );
 }
 
 export function KanbanColumnSkeleton() {
-  const { isDarkMode } = useDarkMode();
-
   return (
-    <div
-      className={`rounded-lg border flex flex-col ${
-        isDarkMode
-          ? "border-gray-700 bg-gray-800"
-          : "border-gray-200 bg-gray-50"
-      }`}
-    >
-      <div
-        className={`px-3 py-2 border-b flex items-center justify-between animate-pulse ${
-          isDarkMode ? "border-gray-700 bg-gray-750" : "border-gray-200 bg-white"
-        }`}
-      >
-        <div
-          className={`h-4 w-24 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
-        <div
-          className={`h-5 w-6 rounded-full ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
+    <div className="flex flex-col min-w-0">
+      <div className="flex items-center gap-2 mb-2.5">
+        <Bone style={{ height: 16, width: 3, borderRadius: 2, flexShrink: 0 }} />
+        <Bone style={{ height: 10, width: 64 }} />
+        <Bone style={{ height: 18, width: 20, marginLeft: "auto" }} />
       </div>
-      <div className="p-2 space-y-2">
+      <div className="space-y-2">
         {[1, 2, 3].map((i) => (
           <TaskCardSkeleton key={i} />
         ))}
@@ -97,98 +58,65 @@ export function KanbanColumnSkeleton() {
 }
 
 export function AgentListSkeleton() {
-  const { isDarkMode } = useDarkMode();
-
   return (
-    <div className={`w-full md:w-72 shrink-0 border-b md:border-b-0 md:border-r ${
-      isDarkMode
-        ? "border-gray-700 bg-gray-800"
-        : "border-gray-200 bg-white"
-    }`}>
-      <div className="p-4 space-y-2">
-        <div
-          className={`h-5 w-20 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
-        <div
-          className={`h-3 w-32 rounded ${
-            isDarkMode ? "bg-gray-700" : "bg-gray-200"
-          }`}
-        />
+    <aside
+      style={{
+        width: "var(--w-left)",
+        minWidth: "var(--w-left)",
+        background: "var(--mc-panel)",
+        borderRight: "1px solid var(--mc-line)",
+      }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-3"
+        style={{ borderBottom: "1px solid var(--mc-line)" }}
+      >
+        <Bone style={{ height: 10, width: 40 }} />
+        <Bone style={{ height: 10, width: 56 }} />
       </div>
-      <div className="px-2 pb-4 space-y-1">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className={`flex items-center gap-3 rounded-md px-3 py-2 animate-pulse`}
-          >
-            <div
-              className={`h-10 w-10 rounded-full flex-shrink-0 ${
-                isDarkMode ? "bg-gray-700" : "bg-gray-200"
-              }`}
-            />
-            <div className="min-w-0 flex-1 space-y-2">
-              <div
-                className={`h-4 w-24 rounded ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              />
-              <div
-                className={`h-3 w-20 rounded ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              />
+      <div className="py-2 px-3 space-y-2">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="flex items-center gap-3 px-2 py-2">
+            <Bone style={{ height: 36, width: 36, borderRadius: "50%", flexShrink: 0 }} />
+            <div className="flex-1 space-y-1.5">
+              <Bone style={{ height: 10, width: "65%" }} />
+              <Bone style={{ height: 8, width: "45%" }} />
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </aside>
   );
 }
 
 export function ActivityFeedSkeleton() {
-  const { isDarkMode } = useDarkMode();
-
   return (
-    <section className={`w-full xl:w-96 shrink-0 border-t xl:border-t-0 xl:border-l ${
-      isDarkMode
-        ? "border-gray-700 bg-gray-800"
-        : "border-gray-200 bg-white"
-    }`}>
-      <div className={`p-4 border-b ${isDarkMode ? "border-gray-700" : "border-gray-200"}`}>
-        <div className="space-y-2">
-          <div
-            className={`h-5 w-20 rounded ${
-              isDarkMode ? "bg-gray-700" : "bg-gray-200"
-            }`}
-          />
-          <div
-            className={`h-3 w-32 rounded ${
-              isDarkMode ? "bg-gray-700" : "bg-gray-200"
-            }`}
-          />
-        </div>
+    <section
+      style={{
+        width: "var(--w-right)",
+        minWidth: "var(--w-right)",
+        background: "var(--mc-panel)",
+        borderLeft: "1px solid var(--mc-line)",
+      }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-3"
+        style={{ borderBottom: "1px solid var(--mc-line)" }}
+      >
+        <Bone style={{ height: 10, width: 52 }} />
+        <Bone style={{ height: 10, width: 20 }} />
       </div>
-      <div className="px-4 py-3 space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="animate-pulse space-y-2">
-            <div
-              className={`h-3 w-20 rounded ${
-                isDarkMode ? "bg-gray-700" : "bg-gray-200"
-              }`}
-            />
-            <div className="space-y-2">
-              <div
-                className={`h-4 w-full rounded ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              />
-              <div
-                className={`h-3 w-3/4 rounded ${
-                  isDarkMode ? "bg-gray-700" : "bg-gray-200"
-                }`}
-              />
+      <div className="p-4 space-y-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="flex items-start gap-3">
+            <Bone style={{ height: 24, width: 24, borderRadius: "50%", flexShrink: 0, marginTop: 2 }} />
+            <div className="flex-1 space-y-1.5 pt-1">
+              <div className="flex justify-between gap-2">
+                <Bone style={{ height: 10, width: "50%" }} />
+                <Bone style={{ height: 10, width: 36 }} />
+              </div>
+              <Bone style={{ height: 9, width: "80%" }} />
+              <Bone style={{ height: 9, width: "60%" }} />
             </div>
           </div>
         ))}
