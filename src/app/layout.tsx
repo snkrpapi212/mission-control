@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 
@@ -6,8 +6,18 @@ export const metadata: Metadata = {
   title: "Mission Control",
   description: "Multi-agent AI squad management dashboard",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon-light.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: dark)" },
+    ],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({

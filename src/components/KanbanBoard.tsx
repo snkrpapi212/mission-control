@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import type { TaskStatus } from "@/types";
 import type { Doc } from "../../convex/_generated/dataModel";
@@ -16,13 +18,7 @@ const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string }> = 
   { status: "blocked", title: "Blocked", dotClass: "text-[var(--mc-red)]" },
 ];
 
-export function KanbanBoard({
-  tasksByStatus,
-  agents,
-  loading,
-  onSelectTask,
-  onTaskMove,
-}: {
+type KanbanBoardProps = {
   tasksByStatus: Record<TaskStatus, Doc<"tasks">[]>;
   agents: Doc<"agents">[];
   loading?: boolean;
@@ -30,8 +26,37 @@ export function KanbanBoard({
   onSelectTask?: (..._args: [Doc<"tasks">]) => void;
   // eslint-disable-next-line no-unused-vars
   onTaskMove?: (taskId: string, newStatus: TaskStatus) => void;
-}) {
-  const [query, setQuery] = useState("");
+};
+
+export function KanbanBoard(props: KanbanBoardProps) {
+  return (
+    <Suspense fallback={null}>
+      <KanbanBoardInner {...props} />
+    </Suspense>
+  );
+}
+
+function KanbanBoardInner({
+  tasksByStatus,
+  agents,
+  loading,
+  onSelectTask,
+  onTaskMove,
+}: KanbanBoardProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const query = searchParams.get("q") ?? "";
+
+  const setQuery = useCallback((value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set("q", value);
+    } else {
+      params.delete("q");
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, router, pathname]);
 
   const byAgent = useMemo(() => {
     const map = new Map<string, Doc<"agents">>();
@@ -95,13 +120,25 @@ export function KanbanBoard({
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-6 gap-4 md:gap-6 pb-24 md:pb-8">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-6 gap-4 md:gap-6 pb-24 md:pb-8"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.06 } },
+          }}
+        >
           {COLUMNS.map((col) => {
             const tasks = (tasksByStatus[col.status] ?? []).filter(passesFilter);
             return (
-              <div
+              <motion.div
                 key={col.status}
                 className="flex flex-col min-w-0"
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 28 } },
+                }}
               >
                 <div className={`flex items-center justify-between px-1 ${tasks.length === 0 ? "mb-1.5" : "mb-3"}`}>
                   <h3 className="text-[12px] font-semibold tracking-tight text-zinc-500 dark:text-zinc-400 uppercase flex items-center gap-2">
@@ -169,10 +206,10 @@ export function KanbanBoard({
                     </div>
                   )}
                 </Droppable>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </DragDropContext>
     </section>
   );
