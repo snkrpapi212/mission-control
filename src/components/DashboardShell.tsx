@@ -184,19 +184,21 @@ export function DashboardShell() {
           setCustomizationPrefs(next);
           if (next.theme !== theme) applyTheme(next.theme);
         }}
+        tasksByStatus={Object.fromEntries(
+          Object.entries(tasksByStatus).map(([k, v]) => [k, v.length])
+        )}
       />
 
       <div className="mx-auto max-w-[2000px]">
         <div className="flex flex-col xl:flex-row">
           {customizationPrefs.showAgentsSidebar && (
-            <div className="w-full xl:w-[280px] xl:shrink-0 bg-zinc-50/50 dark:bg-zinc-900/50">
-              <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
-            </div>
+            <AgentSidebar agents={agents} taskTitles={currentTaskById} loading={loading} />
           )}
 
-          <main 
+          <main
             id="main-content"
-            className="flex-1 min-w-0 px-4 py-4 md:px-6 md:py-4 bg-white dark:bg-zinc-950" 
+            className="flex-1 min-w-0 px-4 py-4 md:px-5 md:py-5"
+            style={{ background: "var(--mc-bg)" }}
             role="main"
           >
 
@@ -427,7 +429,7 @@ export function DashboardShell() {
           </main>
 
           {customizationPrefs.showActivityFeed && (
-            <div className="hidden xl:block w-[320px] shrink-0 bg-zinc-50/50 dark:bg-zinc-900/50">
+            <div className="hidden xl:block">
               <ActivityFeed activities={activities} loading={loading} />
             </div>
           )}

@@ -9,13 +9,13 @@ import type { Doc } from "../../convex/_generated/dataModel";
 import { TaskCard } from "@/components/TaskCard";
 import { Chip, PanelHeader } from "@/components/MissionControlPrimitives";
 
-const COLUMNS: Array<{ status: TaskStatus; title: string; dotClass: string }> = [
-  { status: "inbox", title: "Inbox", dotClass: "text-[var(--mc-line-strong)]" },
-  { status: "assigned", title: "Assigned", dotClass: "text-[var(--mc-amber)]" },
-  { status: "in_progress", title: "In Progress", dotClass: "text-[var(--mc-green)]" },
-  { status: "review", title: "Review", dotClass: "text-[var(--mc-amber)]" },
-  { status: "done", title: "Done", dotClass: "text-[var(--mc-green)]" },
-  { status: "blocked", title: "Blocked", dotClass: "text-[var(--mc-red)]" },
+const COLUMNS: Array<{ status: TaskStatus; title: string; accent: string }> = [
+  { status: "inbox",       title: "Inbox",       accent: "var(--mc-text-subtle)" },
+  { status: "assigned",    title: "Assigned",    accent: "var(--mc-purple)" },
+  { status: "in_progress", title: "In Flight",   accent: "var(--mc-cyan)" },
+  { status: "review",      title: "Review",      accent: "var(--mc-amber)" },
+  { status: "done",        title: "Done",        accent: "var(--mc-green)" },
+  { status: "blocked",     title: "Blocked",     accent: "var(--mc-red)" },
 ];
 
 type KanbanBoardProps = {
@@ -106,17 +106,38 @@ function KanbanBoardInner({
 
   return (
     <section className="min-w-0">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">Mission Queue</h2>
-        <div className="flex items-center gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter tasks..."
-            className="h-7 w-[180px] rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-2.5 text-[11px] outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600 shadow-sm transition-all"
-          />
-          <div className="text-[11px] text-zinc-400 font-medium">{totalVisible} tasks</div>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className="text-[11px] font-bold uppercase tracking-[0.15em] shrink-0"
+            style={{ color: "var(--mc-text-subtle)" }}
+          >
+            Mission Queue
+          </span>
+          <span
+            className="text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded"
+            style={{
+              background: "var(--mc-panel-2)",
+              border: "1px solid var(--mc-line)",
+              color: "var(--mc-text-muted)",
+            }}
+          >
+            {totalVisible}
+          </span>
         </div>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Filter tasks…"
+          className="h-7 w-[160px] shrink-0 rounded-md px-2.5 text-[11px] outline-none transition-all"
+          style={{
+            background: "var(--mc-panel-2)",
+            border: "1px solid var(--mc-line)",
+            color: "var(--mc-text)",
+          }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--mc-cyan)")}
+          onBlur={(e) => (e.currentTarget.style.borderColor = "var(--mc-line)")}
+        />
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>
@@ -140,11 +161,30 @@ function KanbanBoardInner({
                   visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 28 } },
                 }}
               >
-                <div className={`flex items-center justify-between px-1 ${tasks.length === 0 ? "mb-1.5" : "mb-3"}`}>
-                  <h3 className="text-[12px] font-semibold tracking-tight text-zinc-500 dark:text-zinc-400 uppercase flex items-center gap-2">
+                {/* Column header */}
+                <div className="mb-2.5 flex items-center gap-2">
+                  {/* Left accent bar */}
+                  <div
+                    className="h-4 w-[3px] rounded-full shrink-0"
+                    style={{ background: col.accent }}
+                  />
+                  <h3
+                    className="flex-1 text-[10px] font-bold uppercase tracking-[0.14em] leading-none"
+                    style={{ color: "var(--mc-text-muted)" }}
+                  >
                     {col.title}
-                    <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-normal">({tasks.length})</span>
                   </h3>
+                  {/* Count badge */}
+                  <span
+                    className="text-[10px] font-mono font-semibold tabular-nums min-w-[20px] h-[18px] flex items-center justify-center rounded"
+                    style={{
+                      background: tasks.length > 0 ? `${col.accent}18` : "var(--mc-panel-3)",
+                      color: tasks.length > 0 ? col.accent : "var(--mc-text-subtle)",
+                      border: `1px solid ${tasks.length > 0 ? col.accent + "40" : "var(--mc-line)"}`,
+                    }}
+                  >
+                    {tasks.length}
+                  </span>
                 </div>
 
                 <Droppable droppableId={col.status} type="TASK">
@@ -152,15 +192,20 @@ function KanbanBoardInner({
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`flex flex-col gap-2 transition-all duration-200 rounded-lg ${
-                        tasks.length === 0 && !snapshot.isDraggingOver
-                          ? "h-8 border border-dashed border-zinc-200 dark:border-zinc-800/50"
-                          : "min-h-[40px]"
-                      } ${
-                        snapshot.isDraggingOver
-                          ? "bg-zinc-100/50 dark:bg-zinc-800/50 min-h-[120px] ring-2 ring-zinc-200 dark:ring-zinc-800 border-transparent"
-                          : ""
-                      }`}
+                      className="flex flex-col gap-2 rounded-lg transition-all duration-150"
+                      style={{
+                        minHeight: tasks.length === 0 && !snapshot.isDraggingOver ? 36 : 40,
+                        padding: snapshot.isDraggingOver ? "6px" : "0",
+                        background: snapshot.isDraggingOver
+                          ? `${col.accent}0D`
+                          : "transparent",
+                        border: snapshot.isDraggingOver
+                          ? `1px dashed ${col.accent}60`
+                          : tasks.length === 0
+                          ? "1px dashed var(--mc-line)"
+                          : "1px solid transparent",
+                        borderRadius: 8,
+                      }}
                     >
                       {loading ? (
                         tasks.length === 0 ? (

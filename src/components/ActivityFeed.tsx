@@ -1,233 +1,420 @@
+"use client";
+
 import { useState, useMemo } from "react";
 import type { Activity } from "@/types";
 import { timeAgo } from "@/lib/time";
-import { Chip, PanelHeader } from "@/components/MissionControlPrimitives";
-import { 
-  PlusCircle, 
-  RefreshCcw, 
-  ArrowRightLeft, 
-  MessageSquare, 
-  FileText, 
+import {
+  PlusCircle,
+  RefreshCcw,
+  ArrowRightLeft,
+  MessageSquare,
+  FileText,
   Activity as ActivityIcon,
-  Search,
-  ChevronRight,
-  Clock,
-  X
+  X,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ACTIVITY_CONFIG: Record<string, { icon: any, color: string, bg: string, premium?: boolean }> = {
-  task_created: { icon: PlusCircle, color: "var(--mc-green)", bg: "var(--mc-green-soft)", premium: true },
-  task_updated: { icon: RefreshCcw, color: "var(--mc-amber)", bg: "var(--mc-amber-soft)" },
-  status_changed: { icon: ArrowRightLeft, color: "var(--mc-amber)", bg: "var(--mc-amber-soft)" },
-  message_created: { icon: MessageSquare, color: "#3b82f6", bg: "#eff6ff" },
-  document_created: { icon: FileText, color: "#8b5cf6", bg: "#f5f3ff", premium: true },
-  heartbeat: { icon: ActivityIcon, color: "var(--mc-text-soft)", bg: "var(--mc-panel-soft)" },
+// Icon + color config per activity type
+const ACTIVITY_CONFIG: Record<
+  string,
+  { icon: React.ElementType; color: string; verb: string }
+> = {
+  task_created: {
+    icon: PlusCircle,
+    color: "var(--mc-green)",
+    verb: "created",
+  },
+  task_updated: {
+    icon: RefreshCcw,
+    color: "var(--mc-amber)",
+    verb: "updated",
+  },
+  status_changed: {
+    icon: ArrowRightLeft,
+    color: "var(--mc-cyan)",
+    verb: "moved",
+  },
+  message_created: {
+    icon: MessageSquare,
+    color: "var(--mc-purple)",
+    verb: "messaged",
+  },
+  document_created: {
+    icon: FileText,
+    color: "var(--mc-purple)",
+    verb: "added doc",
+  },
+  heartbeat: {
+    icon: ActivityIcon,
+    color: "var(--mc-text-subtle)",
+    verb: "pinged",
+  },
 };
 
 function formatGroupDate(dateStr: string) {
   const date = new Date(dateStr);
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const yesterday = today - 86400000;
-  const time = date.getTime();
-
-  if (time >= today) return "Today";
-  if (time >= yesterday) return "Yesterday";
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+  const yesterday = today - 86_400_000;
+  const t = date.getTime();
+  if (t >= today) return "Today";
+  if (t >= yesterday) return "Yesterday";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 export function ActivityFeed({
   activities,
   loading,
-  compact,
 }: {
   activities: Activity[];
   loading?: boolean;
   compact?: boolean;
 }) {
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [detail, setDetail] = useState<Activity | null>(null);
 
-  const groupedActivities = useMemo(() => {
-    const groups: Record<string, Activity[]> = {};
-    activities.forEach(activity => {
-      const d = new Date(activity.createdAt);
-      const dateStr = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
-      if (!groups[dateStr]) groups[dateStr] = [];
-      groups[dateStr].push(activity);
-    });
-    return Object.entries(groups).sort((a, b) => b[0].localeCompare(a[0]));
+  const grouped = useMemo(() => {
+    const map: Record<string, Activity[]> = {};
+    for (const a of activities) {
+      const d = new Date(a.createdAt);
+      const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString();
+      if (!map[key]) map[key] = [];
+      map[key].push(a);
+    }
+    return Object.entries(map).sort((a, b) => b[0].localeCompare(a[0]));
   }, [activities]);
 
   return (
     <>
-    <section className={`flex flex-col min-h-[calc(100vh-var(--h-topbar))]`}>
-      <div className="px-6 py-4">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Activity</h2>
-      </div>
+      <section
+        className="flex min-h-[calc(100vh-var(--h-topbar))] flex-col"
+        style={{
+          background: "var(--mc-panel)",
+          borderLeft: "1px solid var(--mc-line)",
+          width: "var(--w-right)",
+          minWidth: "var(--w-right)",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{ borderBottom: "1px solid var(--mc-line)" }}
+        >
+          <span
+            className="text-[10px] font-bold uppercase tracking-[0.15em]"
+            style={{ color: "var(--mc-text-subtle)" }}
+          >
+            Activity
+          </span>
+          <span
+            className="tabular-nums text-[10px] font-semibold"
+            style={{ color: "var(--mc-text-muted)" }}
+          >
+            {activities.length}
+          </span>
+        </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {loading ? (
-          <div className="space-y-4 p-4">
-            {Array.from({ length: 5 }).map((_, idx) => (
-              <div key={idx} className="h-16 w-full animate-pulse rounded bg-zinc-100 dark:bg-zinc-800" />
-            ))}
-          </div>
-        ) : activities.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <p className="text-[12px] text-zinc-400 dark:text-zinc-500">No activity yet</p>
-          </div>
-        ) : (
-          <div className="pb-12">
-            {groupedActivities.map(([dateStr, items]) => (
+        {/* Scrollable feed */}
+        <div className="flex-1 overflow-y-auto pb-12">
+          {loading ? (
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 px-2">
+                  <div className="h-6 w-6 shrink-0 rounded-full skeleton-shimmer" />
+                  <div className="flex-1 space-y-1.5 pt-0.5">
+                    <div className="h-2.5 w-20 rounded skeleton-shimmer" />
+                    <div className="h-2 w-40 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <ActivityIcon
+                size={28}
+                style={{ color: "var(--mc-text-subtle)" }}
+              />
+              <p
+                className="mt-3 text-[12px]"
+                style={{ color: "var(--mc-text-subtle)" }}
+              >
+                No activity yet
+              </p>
+            </div>
+          ) : (
+            grouped.map(([dateStr, items]) => (
               <div key={dateStr}>
-                <div className="px-6 py-2">
-                  <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                {/* Date group label */}
+                <div className="px-4 py-2.5">
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-widest"
+                    style={{ color: "var(--mc-text-subtle)" }}
+                  >
                     {formatGroupDate(dateStr)}
                   </span>
                 </div>
-                <ul className="relative">
-                  {/* Vertical Timeline Line - Subtle */}
-                  <div className="absolute left-[24px] top-0 bottom-0 w-[1px] bg-zinc-100 dark:bg-zinc-800" />
-                  
-                  {items.map((activity) => {
-                    const config = ACTIVITY_CONFIG[activity.type] || ACTIVITY_CONFIG.heartbeat;
-                    const Icon = config.icon;
 
-                    return (
-                      <li key={activity._id} className="relative z-10 px-4">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedActivity(activity)}
-                          className="group w-full rounded-md px-2 py-3 text-left transition-colors hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm hover:ring-1 hover:ring-black/5 dark:hover:ring-white/10"
-                        >
-                          <div className="flex gap-3">
-                            <div 
-                              className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors"
+                {/* Items with timeline line */}
+                <div className="relative px-4">
+                  {/* Vertical line */}
+                  <div
+                    className="absolute left-[28px] top-0 bottom-0 w-px"
+                    style={{ background: "var(--mc-line)" }}
+                  />
+
+                  <ul className="space-y-px">
+                    {items.map((activity) => {
+                      const cfg =
+                        ACTIVITY_CONFIG[activity.type] ??
+                        ACTIVITY_CONFIG.heartbeat;
+                      const Icon = cfg.icon;
+
+                      return (
+                        <li key={activity._id} className="relative z-10">
+                          <button
+                            type="button"
+                            onClick={() => setDetail(activity)}
+                            className="group flex w-full items-start gap-3 rounded-md px-2 py-2.5 text-left transition-colors duration-100"
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background =
+                                "var(--mc-panel-2)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background = "")
+                            }
+                          >
+                            {/* Icon bubble */}
+                            <div
+                              className="relative z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                              style={{
+                                background: "var(--mc-panel-3)",
+                                border: "1px solid var(--mc-line)",
+                              }}
                             >
-                              <Icon size={12} />
+                              <Icon
+                                size={11}
+                                style={{ color: cfg.color }}
+                                strokeWidth={2.5}
+                              />
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 truncate">
+
+                            {/* Content */}
+                            <div className="min-w-0 flex-1 pt-0.5">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <span
+                                  className="truncate text-[11px] font-semibold"
+                                  style={{ color: "var(--mc-text)" }}
+                                >
                                   {activity.agentId}
                                 </span>
-                                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums whitespace-nowrap font-medium">
+                                <span
+                                  className="shrink-0 text-[10px] tabular-nums"
+                                  style={{ color: "var(--mc-text-subtle)" }}
+                                >
                                   {timeAgo(activity.createdAt)}
                                 </span>
                               </div>
-                              <p className="mt-0.5 text-[12px] leading-relaxed text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                              <p
+                                className="mt-0.5 text-[11px] leading-snug line-clamp-2"
+                                style={{ color: "var(--mc-text-muted)" }}
+                              >
+                                <span
+                                  className="font-medium mr-1"
+                                  style={{ color: cfg.color }}
+                                >
+                                  {cfg.verb}
+                                </span>
                                 {activity.message}
                               </p>
                             </div>
-                          </div>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-
-    <AnimatePresence>
-      {selectedActivity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
-            onClick={() => setSelectedActivity(null)} 
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-lg rounded-2xl border border-[var(--mc-line)] bg-[var(--mc-card)] shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/50 px-6 py-4">
-              <div>
-                <h3 className="text-[16px] font-bold text-[var(--mc-text)]">Activity Details</h3>
-                <p className="text-[11px] font-bold text-[var(--mc-text-muted)] uppercase tracking-wider mt-0.5">
-                  {new Date(selectedActivity.createdAt).toLocaleString()}
-                </p>
-              </div>
-              <button 
-                onClick={() => setSelectedActivity(null)}
-                className="rounded-full p-2 hover:bg-[var(--mc-line)]/50 text-[var(--mc-text-soft)] transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl border border-[var(--mc-line)] p-3 bg-[var(--mc-panel-soft)]/20">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--mc-text-muted)] mb-1">Type</p>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const config = ACTIVITY_CONFIG[selectedActivity.type] || ACTIVITY_CONFIG.heartbeat;
-                      const Icon = config.icon;
-                      return (
-                        <>
-                          <Icon size={14} style={{ color: config.color }} />
-                          <p className="text-[13px] font-bold text-[var(--mc-text)] capitalize">{selectedActivity.type.replace('_', ' ')}</p>
-                        </>
+                          </button>
+                        </li>
                       );
-                    })()}
+                    })}
+                  </ul>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
+
+      {/* Detail modal */}
+      <AnimatePresence>
+        {detail && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => setDetail(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 16 }}
+              transition={{ duration: 0.15 }}
+              className="relative w-full max-w-md overflow-hidden rounded-xl"
+              style={{
+                background: "var(--mc-panel)",
+                border: "1px solid var(--mc-line)",
+                boxShadow: "var(--sh-modal)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal header */}
+              <div
+                className="flex items-center justify-between px-5 py-4"
+                style={{ borderBottom: "1px solid var(--mc-line)" }}
+              >
+                <div>
+                  <h3
+                    className="text-[14px] font-bold"
+                    style={{ color: "var(--mc-text)" }}
+                  >
+                    Activity Detail
+                  </h3>
+                  <p
+                    className="text-[10px] mt-0.5"
+                    style={{ color: "var(--mc-text-subtle)" }}
+                  >
+                    {new Date(detail.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDetail(null)}
+                  className="flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+                  style={{ color: "var(--mc-text-muted)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--mc-panel-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "")
+                  }
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Modal body */}
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: "var(--mc-panel-2)",
+                      border: "1px solid var(--mc-line)",
+                    }}
+                  >
+                    <p
+                      className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
+                      style={{ color: "var(--mc-text-subtle)" }}
+                    >
+                      Type
+                    </p>
+                    <p
+                      className="text-[12px] font-semibold capitalize"
+                      style={{ color: "var(--mc-text)" }}
+                    >
+                      {detail.type.replace(/_/g, " ")}
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: "var(--mc-panel-2)",
+                      border: "1px solid var(--mc-line)",
+                    }}
+                  >
+                    <p
+                      className="text-[9px] font-bold uppercase tracking-widest mb-1.5"
+                      style={{ color: "var(--mc-text-subtle)" }}
+                    >
+                      Agent
+                    </p>
+                    <p
+                      className="text-[12px] font-semibold truncate"
+                      style={{ color: "var(--mc-text)" }}
+                    >
+                      {detail.agentId}
+                    </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-[var(--mc-line)] p-3 bg-[var(--mc-panel-soft)]/20">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--mc-text-muted)] mb-1">Agent</p>
-                  <p className="text-[13px] font-bold text-[var(--mc-text)]">{selectedActivity.agentId}</p>
+
+                {detail.taskId && (
+                  <div
+                    className="flex items-center gap-2 rounded-lg px-3 py-2"
+                    style={{
+                      background: "var(--mc-cyan-glow)",
+                      border: "1px solid var(--mc-cyan-border)",
+                    }}
+                  >
+                    <Zap size={12} style={{ color: "var(--mc-cyan)" }} />
+                    <span
+                      className="text-[11px] font-mono"
+                      style={{ color: "var(--mc-cyan)" }}
+                    >
+                      {detail.taskId}
+                    </span>
+                  </div>
+                )}
+
+                <div
+                  className="rounded-lg p-4"
+                  style={{
+                    background: "var(--mc-panel-2)",
+                    border: "1px solid var(--mc-line)",
+                  }}
+                >
+                  <p
+                    className="text-[9px] font-bold uppercase tracking-widest mb-2"
+                    style={{ color: "var(--mc-text-subtle)" }}
+                  >
+                    Message
+                  </p>
+                  <p
+                    className="text-[13px] leading-relaxed whitespace-pre-wrap"
+                    style={{ color: "var(--mc-text-muted)" }}
+                  >
+                    {detail.message}
+                  </p>
                 </div>
               </div>
 
-              {(selectedActivity.taskId || selectedActivity.documentId) && (
-                <div className="space-y-3">
-                  {selectedActivity.taskId && (
-                    <div className="flex items-center justify-between rounded-xl border border-[var(--mc-line)] px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                          <Zap size={16} />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-[var(--mc-text-muted)]">Task ID</p>
-                          <p className="text-[12px] font-mono font-medium text-[var(--mc-text)]">{selectedActivity.taskId}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="rounded-xl border border-[var(--mc-line)] p-4 bg-[var(--mc-panel-soft)]/10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--mc-text-muted)] mb-2">Message</p>
-                <p className="text-[14px] leading-relaxed font-medium text-[var(--mc-text-soft)] whitespace-pre-wrap">
-                  {selectedActivity.message}
-                </p>
-              </div>
-            </div>
-
-            <div className="border-t border-[var(--mc-line)] bg-[var(--mc-panel-soft)]/30 px-6 py-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSelectedActivity(null)}
-                className="rounded-xl border border-[var(--mc-line)] bg-[var(--mc-card)] px-5 py-2 text-[13px] font-bold text-[var(--mc-text)] hover:bg-[var(--mc-panel)] hover:shadow-sm transition-all"
+              <div
+                className="flex justify-end px-5 py-3"
+                style={{ borderTop: "1px solid var(--mc-line)" }}
               >
-                Done
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+                <button
+                  onClick={() => setDetail(null)}
+                  className="rounded-md px-4 py-1.5 text-[12px] font-semibold transition-colors"
+                  style={{
+                    background: "var(--mc-panel-3)",
+                    border: "1px solid var(--mc-line)",
+                    color: "var(--mc-text)",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--mc-panel-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "var(--mc-panel-3)")
+                  }
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
-
