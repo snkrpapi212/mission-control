@@ -1,188 +1,102 @@
 import { mutation } from "./_generated/server";
 
-export const seedFull = mutation({
+/**
+ * Seed OpenClaw agents - 7 model-based agents that match OpenClaw configuration
+ */
+export const seedOpenClawAgents = mutation({
   handler: async (ctx) => {
+    // Clear existing agents
+    const existingAgents = await ctx.db.query("agents").collect();
+    for (const agent of existingAgents) {
+      await ctx.db.delete(agent._id);
+    }
+
+    // OpenClaw's 7 agents
     const agents = [
       {
-        agentId: "main",
+        agentId: "jarvis",
         name: "Jarvis",
         role: "Squad Lead",
         level: "lead" as const,
         emoji: "🤖",
-        sessionKey: "agent:main:main",
+        sessionKey: "agent:jarvis:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "product-analyst",
-        name: "Shuri",
-        role: "Product Analyst",
+        agentId: "minimax",
+        name: "Minimax",
+        role: "MiniMax M2.5",
         level: "specialist" as const,
-        emoji: "🔍",
-        sessionKey: "agent:product-analyst:main",
+        emoji: "🪄",
+        sessionKey: "agent:minimax:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "customer-researcher",
-        name: "Fury",
-        role: "Customer Researcher",
+        agentId: "claude",
+        name: "Claude",
+        role: "Claude Opus",
         level: "specialist" as const,
-        emoji: "🕵️",
-        sessionKey: "agent:customer-researcher:main",
+        emoji: "🧶",
+        sessionKey: "agent:claude:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "seo-analyst",
-        name: "Vision",
-        role: "SEO Analyst",
+        agentId: "codex",
+        name: "Codex",
+        role: "GPT-5.3 Codex",
         level: "specialist" as const,
-        emoji: "📊",
-        sessionKey: "agent:seo-analyst:main",
+        emoji: "🧬",
+        sessionKey: "agent:codex:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "content-writer",
-        name: "Loki",
-        role: "Content Writer",
+        agentId: "kimi",
+        name: "Kimi",
+        role: "Kimi K2.5",
         level: "specialist" as const,
-        emoji: "✍️",
-        sessionKey: "agent:content-writer:main",
+        emoji: "🐇",
+        sessionKey: "agent:kimi:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "social-media",
-        name: "Quill",
-        role: "Social Media Manager",
-        level: "intern" as const,
-        emoji: "📱",
-        sessionKey: "agent:social-media:main",
-      },
-      {
-        agentId: "designer",
-        name: "Wanda",
-        role: "Designer",
+        agentId: "zai",
+        name: "Zai",
+        role: "GLM-4.7",
         level: "specialist" as const,
-        emoji: "🎨",
-        sessionKey: "agent:designer:main",
+        emoji: "👾",
+        sessionKey: "agent:zai:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
       {
-        agentId: "email-marketing",
-        name: "Pepper",
-        role: "Email Marketing",
-        level: "intern" as const,
-        emoji: "📧",
-        sessionKey: "agent:email-marketing:main",
-      },
-      {
-        agentId: "developer",
-        name: "Friday",
-        role: "Developer",
+        agentId: "antigravity",
+        name: "Antigravity",
+        role: "Antigravity",
         level: "specialist" as const,
-        emoji: "💻",
-        sessionKey: "agent:developer:main",
-      },
-      {
-        agentId: "documentation",
-        name: "Wong",
-        role: "Documentation",
-        level: "specialist" as const,
-        emoji: "📚",
-        sessionKey: "agent:documentation:main",
+        emoji: "🚀",
+        sessionKey: "agent:antigravity:main",
+        status: "idle" as const,
+        lastHeartbeat: Date.now(),
       },
     ];
 
-    // Seed agents
+    // Insert new agents
     for (const agent of agents) {
-      const existing = await ctx.db
-        .query("agents")
-        .withIndex("by_agentId", (q) => q.eq("agentId", agent.agentId))
-        .first();
-
-      if (!existing) {
-        await ctx.db.insert("agents", {
-          ...agent,
-          status: "idle",
-          lastHeartbeat: Date.now(),
-        });
-      }
+      await ctx.db.insert("agents", agent);
     }
 
-    // Seed sample tasks
-    const tasks = [
-      {
-        title: "Design new product landing page",
-        description: "Create mockups and wireframes for the new product launch",
-        status: "in_progress" as const,
-        assigneeIds: ["designer"],
-        subscriberIds: ["designer", "main"],
-        priority: "high" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Analyze competitor pricing",
-        description: "Research and document competitor pricing strategies",
-        status: "assigned" as const,
-        assigneeIds: ["product-analyst"],
-        subscriberIds: ["product-analyst", "main"],
-        priority: "high" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Write API documentation",
-        description: "Document all REST endpoints with examples",
-        status: "review" as const,
-        assigneeIds: ["documentation"],
-        subscriberIds: ["documentation", "main"],
-        priority: "medium" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Customer interview synthesis",
-        description: "Analyze and summarize key insights from customer interviews",
-        status: "inbox" as const,
-        assigneeIds: ["customer-researcher"],
-        subscriberIds: ["customer-researcher"],
-        priority: "high" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Q1 content calendar",
-        description: "Plan and schedule content for Q1 2026",
-        status: "done" as const,
-        assigneeIds: ["content-writer"],
-        subscriberIds: ["content-writer", "main"],
-        priority: "medium" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Social media engagement analysis",
-        description: "Review engagement metrics and create recommendations",
-        status: "in_progress" as const,
-        assigneeIds: ["social-media"],
-        subscriberIds: ["social-media"],
-        priority: "low" as const,
-        tags: [],
-        createdBy: "main",
-      },
-      {
-        title: "Fix critical authentication bug",
-        description: "Resolve login timeout issue affecting 5% of users",
-        status: "blocked" as const,
-        assigneeIds: ["developer"],
-        subscriberIds: ["developer", "main"],
-        priority: "high" as const,
-        tags: [],
-        createdBy: "main",
-      },
-    ];
+    return `Seeded ${agents.length} OpenClaw agents`;
+  },
+});
 
-    for (const task of tasks) {
-      await ctx.db.insert("tasks", {
-        ...task,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-    }
-
-    return `Seeded ${agents.length} agents and ${tasks.length} tasks`;
+// Keep old seed for backward compatibility
+export const seedFull = mutation({
+  handler: async (ctx) => {
+    return "Use seedOpenClawAgents instead";
   },
 });
