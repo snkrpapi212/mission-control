@@ -5,16 +5,16 @@ services:
     github:
       repo: snkrpapi212/mission-control
       branch: dev
-    build_command: npm ci --include=dev && npm run build
+    build_command: npm install && npm run build
     run_command: npm start
     environment_slug: node-js
     instance_count: 1
-    instance_size_slug: basic-xxs
+    instance_size_slug: basic-xs
     envs:
       - key: NODE_VERSION
         value: "20"
-      - key: NODE_ENV
-        value: "production"
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: NEXT_PUBLIC_CONVEX_URL
         value: "https://tidy-salamander-925.eu-west-1.convex.cloud"
       - key: NEXT_PUBLIC_OPENCLAW_GATEWAY_URL

@@ -12,7 +12,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   experimental: {
-    // Ensure App Router handles all routing
     optimizePackageImports: ['lucide-react'],
   },
   webpack: (config) => {
