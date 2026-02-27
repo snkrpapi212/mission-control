@@ -18,7 +18,7 @@ services:
       - key: NEXT_PUBLIC_CONVEX_URL
         value: "https://tidy-salamander-925.eu-west-1.convex.cloud"
       - key: NEXT_PUBLIC_OPENCLAW_GATEWAY_URL
-        value: "https://openclaw-main-production-aa44.up.railway.app"
+        value: "https://bilingually-flamier-alfonso.ngrok-free.dev"
       - key: OPENCLAW_GATEWAY_TOKEN
         value: "ray5fsgde3hxrb4y9hdkr9092f9reb51"
     health_check:
