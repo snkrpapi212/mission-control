@@ -21,11 +21,20 @@ function getWsUrl(): string {
 }
 
 function getOriginUrl(): string {
-  return (
+  // IMPORTANT: The WebSocket `Origin` header should be the *client/app* origin,
+  // not the gateway URL. Some gateway deployments validate Origin.
+  //
+  // Configure with:
+  // - MISSION_CONTROL_ORIGIN (recommended): e.g. http://134.209.163.192
+  // - NEXT_PUBLIC_MISSION_CONTROL_ORIGIN (optional)
+  const origin =
+    process.env.MISSION_CONTROL_ORIGIN ||
+    process.env.NEXT_PUBLIC_MISSION_CONTROL_ORIGIN ||
     process.env.NEXT_PUBLIC_OPENCLAW_GATEWAY_URL ||
     process.env.OPENCLAW_GATEWAY_URL ||
-    "http://localhost:18789"
-  );
+    "http://localhost:18789";
+
+  return origin;
 }
 
 function getAuthPayload(): Record<string, string> {
