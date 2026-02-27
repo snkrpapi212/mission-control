@@ -83,10 +83,10 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
                 minProtocol: 3,
                 maxProtocol: 3,
                 client: {
-                  id: "openclaw-control-ui",
+                  id: "mission-control",
                   version: "1.0.0",
                   platform: "linux",
-                  mode: "ui",
+                  mode: "service",
                 },
                 role: "operator",
                 // NOTE: operator.write requires device identity; use read-only for realtime status.
