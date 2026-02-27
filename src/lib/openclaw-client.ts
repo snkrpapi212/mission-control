@@ -89,7 +89,8 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
                   mode: "ui",
                 },
                 role: "operator",
-                scopes: ["operator.read", "operator.write"],
+                // NOTE: operator.write requires device identity; use read-only for realtime status.
+                scopes: ["operator.read"],
                 caps: [],
                 commands: [],
                 permissions: {},
