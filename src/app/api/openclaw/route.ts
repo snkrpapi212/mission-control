@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+// Force Node.js runtime (needs `ws`, crypto, filesystem for device identity)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import {
   checkHealth,
   sendToAgent,
