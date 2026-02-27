@@ -287,6 +287,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
     });
 
     ws.on("error", (err: Error) => {
+      dlog("socket error", err.message);
       if (!done) {
         done = true;
         clearTimeout(timer);
@@ -294,7 +295,8 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
       }
     });
 
-    ws.on("close", () => {
+    ws.on("close", (code: number, reason: Buffer) => {
+      dlog("socket close", { code, reason: reason?.toString?.() });
       if (!done) {
         done = true;
         clearTimeout(timer);
