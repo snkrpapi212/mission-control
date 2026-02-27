@@ -9,8 +9,123 @@
  */
 
 import WebSocket from "ws";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 let reqCounter = 0;
+
+type DeviceIdentity = {
+  deviceId: string;
+  publicKeyPem: string;
+  privateKeyPem: string;
+};
+
+const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
+
+function base64UrlEncode(buf: Buffer): string {
+  return buf.toString("base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function derivePublicKeyRaw(publicKeyPem: string): Buffer {
+  const key = crypto.createPublicKey(publicKeyPem);
+  const spki = key.export({ type: "spki", format: "der" }) as Buffer;
+  if (
+    spki.length === ED25519_SPKI_PREFIX.length + 32 &&
+    spki.subarray(0, ED25519_SPKI_PREFIX.length).equals(ED25519_SPKI_PREFIX)
+  ) {
+    return spki.subarray(ED25519_SPKI_PREFIX.length);
+  }
+  return spki;
+}
+
+function fingerprintPublicKey(publicKeyPem: string): string {
+  const raw = derivePublicKeyRaw(publicKeyPem);
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
+
+function publicKeyRawBase64UrlFromPem(publicKeyPem: string): string {
+  return base64UrlEncode(derivePublicKeyRaw(publicKeyPem));
+}
+
+function loadOrCreateDeviceIdentity(): DeviceIdentity {
+  const filePath =
+    process.env.OPENCLAW_DEVICE_IDENTITY_PATH ||
+    process.env.MISSION_CONTROL_DEVICE_IDENTITY_PATH ||
+    path.join(process.cwd(), ".openclaw", "device-identity.json");
+
+  try {
+    if (fs.existsSync(filePath)) {
+      const parsed = JSON.parse(fs.readFileSync(filePath, "utf8")) as Partial<DeviceIdentity>;
+      if (parsed?.publicKeyPem && parsed?.privateKeyPem) {
+        const deviceId = fingerprintPublicKey(String(parsed.publicKeyPem));
+        return {
+          deviceId,
+          publicKeyPem: String(parsed.publicKeyPem),
+          privateKeyPem: String(parsed.privateKeyPem),
+        };
+      }
+    }
+  } catch {
+    // fall through
+  }
+
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519");
+  const publicKeyPem = publicKey.export({ type: "spki", format: "pem" }).toString();
+  const privateKeyPem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
+  const deviceId = fingerprintPublicKey(publicKeyPem);
+
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(
+    filePath,
+    `${JSON.stringify({ deviceId, publicKeyPem, privateKeyPem }, null, 2)}\n`,
+    { mode: 0o600 }
+  );
+  try {
+    fs.chmodSync(filePath, 0o600);
+  } catch {
+    // best effort
+  }
+
+  return { deviceId, publicKeyPem, privateKeyPem };
+}
+
+function buildDeviceAuthPayloadV3(params: {
+  deviceId: string;
+  clientId: string;
+  clientMode: string;
+  role: string;
+  scopes: string[];
+  signedAtMs: number;
+  token?: string | null;
+  nonce: string;
+  platform?: string | null;
+  deviceFamily?: string | null;
+}): string {
+  const scopes = params.scopes.join(",");
+  const token = params.token ?? "";
+  const platform = (params.platform ?? "").trim().toLowerCase();
+  const deviceFamily = (params.deviceFamily ?? "").trim().toLowerCase();
+  return [
+    "v3",
+    params.deviceId,
+    params.clientId,
+    params.clientMode,
+    params.role,
+    scopes,
+    String(params.signedAtMs),
+    token,
+    params.nonce,
+    platform,
+    deviceFamily,
+  ].join("|");
+}
+
+function signDevicePayload(privateKeyPem: string, payload: string): string {
+  const key = crypto.createPrivateKey(privateKeyPem);
+  const sig = crypto.sign(null, Buffer.from(payload, "utf8"), key);
+  return base64UrlEncode(sig);
+}
 
 function getWsUrl(): string {
   const url =
@@ -74,6 +189,42 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
 
         // Step 1: Respond to connect.challenge
         if (msg.type === "event" && msg.event === "connect.challenge") {
+          const nonce = (msg.payload as { nonce?: unknown } | undefined)?.nonce;
+          if (typeof nonce !== "string" || !nonce) {
+            ws.close();
+            done = true;
+            clearTimeout(timer);
+            reject(new Error("Gateway connect.challenge missing nonce"));
+            return;
+          }
+
+          const client = {
+            // Keep the canonical Control UI client id/mode so schema validation passes.
+            id: "openclaw-control-ui",
+            version: "1.0.0",
+            platform: "linux",
+            mode: "ui",
+          };
+          const role = "operator";
+          const scopes = ["operator.read"]; // read-only for realtime status
+          const auth = getAuthPayload();
+
+          // Device identity + signature (required for non-local/remote connections)
+          const identity = loadOrCreateDeviceIdentity();
+          const signedAtMs = Date.now();
+          const payload = buildDeviceAuthPayloadV3({
+            deviceId: identity.deviceId,
+            clientId: client.id,
+            clientMode: client.mode,
+            role,
+            scopes,
+            signedAtMs,
+            token: (auth as { token?: string } | undefined)?.token ?? "",
+            nonce,
+            platform: client.platform,
+          });
+          const signature = signDevicePayload(identity.privateKeyPem, payload);
+
           ws.send(
             JSON.stringify({
               type: "req",
@@ -82,19 +233,20 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
               params: {
                 minProtocol: 3,
                 maxProtocol: 3,
-                client: {
-                  id: "mission-control",
-                  version: "1.0.0",
-                  platform: "linux",
-                  mode: "service",
-                },
-                role: "operator",
-                // NOTE: operator.write requires device identity; use read-only for realtime status.
-                scopes: ["operator.read"],
+                client,
+                role,
+                scopes,
                 caps: [],
                 commands: [],
                 permissions: {},
-                auth: getAuthPayload(),
+                device: {
+                  id: identity.deviceId,
+                  publicKey: publicKeyRawBase64UrlFromPem(identity.publicKeyPem),
+                  signature,
+                  signedAt: signedAtMs,
+                  nonce,
+                },
+                auth,
                 locale: "en-US",
                 userAgent: "mission-control/1.0.0",
               },
