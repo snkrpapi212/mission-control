@@ -165,9 +165,14 @@ function getAuthPayload(): Record<string, string> {
  * Handles the connect.challenge → connect handshake automatically.
  */
 function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
+  const debug = process.env.OPENCLAW_DEBUG === "1";
+  const dlog = (...args: unknown[]) => {
+    if (debug) console.log("[openclaw-ws]", ...args);
+  };
   return new Promise((resolve, reject) => {
     const wsUrl = getWsUrl();
     const origin = getOriginUrl();
+    dlog("connecting", { wsUrl, origin });
     const ws = new WebSocket(wsUrl, { origin });
     let done = false;
 
@@ -180,6 +185,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
     }, timeoutMs);
 
     ws.on("open", () => {
+      dlog("socket open");
       // Wait for connect.challenge
     });
 
@@ -189,6 +195,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
 
         // Step 1: Respond to connect.challenge
         if (msg.type === "event" && msg.event === "connect.challenge") {
+          dlog("got connect.challenge");
           const nonce = (msg.payload as { nonce?: unknown } | undefined)?.nonce;
           if (typeof nonce !== "string" || !nonce) {
             ws.close();
@@ -257,6 +264,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
 
         // Step 2: Handle connect response
         if (msg.id === "mc-connect") {
+          dlog("connect response", { ok: msg.ok, error: msg.error?.message, details: msg.error?.details?.code });
           if (msg.ok) {
             done = true;
             clearTimeout(timer);
