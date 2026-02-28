@@ -4,12 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import {
-  checkHealth,
   sendToAgent,
-  listSessions,
-  getSessionHistory,
   spawnAgent,
 } from "@/lib/openclaw-client";
+
+const PROXY_BASE = process.env.OPENCLAW_PROXY_BASE || "http://127.0.0.1:3999";
 
 export async function GET(request: NextRequest) {
   const action = request.nextUrl.searchParams.get("action");
@@ -17,12 +16,14 @@ export async function GET(request: NextRequest) {
   try {
     switch (action) {
       case "health": {
-        const health = await checkHealth();
-        return NextResponse.json(health);
+        const r = await fetch(`${PROXY_BASE}/health`, { cache: "no-store" });
+        const data = await r.json();
+        return NextResponse.json(data);
       }
       case "sessions": {
-        const sessions = await listSessions();
-        return NextResponse.json({ ok: true, sessions });
+        const r = await fetch(`${PROXY_BASE}/sessions`, { cache: "no-store" });
+        const data = await r.json();
+        return NextResponse.json(data);
       }
       case "history": {
         const sessionKey = request.nextUrl.searchParams.get("sessionKey");
@@ -34,8 +35,12 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(
           request.nextUrl.searchParams.get("limit") || "20"
         );
-        const messages = await getSessionHistory(sessionKey, limit);
-        return NextResponse.json({ ok: true, messages });
+        const r = await fetch(
+          `${PROXY_BASE}/history?sessionKey=${encodeURIComponent(sessionKey)}&limit=${limit}`,
+          { cache: "no-store" }
+        );
+        const data = await r.json();
+        return NextResponse.json(data);
       }
       default:
         return NextResponse.json(
