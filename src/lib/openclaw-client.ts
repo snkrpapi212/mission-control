@@ -19,6 +19,7 @@ type DeviceIdentity = {
   deviceId: string;
   publicKeyPem: string;
   privateKeyPem: string;
+  deviceToken?: string;
 };
 
 const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
@@ -48,11 +49,16 @@ function publicKeyRawBase64UrlFromPem(publicKeyPem: string): string {
   return base64UrlEncode(derivePublicKeyRaw(publicKeyPem));
 }
 
-function loadOrCreateDeviceIdentity(): DeviceIdentity {
-  const filePath =
+function resolveIdentityPath(): string {
+  return (
     process.env.OPENCLAW_DEVICE_IDENTITY_PATH ||
     process.env.MISSION_CONTROL_DEVICE_IDENTITY_PATH ||
-    path.join(process.cwd(), ".openclaw", "device-identity.json");
+    path.join(process.cwd(), ".openclaw", "device-identity.json")
+  );
+}
+
+function loadOrCreateDeviceIdentity(): DeviceIdentity {
+  const filePath = resolveIdentityPath();
 
   try {
     if (fs.existsSync(filePath)) {
@@ -63,6 +69,7 @@ function loadOrCreateDeviceIdentity(): DeviceIdentity {
           deviceId,
           publicKeyPem: String(parsed.publicKeyPem),
           privateKeyPem: String(parsed.privateKeyPem),
+          deviceToken: typeof parsed.deviceToken === "string" ? parsed.deviceToken : undefined,
         };
       }
     }
@@ -215,9 +222,14 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
           const role = "operator";
           const scopes = ["operator.read"]; // read-only for realtime status
           const auth = getAuthPayload();
+          // Prefer a previously issued deviceToken when available.
+          const identity = loadOrCreateDeviceIdentity();
+          const authForConnect =
+            identity.deviceToken && !auth.password
+              ? { ...auth, deviceToken: identity.deviceToken, token: undefined }
+              : auth;
 
           // Device identity + signature (required for non-local/remote connections)
-          const identity = loadOrCreateDeviceIdentity();
           const signedAtMs = Date.now();
           const payload = buildDeviceAuthPayloadV3({
             deviceId: identity.deviceId,
@@ -226,7 +238,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
             role,
             scopes,
             signedAtMs,
-            token: (auth as { token?: string } | undefined)?.token ?? "",
+            token: (authForConnect as { token?: string } | undefined)?.token ?? "",
             nonce,
             platform: client.platform,
           });
@@ -253,7 +265,7 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
                   signedAt: signedAtMs,
                   nonce,
                 },
-                auth,
+                auth: authForConnect,
                 locale: "en-US",
                 userAgent: "mission-control/1.0.0",
               },
@@ -266,6 +278,28 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
         if (msg.id === "mc-connect") {
           dlog("connect response", { ok: msg.ok, error: msg.error?.message, details: msg.error?.details?.code });
           if (msg.ok) {
+            // Persist issued deviceToken for future connects.
+            try {
+              const issued = msg.payload?.auth?.deviceToken;
+              if (typeof issued === "string" && issued) {
+                const filePath = resolveIdentityPath();
+                const current = loadOrCreateDeviceIdentity();
+                fs.mkdirSync(path.dirname(filePath), { recursive: true });
+                fs.writeFileSync(
+                  filePath,
+                  `${JSON.stringify({
+                    deviceId: current.deviceId,
+                    publicKeyPem: current.publicKeyPem,
+                    privateKeyPem: current.privateKeyPem,
+                    deviceToken: issued,
+                  }, null, 2)}\n`,
+                  { mode: 0o600 }
+                );
+              }
+            } catch {
+              // ignore
+            }
+
             done = true;
             clearTimeout(timer);
             resolve(ws);
