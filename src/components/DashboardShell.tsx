@@ -105,7 +105,7 @@ export function DashboardShell() {
 
   const flattenedTasks = useMemo(() => Object.values(tasksByStatus).flat(), [tasksByStatus]);
   const taskCount = flattenedTasks.length;
-  const activeAgentCount = agents.filter((a) => a.status === "working").length;
+  const activeAgentCount = agents.filter((a) => Date.now() - a.lastHeartbeat < 2 * 60 * 1000).length;
 
   const currentTaskById = useMemo(() => {
     const map = new Map<string, string>();
