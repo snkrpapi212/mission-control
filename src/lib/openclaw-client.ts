@@ -171,12 +171,13 @@ function getAuthPayload(): Record<string, string> {
  * Open a connected + authenticated WebSocket to the OpenClaw Gateway.
  * Handles the connect.challenge → connect handshake automatically.
  */
-function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
+function openGatewayWs(timeoutMs = 15000, scopes: string[] = ["operator.read"]): Promise<WebSocket> {
   const debug = process.env.OPENCLAW_DEBUG === "1";
   const dlog = (...args: unknown[]) => {
     if (debug) console.log("[openclaw-ws]", ...args);
   };
   return new Promise((resolve, reject) => {
+    const scopesParam = scopes;
     const wsUrl = getWsUrl();
     const origin = getOriginUrl();
     dlog("connecting", { wsUrl, origin });
@@ -220,7 +221,8 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
             mode: "ui",
           };
           const role = "operator";
-          const scopes = ["operator.read"]; // read-only for realtime status
+          const scopes = scopesParam; // provided by caller (e.g. operator.admin)
+
           const auth = getAuthPayload();
           // Prefer a previously issued deviceToken when available.
           const identity = loadOrCreateDeviceIdentity();
@@ -353,9 +355,10 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
 export async function gatewayCall<T = unknown>(
   method: string,
   params: Record<string, unknown> = {},
-  timeoutMs = 30000
+  timeoutMs = 30000,
+  scopes: string[] = ["operator.read"]
 ): Promise<T> {
-  const ws = await openGatewayWs(timeoutMs);
+  const ws = await openGatewayWs(timeoutMs, scopes);
 
   return new Promise((resolve, reject) => {
     const reqId = `mc-${++reqCounter}`;
@@ -441,13 +444,16 @@ export async function checkHealth(): Promise<{
 export async function sendToAgent(
   agentId: string,
   message: string,
-  sessionKey?: string
+  sessionKey?: string,
+  scopes: string[] = ["operator.admin"]
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const key = sessionKey || `agent:${agentId}:main`;
     const result = await gatewayCall<{ ok: boolean; error?: string }>(
       "sessions.send",
-      { sessionKey: key, message }
+      { sessionKey: key, message },
+      30000,
+      scopes
     );
     return { ok: result.ok !== false, error: result.error };
   } catch (err) {
@@ -458,10 +464,12 @@ export async function sendToAgent(
 /**
  * List active sessions
  */
-export async function listSessions(): Promise<unknown[]> {
+export async function listSessions(scopes: string[] = ["operator.read"]): Promise<unknown[]> {
   const result = await gatewayCall<{ sessions: unknown[] }>(
     "sessions.list",
-    {}
+    {},
+    30000,
+    scopes
   );
   return result.sessions || [];
 }
@@ -471,11 +479,14 @@ export async function listSessions(): Promise<unknown[]> {
  */
 export async function getSessionHistory(
   sessionKey: string,
-  limit = 20
+  limit = 20,
+  scopes: string[] = ["operator.admin"]
 ): Promise<unknown[]> {
   const result = await gatewayCall<{ messages: unknown[] }>(
     "sessions.history",
-    { sessionKey, limit }
+    { sessionKey, limit },
+    30000,
+    scopes
   );
   return result.messages || [];
 }
@@ -486,14 +497,15 @@ export async function getSessionHistory(
 export async function spawnAgent(
   agentId: string,
   task: string,
-  model?: string
+  model?: string,
+  scopes: string[] = ["operator.admin"]
 ): Promise<{ ok: boolean; sessionKey?: string; error?: string }> {
   try {
     const result = await gatewayCall<{
       ok: boolean;
       sessionKey?: string;
       error?: string;
-    }>("sessions.spawn", { agentId, task, model });
+    }>("sessions.spawn", { agentId, task, model }, 30000, scopes);
     return result;
   } catch (err) {
     return { ok: false, error: (err as Error).message };

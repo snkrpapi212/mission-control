@@ -1,0 +1,189 @@
+import fs from "node:fs";
+import path from "node:path";
+
+import { listSessions, spawnAgent, sendToAgent, getSessionHistory } from "../lib/openclaw-client";
+
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
+const SECRET = process.env.TASK_DISPATCH_BRIDGE_SECRET;
+const INTERVAL_MS = parseInt(process.env.TASK_DISPATCH_INTERVAL_MS || "30000", 10);
+const STATE_PATH =
+  process.env.TASK_DISPATCH_STATE_PATH ||
+  "/opt/mission-control/.dispatch/state.json";
+
+const ADMIN_SCOPES = ["operator.admin"]; // for sessions.history / send / spawn
+
+type Task = {
+  _id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  assigneeIds: string[];
+  dispatch?: { claimedAt?: number; ackAt?: number; doneAt?: number };
+};
+
+type State = {
+  lastSeen: Record<string, { sessionKey: string; lastMsgTs?: number }>;
+};
+
+function loadState(): State {
+  try {
+    if (fs.existsSync(STATE_PATH)) {
+      return JSON.parse(fs.readFileSync(STATE_PATH, "utf8")) as State;
+    }
+  } catch {
+    // ignore
+  }
+  return { lastSeen: {} };
+}
+
+function saveState(state: State) {
+  fs.mkdirSync(path.dirname(STATE_PATH), { recursive: true });
+  fs.writeFileSync(STATE_PATH, JSON.stringify(state, null, 2));
+}
+
+async function convexRun(functionName: string, args: Record<string, unknown>) {
+  if (!CONVEX_URL) throw new Error("CONVEX_URL missing");
+  const res = await fetch(`${CONVEX_URL}/api/run/${functionName}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ args }),
+  });
+  const data = await res.json();
+  if (data?.status === "error") throw new Error(data.message || "convex error");
+  return data?.value;
+}
+
+async function getTasksByStatus(status: string): Promise<Task[]> {
+  if (!CONVEX_URL) return [];
+  const res = await fetch(`${CONVEX_URL}/api/run/tasks/getByStatus`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ args: { status } }),
+  });
+  const data = await res.json();
+  if (data?.status === "error") throw new Error(data.message || "convex error");
+  return (data?.value || []) as Task[];
+}
+
+function isSingleAssignee(task: Task): string | null {
+  if (!Array.isArray(task.assigneeIds) || task.assigneeIds.length !== 1) return null;
+  return task.assigneeIds[0] || null;
+}
+
+function buildDispatchPrompt(task: Task) {
+  return `You are the OpenClaw agent assigned to a Mission Control task.\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nProtocol (REQUIRED):\n1) Immediately ACK with a single-line JSON object:\n   {"mc":"ack","taskId":"${task._id}"}\n2) When complete, respond with a single-line JSON object:\n   {"mc":"done","taskId":"${task._id}","summary":"...","output":"..."}\n\nDo not wrap JSON in code fences. Do not add extra text on those lines.`;
+}
+
+function tryParseMcJson(line: string): any | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+  try {
+    const obj = JSON.parse(trimmed);
+    if (obj && (obj.mc === "ack" || obj.mc === "done") && typeof obj.taskId === "string") return obj;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+async function dispatchInboxTasks() {
+  if (!SECRET) {
+    console.log("[dispatcher] disabled: missing TASK_DISPATCH_BRIDGE_SECRET");
+    return;
+  }
+
+  const inbox = await getTasksByStatus("inbox");
+  for (const task of inbox) {
+    const agentId = isSingleAssignee(task);
+    if (!agentId) continue; // skip multi/no-assignee
+
+    // Claim
+    const claim = await convexRun("dispatcher/claim", {
+      secret: SECRET,
+      taskId: task._id,
+      agentId,
+    });
+
+    if (!claim?.ok) continue;
+
+    // Spawn session + send dispatch prompt
+    const spawnRes = await spawnAgent(agentId, buildDispatchPrompt(task), undefined, ADMIN_SCOPES);
+    if (!spawnRes.ok) {
+      console.error("[dispatcher] spawn failed", spawnRes.error);
+      continue;
+    }
+
+    const sendRes = await sendToAgent(agentId, buildDispatchPrompt(task), undefined, ADMIN_SCOPES);
+    if (!sendRes.ok) {
+      console.error("[dispatcher] send failed", sendRes.error);
+    }
+
+    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId}`);
+  }
+}
+
+async function processReplies() {
+  if (!SECRET) return;
+  const state = loadState();
+
+  const assigned = await getTasksByStatus("assigned");
+  const inprog = await getTasksByStatus("in_progress");
+  const tasks = [...assigned, ...inprog];
+
+  for (const task of tasks) {
+    const agentId = isSingleAssignee(task);
+    if (!agentId) continue;
+
+    const sessionKey = `agent:${agentId}:main`;
+    const history = (await getSessionHistory(sessionKey, 30, ADMIN_SCOPES)) as any[];
+
+    // naive parse: scan newest->oldest for ack/done
+    for (const msg of history) {
+      const text = String(msg?.content || msg?.message || msg?.text || "");
+      const parsed = tryParseMcJson(text);
+      if (!parsed) continue;
+      if (parsed.taskId !== task._id) continue;
+
+      if (parsed.mc === "ack" && task.status === "assigned") {
+        await convexRun("dispatcher/ack", {
+          secret: SECRET,
+          taskId: task._id,
+          agentId,
+          raw: text,
+        });
+        console.log(`[dispatcher] ack ${task._id}`);
+      }
+
+      if (parsed.mc === "done") {
+        await convexRun("dispatcher/done", {
+          secret: SECRET,
+          taskId: task._id,
+          agentId,
+          raw: text,
+          summary: parsed.summary,
+          output: parsed.output,
+        });
+        console.log(`[dispatcher] done ${task._id}`);
+      }
+    }
+
+    state.lastSeen[task._id] = { sessionKey };
+  }
+
+  saveState(state);
+}
+
+async function tick() {
+  try {
+    await dispatchInboxTasks();
+    await processReplies();
+  } catch (err) {
+    console.error("[dispatcher] tick error", (err as Error).message);
+  }
+}
+
+console.log(`[dispatcher] starting intervalMs=${INTERVAL_MS}`);
+// Run immediately
+void tick();
+setInterval(() => void tick(), INTERVAL_MS);

@@ -36,7 +36,7 @@ async function convexRun(path: string, args: Record<string, unknown>) {
 
 async function heartbeatTick() {
   if (!HEARTBEAT_SECRET || !CONVEX_URL) return;
-  const sessions = await gatewayListSessions();
+  const sessions = await gatewayListSessions(["operator.read"]);
   const onlineAgentIds = parseOnlineAgentIdsFromSessions(sessions as any[]);
   await convexRun("agents/heartbeatBridge", {
     secret: HEARTBEAT_SECRET,
@@ -85,7 +85,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname === "/sessions") {
-      const sessions = await gatewayListSessions();
+      const sessions = await gatewayListSessions(["operator.read"]);
       return json(res, 200, { ok: true, sessions });
     }
 
@@ -93,7 +93,7 @@ const server = http.createServer(async (req, res) => {
       const sessionKey = url.searchParams.get("sessionKey");
       const limit = parseInt(url.searchParams.get("limit") || "20", 10);
       if (!sessionKey) return json(res, 400, { ok: false, error: "sessionKey required" });
-      const messages = await gatewayHistory(sessionKey, limit);
+      const messages = await gatewayHistory(sessionKey, limit, ["operator.admin"]);
       return json(res, 200, { ok: true, messages });
     }
 

@@ -32,6 +32,17 @@ export default defineSchema({
     tags: v.array(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
+
+    // Dispatcher metadata (server-controlled)
+    dispatch: v.optional(
+      v.object({
+        claimedAt: v.optional(v.number()),
+        lastDispatchAt: v.optional(v.number()),
+        ackAt: v.optional(v.number()),
+        doneAt: v.optional(v.number()),
+        attempts: v.optional(v.number()),
+      })
+    ),
   }).index("by_status", ["status"])
     .index("by_updated", ["updatedAt"]),
 
@@ -112,4 +123,14 @@ export default defineSchema({
     createdAt: v.number(),
     expiresAt: v.number(),
   }).index("by_state", ["state"]),
+
+  // Audit trail for dispatcher/agent protocol
+  dispatchEvents: defineTable({
+    taskId: v.id("tasks"),
+    agentId: v.string(),
+    type: v.union(v.literal("dispatch"), v.literal("ack"), v.literal("done"), v.literal("error")),
+    raw: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_task", ["taskId", "createdAt"])
+    .index("by_agent", ["agentId", "createdAt"]),
 });
