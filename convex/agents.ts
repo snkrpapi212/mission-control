@@ -36,6 +36,39 @@ export const register = mutation({
   },
 });
 
+export const heartbeatBridge = mutation({
+  args: {
+    secret: v.string(),
+    onlineAgentIds: v.array(v.string()),
+    ts: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const expected = process.env.HEARTBEAT_BRIDGE_SECRET;
+    if (!expected) {
+      throw new Error("HEARTBEAT_BRIDGE_SECRET not configured");
+    }
+    if (args.secret !== expected) {
+      throw new Error("unauthorized");
+    }
+
+    const now = typeof args.ts === "number" ? args.ts : Date.now();
+    const onlineSet = new Set(args.onlineAgentIds);
+
+    const agents = await ctx.db.query("agents").collect();
+    let updated = 0;
+    for (const agent of agents) {
+      if (onlineSet.has(agent.agentId)) {
+        await ctx.db.patch(agent._id, {
+          lastHeartbeat: now,
+        });
+        updated++;
+      }
+    }
+
+    return { ok: true, updated, now };
+  },
+});
+
 export const updateStatus = mutation({
   args: {
     agentId: v.string(),

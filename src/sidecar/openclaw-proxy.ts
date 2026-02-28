@@ -8,6 +8,51 @@ import {
 
 const PORT = parseInt(process.env.OPENCLAW_PROXY_PORT || "3999", 10);
 const HOST = process.env.OPENCLAW_PROXY_HOST || "127.0.0.1";
+const HEARTBEAT_INTERVAL_MS = parseInt(process.env.OPENCLAW_HEARTBEAT_INTERVAL_MS || "30000", 10);
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
+const HEARTBEAT_SECRET = process.env.HEARTBEAT_BRIDGE_SECRET;
+
+function parseOnlineAgentIdsFromSessions(sessions: any[]): string[] {
+  const ids = new Set<string>();
+  for (const s of sessions) {
+    const key = typeof s?.key === "string" ? s.key : "";
+    const m = key.match(/^agent:([^:]+):/);
+    if (m?.[1]) ids.add(m[1]);
+  }
+  return Array.from(ids);
+}
+
+async function convexRun(path: string, args: Record<string, unknown>) {
+  if (!CONVEX_URL) throw new Error("CONVEX_URL missing");
+  const res = await fetch(`${CONVEX_URL}/api/run/${path}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ args }),
+  });
+  const data = await res.json();
+  if (data?.status === "error") throw new Error(data.message || "convex error");
+  return data?.value;
+}
+
+async function heartbeatTick() {
+  if (!HEARTBEAT_SECRET || !CONVEX_URL) return;
+  const sessions = await gatewayListSessions();
+  const onlineAgentIds = parseOnlineAgentIdsFromSessions(sessions as any[]);
+  await convexRun("agents/heartbeatBridge", {
+    secret: HEARTBEAT_SECRET,
+    onlineAgentIds,
+    ts: Date.now(),
+  });
+}
+
+// Fire-and-forget loop
+if (HEARTBEAT_SECRET && CONVEX_URL) {
+  setInterval(() => {
+    heartbeatTick().catch((err) => {
+      console.error("[openclaw-proxy] heartbeatTick error", err?.message || err);
+    });
+  }, HEARTBEAT_INTERVAL_MS);
+}
 
 function json(res: http.ServerResponse, status: number, body: unknown) {
   res.statusCode = status;
