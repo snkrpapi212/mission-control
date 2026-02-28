@@ -224,10 +224,11 @@ function openGatewayWs(timeoutMs = 15000, scopes: string[] = ["operator.read"]):
           const scopes = scopesParam; // provided by caller (e.g. operator.admin)
 
           const auth = getAuthPayload();
-          // Prefer a previously issued deviceToken when available.
+          // Prefer a previously issued deviceToken when available (unless disabled).
           const identity = loadOrCreateDeviceIdentity();
+          const disableDeviceToken = process.env.OPENCLAW_DISABLE_DEVICE_TOKEN === "1";
           const authForConnect =
-            identity.deviceToken && !auth.password
+            !disableDeviceToken && identity.deviceToken && !auth.password
               ? { ...auth, deviceToken: identity.deviceToken, token: undefined }
               : auth;
 
