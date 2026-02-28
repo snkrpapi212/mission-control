@@ -500,8 +500,8 @@ export async function startAgentRun(
         agentId,
         message: task,
         idempotencyKey,
-        channel: "internal",
-        // request delivery=false by default; internal channel
+        // Use internal bridge channel (no external delivery required)
+        channel: "webchat",
       },
       30000,
       scopes
