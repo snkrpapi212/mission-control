@@ -287,10 +287,11 @@ function openGatewayWs(timeoutMs = 15000, scopes: string[] = ["operator.read"]):
         if (msg.id === "mc-connect") {
           dlog("connect response", { ok: msg.ok, error: msg.error?.message, details: msg.error?.details?.code });
           if (msg.ok) {
-            // Persist issued deviceToken for future connects.
+            // Persist issued deviceToken for future connects (unless disabled).
             try {
+              const disableDeviceToken = process.env.OPENCLAW_DISABLE_DEVICE_TOKEN === "1";
               const issued = msg.payload?.auth?.deviceToken;
-              if (typeof issued === "string" && issued) {
+              if (!disableDeviceToken && typeof issued === "string" && issued) {
                 const filePath = resolveIdentityPath();
                 const current = loadOrCreateDeviceIdentity();
                 fs.mkdirSync(path.dirname(filePath), { recursive: true });
