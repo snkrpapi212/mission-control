@@ -503,12 +503,28 @@ export async function spawnAgent(
   scopes: string[] = ["operator.admin"]
 ): Promise<{ ok: boolean; sessionKey?: string; error?: string }> {
   try {
-    const result = await gatewayCall<{
-      ok: boolean;
-      sessionKey?: string;
-      error?: string;
-    }>("sessions.spawn", { agentId, task, model }, 30000, scopes);
-    return result;
+    // OpenClaw gateway uses `agent` method (not sessions.spawn) to start/route runs.
+    const idempotencyKey = `mc-${agentId}-${Date.now()}`;
+    const result = await gatewayCall<any>(
+      "agent",
+      {
+        agentId,
+        message: task,
+        idempotencyKey,
+        // Force internal channel so delivery isn't required
+        channel: "internal",
+      },
+      30000,
+      scopes
+    );
+
+    // Best-effort sessionKey resolution: prefer explicit return, fallback to canonical.
+    const sessionKey =
+      result?.sessionKey ||
+      result?.payload?.sessionKey ||
+      (agentId ? `agent:${agentId}:main` : undefined);
+
+    return { ok: true, sessionKey };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
