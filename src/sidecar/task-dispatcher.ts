@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { listSessions, spawnAgent, sendToAgent, getSessionHistory } from "../lib/openclaw-client";
+import { gatewayCall, spawnAgent, sendToAgent } from "../lib/openclaw-client";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
 const SECRET = process.env.TASK_DISPATCH_BRIDGE_SECRET;
@@ -136,11 +136,26 @@ async function processReplies() {
     if (!agentId) continue;
 
     const sessionKey = `agent:${agentId}:main`;
-    const history = (await getSessionHistory(sessionKey, 30, ADMIN_SCOPES)) as any[];
 
-    // naive parse: scan newest->oldest for ack/done
-    for (const msg of history) {
-      const text = String(msg?.content || msg?.message || msg?.text || "");
+    // Use gateway transcript preview (supported) instead of sessions.history.
+    const previewRes = await gatewayCall<{ previews: any[] }>(
+      "sessions.preview",
+      { keys: [sessionKey], limit: 12, maxChars: 500 },
+      30000,
+      ["operator.read"]
+    );
+
+    const previews = (previewRes as any)?.previews || [];
+    const items: any[] = previews?.[0]?.items || [];
+
+    const lastSeenTs = state.lastSeen[task._id]?.lastMsgTs || 0;
+
+    // scan items oldest->newest, but only handle new ones
+    for (const it of items) {
+      const ts = Number(it?.ts || it?.createdAt || 0);
+      if (ts && ts <= lastSeenTs) continue;
+
+      const text = String(it?.text || "");
       const parsed = tryParseMcJson(text);
       if (!parsed) continue;
       if (parsed.taskId !== task._id) continue;
@@ -166,9 +181,11 @@ async function processReplies() {
         });
         console.log(`[dispatcher] done ${task._id}`);
       }
+
+      if (ts) state.lastSeen[task._id] = { sessionKey, lastMsgTs: ts };
     }
 
-    state.lastSeen[task._id] = { sessionKey };
+    state.lastSeen[task._id] = state.lastSeen[task._id] || { sessionKey };
   }
 
   saveState(state);
