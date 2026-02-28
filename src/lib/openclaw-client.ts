@@ -479,31 +479,20 @@ export async function listSessions(scopes: string[] = ["operator.read"]): Promis
 /**
  * Get session history
  */
-export async function getSessionHistory(
-  sessionKey: string,
-  limit = 20,
-  scopes: string[] = ["operator.admin"]
-): Promise<unknown[]> {
-  const result = await gatewayCall<{ messages: unknown[] }>(
-    "sessions.history",
-    { sessionKey, limit },
-    30000,
-    scopes
-  );
-  return result.messages || [];
-}
+// NOTE: sessions.history is not implemented on the gateway.
+// Use sessions.preview for transcripts, or use runId-based completion via agent.wait.
+
 
 /**
- * Spawn a sub-agent task
+ * Start an agent run (returns runId)
  */
-export async function spawnAgent(
+export async function startAgentRun(
   agentId: string,
   task: string,
-  model?: string,
   scopes: string[] = ["operator.admin"]
-): Promise<{ ok: boolean; sessionKey?: string; error?: string }> {
+): Promise<{ ok: boolean; runId?: string; error?: string }> {
   try {
-    // OpenClaw gateway uses `agent` method (not sessions.spawn) to start/route runs.
+    // OpenClaw gateway uses `agent` method to start a run.
     const idempotencyKey = `mc-${agentId}-${Date.now()}`;
     const result = await gatewayCall<any>(
       "agent",
@@ -511,20 +500,18 @@ export async function spawnAgent(
         agentId,
         message: task,
         idempotencyKey,
-        // Force internal channel so delivery isn't required
         channel: "internal",
+        // request delivery=false by default; internal channel
       },
       30000,
       scopes
     );
 
-    // Best-effort sessionKey resolution: prefer explicit return, fallback to canonical.
-    const sessionKey =
-      result?.sessionKey ||
-      result?.payload?.sessionKey ||
-      (agentId ? `agent:${agentId}:main` : undefined);
-
-    return { ok: true, sessionKey };
+    const runId = result?.runId || result?.payload?.runId;
+    if (!runId) {
+      return { ok: false, error: "missing runId from gateway" };
+    }
+    return { ok: true, runId };
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }

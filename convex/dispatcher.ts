@@ -61,6 +61,37 @@ export const claim = mutation({
   },
 });
 
+export const setRun = mutation({
+  args: {
+    secret: v.string(),
+    taskId: v.id("tasks"),
+    agentId: v.string(),
+    runId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(process.env.TASK_DISPATCH_BRIDGE_SECRET, args.secret);
+    const task = await ctx.db.get(args.taskId);
+    if (!task) throw new Error("Task not found");
+    if (task.assigneeIds.length !== 1 || task.assigneeIds[0] !== args.agentId) {
+      return { ok: false, reason: "assignee_mismatch" };
+    }
+    const now = Date.now();
+    await ctx.db.patch(args.taskId, {
+      updatedAt: now,
+      dispatch: {
+        claimedAt: task.dispatch?.claimedAt,
+        lastDispatchAt: task.dispatch?.lastDispatchAt,
+        attempts: task.dispatch?.attempts,
+        ackAt: task.dispatch?.ackAt,
+        doneAt: task.dispatch?.doneAt,
+        sessionKey: task.dispatch?.sessionKey,
+        runId: args.runId,
+      },
+    });
+    return { ok: true };
+  },
+});
+
 export const setSessionKey = mutation({
   args: {
     secret: v.string(),

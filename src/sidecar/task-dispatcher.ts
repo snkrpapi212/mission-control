@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { gatewayCall, sendToAgent } from "../lib/openclaw-client";
+import { gatewayCall, startAgentRun, sendToAgent } from "../lib/openclaw-client";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
 const SECRET = process.env.TASK_DISPATCH_BRIDGE_SECRET;
@@ -10,7 +10,7 @@ const STATE_PATH =
   process.env.TASK_DISPATCH_STATE_PATH ||
   "/opt/mission-control/.dispatch/state.json";
 
-const ADMIN_SCOPES = ["operator.admin"]; // for sessions.history / send / spawn
+const ADMIN_SCOPES = ["operator.admin"]; // to run agent + wait
 
 type Task = {
   _id: string;
@@ -19,11 +19,11 @@ type Task = {
   status: string;
   priority: string;
   assigneeIds: string[];
-  dispatch?: { claimedAt?: number; ackAt?: number; doneAt?: number };
+  dispatch?: { claimedAt?: number; ackAt?: number; doneAt?: number; runId?: string };
 };
 
 type State = {
-  lastSeen: Record<string, { sessionKey: string; lastMsgTs?: number }>;
+  lastSeen: Record<string, unknown>;
 };
 
 function loadState(): State {
@@ -71,21 +71,8 @@ function isSingleAssignee(task: Task): string | null {
   return task.assigneeIds[0] || null;
 }
 
-function buildDispatchPrompt(task: Task) {
-  const callbackBase = process.env.DISPATCH_CALLBACK_BASE || "http://134.209.163.192";
-  return `You are the OpenClaw agent assigned to a Mission Control task.\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nProtocol (REQUIRED):\nYou must POST your ACK and DONE as JSON to Mission Control callbacks.\n\nACK:\nPOST ${callbackBase}/api/dispatch/ack\nHeader: x-dispatch-secret: ${process.env.DISPATCH_CALLBACK_SECRET}\nBody: {"mc":"ack","taskId":"${task._id}","agentId":"${task.assigneeIds[0]}"}\n\nDONE:\nPOST ${callbackBase}/api/dispatch/done\nHeader: x-dispatch-secret: ${process.env.DISPATCH_CALLBACK_SECRET}\nBody: {"mc":"done","taskId":"${task._id}","agentId":"${task.assigneeIds[0]}","summary":"...","output":"..."}\n\nDo NOT wrap JSON in code fences. The POST bodies must be single-line JSON.`;
-}
-
-function tryParseMcJson(line: string): any | null {
-  const trimmed = line.trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
-  try {
-    const obj = JSON.parse(trimmed);
-    if (obj && (obj.mc === "ack" || obj.mc === "done") && typeof obj.taskId === "string") return obj;
-  } catch {
-    // ignore
-  }
-  return null;
+function buildTaskPrompt(task: Task) {
+  return `Mission Control Task\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nReturn a short response when finished.`;
 }
 
 async function dispatchInboxTasks() {
@@ -105,113 +92,79 @@ async function dispatchInboxTasks() {
       taskId: task._id,
       agentId,
     });
-
     if (!claim?.ok) continue;
 
-    // NOTE: Gateway does not expose `sessions.spawn` RPC.
-    // We dispatch into the canonical agent session instead.
-    const sessionKey = `agent:${agentId}:main`;
-
-    await convexRun("dispatcher/setSessionKey", {
-      secret: SECRET,
-      taskId: task._id,
-      agentId,
-      sessionKey,
-    });
-
-    const sendRes = await sendToAgent(
-      agentId,
-      buildDispatchPrompt(task),
-      sessionKey,
-      ADMIN_SCOPES
-    );
-    if (!sendRes.ok) {
-      console.error("[dispatcher] send failed", sendRes.error);
+    // Start run
+    const run = await startAgentRun(agentId, buildTaskPrompt(task), ADMIN_SCOPES);
+    if (!run.ok || !run.runId) {
+      console.error("[dispatcher] startAgentRun failed", run.error);
       continue;
     }
 
-    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId} session=${sessionKey}`);
+    await convexRun("dispatcher/setRun", {
+      secret: SECRET,
+      taskId: task._id,
+      agentId,
+      runId: run.runId,
+    });
+
+    // Send a copy to the main session too (optional)
+    await sendToAgent(agentId, buildTaskPrompt(task), `agent:${agentId}:main`, ADMIN_SCOPES).catch(
+      () => undefined
+    );
+
+    // Immediately ACK → in_progress
+    await convexRun("dispatcher/ack", {
+      secret: SECRET,
+      taskId: task._id,
+      agentId,
+      raw: JSON.stringify({ mc: "auto-ack", runId: run.runId }),
+    });
+
+    console.log(`[dispatcher] started run ${run.runId} for ${task._id}`);
   }
 }
 
-async function processReplies() {
+async function advanceRuns() {
   if (!SECRET) return;
-  const state = loadState();
 
-  const assigned = await getTasksByStatus("assigned");
   const inprog = await getTasksByStatus("in_progress");
-  const tasks = [...assigned, ...inprog];
-
-  for (const task of tasks) {
+  for (const task of inprog) {
     const agentId = isSingleAssignee(task);
     if (!agentId) continue;
+    const runId = task.dispatch?.runId;
+    if (!runId) continue;
 
-    const sessionKey = task.dispatch?.sessionKey || `agent:${agentId}:main`;
-
-    // Use gateway transcript preview (supported) instead of sessions.history.
-    const previewRes = await gatewayCall<{ previews: any[] }>(
-      "sessions.preview",
-      { keys: [sessionKey], limit: 12, maxChars: 800 },
-      30000,
-      ["operator.read"]
+    const snap = await gatewayCall<any>(
+      "agent.wait",
+      { runId, timeoutMs: 1000 },
+      5000,
+      ADMIN_SCOPES
     );
 
-    const previews = (previewRes as any)?.previews || [];
-    const items: any[] = previews?.[0]?.items || [];
-
-    const lastSeenTs = state.lastSeen[task._id]?.lastMsgTs || 0;
-
-    // scan items oldest->newest, but only handle new ones
-    for (const it of items) {
-      const ts = Number(it?.ts || it?.createdAt || 0);
-      if (ts && ts <= lastSeenTs) continue;
-
-      const text = String(it?.text || "");
-      const parsed = tryParseMcJson(text);
-      if (!parsed) continue;
-      if (parsed.taskId !== task._id) continue;
-
-      if (parsed.mc === "ack" && task.status === "assigned") {
-        await convexRun("dispatcher/ack", {
-          secret: SECRET,
-          taskId: task._id,
-          agentId,
-          raw: text,
-        });
-        console.log(`[dispatcher] ack ${task._id}`);
-      }
-
-      if (parsed.mc === "done") {
-        await convexRun("dispatcher/done", {
-          secret: SECRET,
-          taskId: task._id,
-          agentId,
-          raw: text,
-          summary: parsed.summary,
-          output: parsed.output,
-        });
-        console.log(`[dispatcher] done ${task._id}`);
-      }
-
-      if (ts) state.lastSeen[task._id] = { sessionKey, lastMsgTs: ts };
+    if (snap?.status === "ok") {
+      await convexRun("dispatcher/done", {
+        secret: SECRET,
+        taskId: task._id,
+        agentId,
+        raw: JSON.stringify(snap),
+        summary: "completed",
+        output: JSON.stringify(snap),
+      });
+      console.log(`[dispatcher] done task ${task._id} run ${runId}`);
     }
-
-    state.lastSeen[task._id] = state.lastSeen[task._id] || { sessionKey };
   }
-
-  saveState(state);
 }
 
 async function tick() {
   try {
     await dispatchInboxTasks();
-    await processReplies();
+    await advanceRuns();
   } catch (err) {
     console.error("[dispatcher] tick error", (err as Error).message);
   }
 }
 
 console.log(`[dispatcher] starting intervalMs=${INTERVAL_MS}`);
-// Run immediately
 void tick();
 setInterval(() => void tick(), INTERVAL_MS);

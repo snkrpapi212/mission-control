@@ -42,6 +42,7 @@ export default defineSchema({
         doneAt: v.optional(v.number()),
         attempts: v.optional(v.number()),
         sessionKey: v.optional(v.string()),
+        runId: v.optional(v.string()),
       })
     ),
   }).index("by_status", ["status"])
