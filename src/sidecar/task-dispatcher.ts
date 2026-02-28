@@ -75,7 +75,38 @@ function buildTaskPrompt(task: Task) {
   return `Mission Control Task\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nReturn a short response when finished.`;
 }
 
-async function dispatchInboxTasks() {
+async function startTaskRun(task: Task, agentId: string) {
+  // Start run
+  const run = await startAgentRun(agentId, buildTaskPrompt(task), ADMIN_SCOPES);
+  if (!run.ok || !run.runId) {
+    console.error("[dispatcher] startAgentRun failed", run.error, "task", task._id);
+    return;
+  }
+
+  await convexRun("dispatcher/setRun", {
+    secret: SECRET,
+    taskId: task._id,
+    agentId,
+    runId: run.runId,
+  });
+
+  // Send a copy to the main session too (optional)
+  await sendToAgent(agentId, buildTaskPrompt(task), `agent:${agentId}:main`, ADMIN_SCOPES).catch(
+    () => undefined
+  );
+
+  // Immediately ACK → in_progress
+  await convexRun("dispatcher/ack", {
+    secret: SECRET,
+    taskId: task._id,
+    agentId,
+    raw: JSON.stringify({ mc: "auto-ack", runId: run.runId }),
+  });
+
+  console.log(`[dispatcher] started run ${run.runId} for ${task._id}`);
+}
+
+async function dispatchInboxAndAssignedTasks() {
   if (!SECRET) {
     console.log("[dispatcher] disabled: missing TASK_DISPATCH_BRIDGE_SECRET");
     return;
@@ -94,34 +125,17 @@ async function dispatchInboxTasks() {
     });
     if (!claim?.ok) continue;
 
-    // Start run
-    const run = await startAgentRun(agentId, buildTaskPrompt(task), ADMIN_SCOPES);
-    if (!run.ok || !run.runId) {
-      console.error("[dispatcher] startAgentRun failed", run.error);
-      continue;
-    }
+    await startTaskRun(task, agentId);
+  }
 
-    await convexRun("dispatcher/setRun", {
-      secret: SECRET,
-      taskId: task._id,
-      agentId,
-      runId: run.runId,
-    });
+  // Rescue stuck assigned tasks that never got a runId
+  const assigned = await getTasksByStatus("assigned");
+  for (const task of assigned) {
+    const agentId = isSingleAssignee(task);
+    if (!agentId) continue;
+    if (task.dispatch?.runId) continue;
 
-    // Send a copy to the main session too (optional)
-    await sendToAgent(agentId, buildTaskPrompt(task), `agent:${agentId}:main`, ADMIN_SCOPES).catch(
-      () => undefined
-    );
-
-    // Immediately ACK → in_progress
-    await convexRun("dispatcher/ack", {
-      secret: SECRET,
-      taskId: task._id,
-      agentId,
-      raw: JSON.stringify({ mc: "auto-ack", runId: run.runId }),
-    });
-
-    console.log(`[dispatcher] started run ${run.runId} for ${task._id}`);
+    await startTaskRun(task, agentId);
   }
 }
 
@@ -158,7 +172,7 @@ async function advanceRuns() {
 
 async function tick() {
   try {
-    await dispatchInboxTasks();
+    await dispatchInboxAndAssignedTasks();
     await advanceRuns();
   } catch (err) {
     console.error("[dispatcher] tick error", (err as Error).message);
