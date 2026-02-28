@@ -47,11 +47,26 @@ async function heartbeatTick() {
 
 // Fire-and-forget loop
 if (HEARTBEAT_SECRET && CONVEX_URL) {
+  console.log(
+    `[openclaw-proxy] heartbeat enabled intervalMs=${HEARTBEAT_INTERVAL_MS} convex=${CONVEX_URL}`
+  );
+  // Run once immediately so the UI updates quickly after restarts.
+  heartbeatTick().catch((err) => {
+    console.error("[openclaw-proxy] heartbeatTick error", err?.message || err);
+  });
   setInterval(() => {
-    heartbeatTick().catch((err) => {
-      console.error("[openclaw-proxy] heartbeatTick error", err?.message || err);
-    });
+    heartbeatTick()
+      .then(() => {
+        console.log("[openclaw-proxy] heartbeatTick ok");
+      })
+      .catch((err) => {
+        console.error("[openclaw-proxy] heartbeatTick error", err?.message || err);
+      });
   }, HEARTBEAT_INTERVAL_MS);
+} else {
+  console.log(
+    `[openclaw-proxy] heartbeat disabled (missing HEARTBEAT_BRIDGE_SECRET or CONVEX_URL)`
+  );
 }
 
 function json(res: http.ServerResponse, status: number, body: unknown) {
