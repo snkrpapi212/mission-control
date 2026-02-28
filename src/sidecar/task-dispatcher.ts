@@ -109,17 +109,24 @@ async function dispatchInboxTasks() {
 
     // Spawn session + send dispatch prompt
     const spawnRes = await spawnAgent(agentId, buildDispatchPrompt(task), undefined, ADMIN_SCOPES);
-    if (!spawnRes.ok) {
+    if (!spawnRes.ok || !spawnRes.sessionKey) {
       console.error("[dispatcher] spawn failed", spawnRes.error);
       continue;
     }
 
-    const sendRes = await sendToAgent(agentId, buildDispatchPrompt(task), undefined, ADMIN_SCOPES);
+    await convexRun("dispatcher/setSessionKey", {
+      secret: SECRET,
+      taskId: task._id,
+      agentId,
+      sessionKey: spawnRes.sessionKey,
+    });
+
+    const sendRes = await sendToAgent(agentId, buildDispatchPrompt(task), spawnRes.sessionKey, ADMIN_SCOPES);
     if (!sendRes.ok) {
       console.error("[dispatcher] send failed", sendRes.error);
     }
 
-    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId}`);
+    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId} session=${spawnRes.sessionKey}`);
   }
 }
 
@@ -135,12 +142,12 @@ async function processReplies() {
     const agentId = isSingleAssignee(task);
     if (!agentId) continue;
 
-    const sessionKey = `agent:${agentId}:main`;
+    const sessionKey = task.dispatch?.sessionKey || `agent:${agentId}:main`;
 
     // Use gateway transcript preview (supported) instead of sessions.history.
     const previewRes = await gatewayCall<{ previews: any[] }>(
       "sessions.preview",
-      { keys: [sessionKey], limit: 12, maxChars: 500 },
+      { keys: [sessionKey], limit: 12, maxChars: 800 },
       30000,
       ["operator.read"]
     );

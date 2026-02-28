@@ -38,6 +38,7 @@ export const claim = mutation({
         attempts,
         ackAt: task.dispatch?.ackAt,
         doneAt: task.dispatch?.doneAt,
+        sessionKey: task.dispatch?.sessionKey,
       },
     });
 
@@ -57,6 +58,36 @@ export const claim = mutation({
     });
 
     return { ok: true, attempts };
+  },
+});
+
+export const setSessionKey = mutation({
+  args: {
+    secret: v.string(),
+    taskId: v.id("tasks"),
+    agentId: v.string(),
+    sessionKey: v.string(),
+  },
+  handler: async (ctx, args) => {
+    requireBridgeSecret(process.env.TASK_DISPATCH_BRIDGE_SECRET, args.secret);
+    const task = await ctx.db.get(args.taskId);
+    if (!task) throw new Error("Task not found");
+    if (task.assigneeIds.length !== 1 || task.assigneeIds[0] !== args.agentId) {
+      return { ok: false, reason: "assignee_mismatch" };
+    }
+    const now = Date.now();
+    await ctx.db.patch(args.taskId, {
+      updatedAt: now,
+      dispatch: {
+        claimedAt: task.dispatch?.claimedAt,
+        lastDispatchAt: task.dispatch?.lastDispatchAt,
+        attempts: task.dispatch?.attempts,
+        ackAt: task.dispatch?.ackAt,
+        doneAt: task.dispatch?.doneAt,
+        sessionKey: args.sessionKey,
+      },
+    });
+    return { ok: true };
   },
 });
 
@@ -87,6 +118,7 @@ export const ack = mutation({
         attempts: task.dispatch?.attempts,
         ackAt: now,
         doneAt: task.dispatch?.doneAt,
+        sessionKey: task.dispatch?.sessionKey,
       },
     });
 
@@ -139,6 +171,7 @@ export const done = mutation({
         attempts: task.dispatch?.attempts,
         ackAt: task.dispatch?.ackAt,
         doneAt: now,
+        sessionKey: task.dispatch?.sessionKey,
       },
     });
 
