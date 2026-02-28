@@ -150,6 +150,7 @@ export const ack = mutation({
         ackAt: now,
         doneAt: task.dispatch?.doneAt,
         sessionKey: task.dispatch?.sessionKey,
+        runId: task.dispatch?.runId,
       },
     });
 
@@ -203,6 +204,7 @@ export const done = mutation({
         ackAt: task.dispatch?.ackAt,
         doneAt: now,
         sessionKey: task.dispatch?.sessionKey,
+        runId: task.dispatch?.runId,
       },
     });
 
