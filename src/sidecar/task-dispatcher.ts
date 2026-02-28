@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { gatewayCall, spawnAgent, sendToAgent } from "../lib/openclaw-client";
+import { gatewayCall, sendToAgent } from "../lib/openclaw-client";
 
 const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;
 const SECRET = process.env.TASK_DISPATCH_BRIDGE_SECRET;
@@ -107,26 +107,29 @@ async function dispatchInboxTasks() {
 
     if (!claim?.ok) continue;
 
-    // Spawn session + send dispatch prompt
-    const spawnRes = await spawnAgent(agentId, buildDispatchPrompt(task), undefined, ADMIN_SCOPES);
-    if (!spawnRes.ok || !spawnRes.sessionKey) {
-      console.error("[dispatcher] spawn failed", spawnRes.error);
-      continue;
-    }
+    // NOTE: Gateway does not expose `sessions.spawn` RPC.
+    // We dispatch into the canonical agent session instead.
+    const sessionKey = `agent:${agentId}:main`;
 
     await convexRun("dispatcher/setSessionKey", {
       secret: SECRET,
       taskId: task._id,
       agentId,
-      sessionKey: spawnRes.sessionKey,
+      sessionKey,
     });
 
-    const sendRes = await sendToAgent(agentId, buildDispatchPrompt(task), spawnRes.sessionKey, ADMIN_SCOPES);
+    const sendRes = await sendToAgent(
+      agentId,
+      buildDispatchPrompt(task),
+      sessionKey,
+      ADMIN_SCOPES
+    );
     if (!sendRes.ok) {
       console.error("[dispatcher] send failed", sendRes.error);
+      continue;
     }
 
-    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId} session=${spawnRes.sessionKey}`);
+    console.log(`[dispatcher] dispatched ${task._id} -> ${agentId} session=${sessionKey}`);
   }
 }
 
