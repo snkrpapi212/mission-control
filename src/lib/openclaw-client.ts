@@ -231,6 +231,11 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
 
           // Device identity + signature (required for non-local/remote connections)
           const signedAtMs = Date.now();
+          const tokenForSignature =
+            (authForConnect as { token?: string; deviceToken?: string } | undefined)?.token ??
+            (authForConnect as { token?: string; deviceToken?: string } | undefined)?.deviceToken ??
+            "";
+
           const payload = buildDeviceAuthPayloadV3({
             deviceId: identity.deviceId,
             clientId: client.id,
@@ -238,7 +243,8 @@ function openGatewayWs(timeoutMs = 15000): Promise<WebSocket> {
             role,
             scopes,
             signedAtMs,
-            token: (authForConnect as { token?: string } | undefined)?.token ?? "",
+            // IMPORTANT: signature token must match the auth credential used (token OR deviceToken)
+            token: tokenForSignature,
             nonce,
             platform: client.platform,
           });
