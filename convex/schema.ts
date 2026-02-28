@@ -80,4 +80,36 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_agent_undelivered", ["mentionedAgentId", "delivered"])
     .index("by_time", ["createdAt"]),
+
+  // OAuth tables (used by convex/oauth.ts)
+  oauthTokens: defineTable({
+    userId: v.string(),
+    provider: v.string(),
+    providerAccountId: v.string(),
+    accessToken: v.string(),
+    refreshToken: v.optional(v.string()),
+    expiresAt: v.optional(v.number()),
+    scope: v.optional(v.string()),
+    tokenType: v.optional(v.string()),
+    metadata: v.optional(
+      v.object({
+        email: v.optional(v.string()),
+        name: v.optional(v.string()),
+        image: v.optional(v.string()),
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_provider", ["userId", "provider"]),
+
+  oauthStates: defineTable({
+    state: v.string(),
+    provider: v.string(),
+    codeVerifier: v.optional(v.string()),
+    redirectUrl: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.number(),
+  }).index("by_state", ["state"]),
 });
