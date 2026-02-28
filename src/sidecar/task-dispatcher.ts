@@ -72,7 +72,8 @@ function isSingleAssignee(task: Task): string | null {
 }
 
 function buildDispatchPrompt(task: Task) {
-  return `You are the OpenClaw agent assigned to a Mission Control task.\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nProtocol (REQUIRED):\n1) Immediately ACK with a single-line JSON object:\n   {"mc":"ack","taskId":"${task._id}"}\n2) When complete, respond with a single-line JSON object:\n   {"mc":"done","taskId":"${task._id}","summary":"...","output":"..."}\n\nDo not wrap JSON in code fences. Do not add extra text on those lines.`;
+  const callbackBase = process.env.DISPATCH_CALLBACK_BASE || "http://134.209.163.192";
+  return `You are the OpenClaw agent assigned to a Mission Control task.\n\nTASK_ID: ${task._id}\nTITLE: ${task.title}\nPRIORITY: ${task.priority}\n\nDESCRIPTION:\n${task.description}\n\nProtocol (REQUIRED):\nYou must POST your ACK and DONE as JSON to Mission Control callbacks.\n\nACK:\nPOST ${callbackBase}/api/dispatch/ack\nHeader: x-dispatch-secret: ${process.env.DISPATCH_CALLBACK_SECRET}\nBody: {"mc":"ack","taskId":"${task._id}","agentId":"${task.assigneeIds[0]}"}\n\nDONE:\nPOST ${callbackBase}/api/dispatch/done\nHeader: x-dispatch-secret: ${process.env.DISPATCH_CALLBACK_SECRET}\nBody: {"mc":"done","taskId":"${task._id}","agentId":"${task.assigneeIds[0]}","summary":"...","output":"..."}\n\nDo NOT wrap JSON in code fences. The POST bodies must be single-line JSON.`;
 }
 
 function tryParseMcJson(line: string): any | null {
